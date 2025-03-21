@@ -1,0 +1,11 @@
+\frametitle{N-gram based language categorization}
+
+Computation of distances using an ``out-of-place'' statistic - alternatives for rank-ordered
+
+\begin{center}
+
+\includegraphics[scale=0.4]{figures/out-of-place-stat.png}
+
+\end{center}
+
+

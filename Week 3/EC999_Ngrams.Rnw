@@ -1,0 +1,761 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: N-Grams} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+library(reshape2)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/QTA/Lectures/Week 3")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+stopwords=c("this","a","the","and","for")
+
+textmat <-
+function (vec=A, stopws=stopwords) {
+        dummy <- mapply(wordfreq, vec, 1:length(vec), MoreArgs=list(stopws=stopwords), SIMPLIFY=F)
+        names(dummy) <- NULL
+        dtm <- t(xtabs(Freq ~ ., data = do.call("rbind", dummy)))
+        dtm
+}
+
+str_break = function(x, width = 90L) {
+  n = nchar(x)
+  if (n <= width) return(x)
+  n1 = seq(1L, n, by = width)
+  n2 = seq(width, n, by = width)
+  if (n %% width != 0) n2 = c(n2, n)
+  substring(x, n1, n2)
+}
+
+library(ngram)
+TRUMP<-readLines(con="../../Data/Trump-Speeches.txt")
+#concatenate into one massive string, remove empty lines
+TRUMP<-TRUMP[-grep("^SPEECH|^$", TRUMP)]
+TRUMP<-gsub(" +"," ",TRUMP) 
+TRUMP<-paste(TRUMP, collapse=" ")
+TRUMP<-preprocess(TRUMP, remove.punct=TRUE)
+UNITRUMP<-ngram(TRUMP, 1)
+BITRUMP<-ngram(TRUMP, 2)
+TRITRUMP<-ngram(TRUMP, 3)
+QUADTRUMP<-ngram(TRUMP, 4)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Google Ngrams}
+
+\begin{figure}
+\includegraphics[scale=0.5]<1>{figures/horse_fish_dog_online_verbose.png}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{N-Gram Language Models}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Autocomplete Function}
+
+\begin{figure}
+\includegraphics[scale=0.5]<1>{figures/ios-autocomplete}
+\includegraphics[scale=0.63]<2>{figures/babblingpaper.png}
+\end{figure}
+Behind the scense works an n-gram language model.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Uses of Probabilistic Language Models}
+
+\begin{itemize}
+
+\item Spelling correction
+\item Auto complete
+\item Language detection (classification)
+\item Other classification tasks
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Probabilistic Language Models}
+
+We begin by introducing the idea of a language model. In this course, we will work with two dominant language models
+
+\begin{enumerate}
+
+\item Probabilistic N-Gram language model
+
+\item Bag of Words model
+
+\end{enumerate}
+
+We start with a simple N-Gram language model and then look at statistical methods to detect collocations and present an application from research.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Probabilistic Language Models}
+
+What is the likely next word?
+
+\begin{center}
+\code{Make America ...}
+\end{center}
+N-gram language models see sentences as sequences of words, the occurrence of each word is a function of the likelihood of the sequence of words. 
+\begin{center}
+\code{Make America Great Again}
+\end{center}
+
+The predicted next word naturally depends on the corpus on which a language model was trained on and a range of other factors. Lets formalize things a bit.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Probabilistic Language Models}
+
+What is the probability of:
+$$P(\text{again} | \text{Make America great})$$
+
+We can express this probability as:
+
+$$P(\text{again} | \text{Make America great}) = \frac{P(\text{Make America great again})}{P(\text{Make America great})}$$
+
+which we may be inclined to estimate as
+
+$$\hat{P}(\text{again} | \text{Make America great}) = \frac{C(\text{Make America great again})}{C(\text{Make America great})}$$
+
+where the $C(.)$ indicates the raw counts of the text fragments.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{Make America ...}}
+
+<<makeamerica, size="tiny",eval=TRUE,cache=FALSE, tidy=TRUE>>=
+library(ngram)
+TRUMP<-readLines(con="../../Data/Trump-Speeches.txt")
+#concatenate into one massive string, remove empty lines
+TRUMP<-TRUMP[-grep("^SPEECH|^$", TRUMP)]
+TRUMP<-gsub(" +"," ",TRUMP) 
+TRUMP<-paste(TRUMP, collapse=" ")
+TRUMP<-preprocess(TRUMP, remove.punct=TRUE)
+
+p1<-length(strsplit(TRUMP,"make america great again")[[1]])
+p1
+p2<-length(strsplit(TRUMP,"make america great")[[1]])
+p2
+
+p1/p2
+@
+
+So here estimating  the conditional probability is possible as the sentence is rather short. However, for longer sentences this becomes much more difficult.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Longer Sentences}
+
+For longer sentences, it becomes much less likely that we will observe sufficient number of raw counts.
+\begin{center}
+\code{how I can make America Great again}
+\end{center}
+
+\includegraphics[scale=0.35]<1>{figures/howican.png}
+\includegraphics[scale=0.35]<2>{figures/howican2.png}
+
+Meaning the estimate 
+\begin{eqnarray*}
+\hat{P}(\text{again} | \text{how I can make America great}) = \\
+\frac{C(\text{how I can make America great again})}{C(\text{how I can make America great})}
+\end{eqnarray*}
+is very imprecise. For longer sentence, the counts in numerator and denominator would be exactly zero.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A bit of notation...}
+
+What is the joint probability of observing a sequence of words $w_1, ..., w_n$?
+
+\begin{eqnarray*}
+P(w_1,..,w_n) & = & P(w_1) P(w_2,...,w_n | w_1) \\
+ & = & P(w_1) P(w_2 | w_1) P(w_3,...,w_n | (w_1,w_2)) \\
+ & = & P(w_1) P(w_2 | w_1) P(w_3 | (w_1,w_2)) P(w_4,...,w_n | (w_1,w_2,w_3)) \\
+...\\
+ & = & \prod_{k=1}^{n}{P(w_k| (w_1,...,w_{k-1})}\\
+\end{eqnarray*}
+
+iteratively applying the \textbf{Chain Rule of Probability}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Curse of Dimensionality}
+
+We can compute probability of a sentence
+\begin{eqnarray*}
+P(w_1,..,w_n) & = & \prod_{k=1}^{n}{P(w_k| (w_1,...,w_{k-1})}\\
+\end{eqnarray*}
+by multiplying a sequence of conditional probabilities. 
+\begin{itemize}
+
+\item We can not estimate each individual conditional probability because its highly unlikely that a stable estimate does exist. 
+
+\item Similarly, it would be computationally infeasible. 
+
+\item Parameter space (number of conditional probabilities that need to be estimated) grows exponentially in $n$.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram language model}
+Given the computational issues, the \code{n-gram} statistical language model assumes that we can approximate the probability of a word $w$ given a history $h$ by looking back just at the last $N$ words in the history. 
+
+The simplest case is "not to look back", i.e. approximate the probability of a word $w$ with an empty history, $h= \emptyset$. This yields the \textbf{unigram} language model.
+
+So we would approximate $P(w_k|(w_1,...,w_{k-1})) \approx P(w_k)$, which yields:
+
+$$ P(w_1,..,w_n)  =  \prod_{k=1}^{n}{P(w_k)} $$
+
+This assumes that a sequence of words can be best approximated by the unconditional probabilities of an individual word appearing or not appearing.
+
+The factorization implies that we assume that words are \emph{stochastically independently drawn} from one another.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An unigram babbler}
+
+Some random sequences created with a unigram Trump babbler
+<<trumpunigrambabbler, size="smaller",cache=FALSE,echo=FALSE,message=F, warning=F>>=
+str_break(babble(UNITRUMP,genlen=35, seed=130))
+
+str_break(babble(UNITRUMP,genlen=35, seed=135))
+
+str_break(babble(UNITRUMP,genlen=35, seed=145))
+@
+Unigrams create poor results, because natural linguistic dependencies encoded in word collocations (e.g. verb follows an object, prepositions preceede locations, etc.) are ignored.
+
+Adding more \textbf{context}, by looking and history of preceeding words.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram models}
+
+A bigram model defined as
+
+$$P(w_1,..., w_n) = \prod_{k=1}^{n}{P(w_k|w_{k-1})} $$
+
+This assumption that the probability of a word depends only on the previous word is called the  \textbf{Markov} assumption. Here we approximate $P(w_k|(w_1,...,w_{k-1})) \approx P(w_k|w_{k-1})$
+
+\textbf{Markov models} are a class of probabilistic models that assume that the future can be predicted without looking \emph{too far} into the past.
+
+We can generalize to N-gram models
+
+$$P(w_1,..., w_n) = \prod_{k=1}^{n}{P(w_k| w_{k-1},...,w_{k-N+1})} $$
+
+where $P(w_k|(w_1,...,w_{k-1})) \approx P(w_k| w_{k-1}, w_{k-2},...w_{k-N+1})$
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Mini Example}
+
+Suppose you have a small corpus
+\includegraphics[scale=0.6]{figures/jurafsky-ngram-simple1.png}
+
+the $\textless$s$\textgreater$ indicate start and end tags, they are to be treated just as words. 
+It is important to include them to ensure that the probability estimates that we are extracting
+are well behaved.
+
+\includegraphics[scale=0.6]{figures/jurafsky-ngram-simple2.png}
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<trumspeeches, size="tiny",cache=FALSE,echo=FALSE,results='hide',message=F, warning=F>>=
+library(ngram)
+TRUMP<-readLines(con="../../Data/Trump-Speeches.txt")
+#concatenate into one massive string, remove empty lines
+TRUMP<-TRUMP[-grep("^SPEECH|^$", TRUMP)]
+TRUMP<-gsub(" +"," ",TRUMP) 
+TRUMP<-paste(TRUMP, collapse=" ")
+TRUMP<-preprocess(TRUMP, remove.punct=TRUE)
+TRUMP<-ngram(TRUMP, n=2)
+PHRASES<-data.table(get.phrasetable(TRUMP))
+COLS<-rbindlist(lapply(PHRASES$ngrams, function(x) data.frame(t(matrix(strsplit(x, " ")[[1]])))))
+PHRASES<-cbind(PHRASES,COLS)
+PHRASES<-rbind(PHRASES, data.frame(ngrams="america shower",freq=1,prop=0,X1="america",X2="shower"))
+SUB<-PHRASES[grep("^(i|want|to|make|america|great|again)$", X1)]
+TEMP<-rbind(SUB[1:14], rbind(SUB[grep("^make",ngrams)][1:4],SUB[grep("^ameri",ngrams)][1:3],SUB[grep("^america shower",ngrams)][1],SUB[grep("^great",ngrams)][1:4],PHRASES[grep("shower",ngrams)][1:2]))
+TEMP<-join(TEMP, PHRASES[, sum(freq), by=X1][X1 %in% TEMP[, .N, by=X1]$X1])
+TEMP[, estprop := freq/V1]
+TEMP<-cbind(TEMP[, c("ngrams","estprop"),with=F][1:14],TEMP[, c("ngrams","estprop"),with=F][15:28])
+SUB<-SUB[grep("^(i|want|to|make|america|great|again)$", X2)]
+
+GRID<-data.table(expand.grid(c("i","want","to","make","america","great","again"),c("i","want","to","make","america","great","again")))
+setnames(GRID,names(GRID), c("X1","X2"))
+GRID<-join(GRID,SUB[, c("X1","X2","freq"),with=F])
+GRID[is.na(freq), freq:=0]
+
+GRID2<-join(GRID,PHRASES[X1 %in% c("i","want","to","make","america","great","again")][, sum(freq), by=X1])
+GRID2[, prop := freq/V1]
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bigram illustration}
+
+\begin{center}
+\code{I want to make America great again}
+\end{center}
+\begin{eqnarray*}
+P(\text{I} | \text{\textless start \textgreater }) P(\text{want} | \text{I}) P(\text{to} | \text{want}) P(\text{make} | \text{to})P(\text{America} | \text{make}) \\
+P(\text{great} | \text{America}) P(\text{again}|\text{great}) P(\text{\textless end \textgreater } | \text{again})
+\end{eqnarray*}
+Assume $P(\text{I} | \text{\textless start \textgreater })= 25\%$ and $P(\text{\textless end \textgreater } | \text{again})=25\%.$
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Bigram illustration}
+<<bigramtrumpexample, echo=FALSE,size="tiny">>=
+TEMP
+@
+\begin{eqnarray*}
+P(\text{I} | \text{\textless start \textgreater }) P(\text{want} | \text{I}) P(\text{to} | \text{want}) P(\text{make} | \text{to}) P(\text{America} | \text{make}) \\
+P(\text{great} | \text{America}) P(\text{again}|\text{great})  P(\text{\textless end \textgreater } | \text{again})\\
+= 0.25 x 0.04 x 0.64 x 0.03 x 0.19 x 0.27 x 0.11 x 0.25 = 0.0000002708
+\end{eqnarray*}
+\begin{eqnarray*}
+P(\text{I} | \text{\textless start \textgreater }) P(\text{want} | \text{I}) P(\text{to} | \text{want}) P(\text{make} | \text{to}) P(\text{America} | \text{make}) \\
+P(\text{\textbf{shower}} | \text{America}) P(\text{again}|\text{\textbf{shower}}) P(\text{\textless end \textgreater } | \text{again})\\
+= 0.25 x 0.04 x 0.64 x 0.03 x 0.19 x 0.0056179775 x 1 x 0.25 = 0.00000005123
+\end{eqnarray*}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{What do we learn?}
+
+\begin{itemize}
+
+\item N-gram models capture syntatic features and general knowledge (here, knowledge about the underlying speeker)
+
+\item It turns out that linguistic features such as word sequences ``I want'' are reasonably frequent and they capture linguistic features: verbs tend to follow subject as indicated by ``I''.
+
+\item ``america shower'' is much more rare in Trump's speeches compared to ``america great''.
+
+\item N-gram models can be trained by counting and normalization
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Illustration of estimating N-Gram probabilities.}
+
+We will use Maximum Likelihood estimation, illustrate and proof what is the maximum likelihood estimator using a unigram model 
+
+$$P(w_1,..., w_n) = \prod_{k=1}^{n}{P(w_k)} $$
+
+This can think of this as a sequence of independent \emph{Bernoulli} trials with success probability $p_k$ for word $k$.
+
+Suppose you observe a sample of size $N$ of word sequences of length $n$, $\{W^1, ..., W^N\}$. So each $W^i = (w_{i1},..., w_{in})$, where $w_{ij} = 1$ in case word $w_j$ is present in sequence $i$.
+
+What is the likelihood of observing a specific sequence?
+
+$$P(W^i) = \prod_{k=1}^{n}{p_k^{w_{ik}}(1-p_k)^{1-w_{ik}} }$$
+
+What is the likelihood of observing the whole sample?
+
+$$\prod_{i=1}^{N} P(W^i) = \prod_{i=1}^{N}\prod_{k=1}^{n}{p_k^{w_{ik}}(1-p_k)^{1-w_{ik}} }$$
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Log Likelihood}
+
+Taking logs
+$$\sum_{i=1}^{N}\sum_{k=1}^{n}{w_{ik} log(p_k)} + (1-w_{ik}) log(1-p_k) $$
+
+We want to find optimal $p_1, ..., p_n$, so take FOC. Notice that everything is additive and there are no interactions between individual $p_k$. Take FOC with respect to $p_k$.
+
+$$\sum_{i=1}^{N} \frac{1}{p_k} w_{ik} - \sum_{i=1}^{N}  (1-w_{ik}) \frac{1}{1-p_k} = 0$$
+
+This yields
+
+$$p_k = \frac{\sum_{i=1}^{N} w_{ik}}{N} \quad \forall k $$
+
+where the numerator is just the number of word sequences that contain the word and $N$ is just the sample size. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{In case of Bigram model}
+For Bigram model, the intuitive way to estimate the probability $P(w_k| w_{k-1})$ is to get the counts of word sequences $C(w_{k-1}, w_k)$ from a corpus and normalize this by the counts of word that share the same first word, i.e. we estimate
+
+$$P(w_k|w_{k-1}) = \frac{C(w_{k-1},w_k)}{\sum_{w}{C(w_{k-1},w)}} = \frac{C(w_{k-1},w_k)}{C(w_{k-1})}$$
+
+Note that $\sum_{w}{C(w_{k-1},w)} = C(w_{k-1})$
+
+I.e. the number of word pairs that share the starting word $w_{k-1}$ should simply add up to the number of times the word $w_{k-1}$ appears.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Bigram Example}
+\begin{center}
+\code{I want to make America great again}
+\end{center}
+<<gridsample,echo=FALSE, size="small">>=
+CAST<-acast(GRID, X1~X2, value.var="freq")
+CAST
+@
+Normalization: divide each row's counts by appropriate unigram counts for $w_{n-1}$
+<<gridsample2,echo=FALSE,size="small">>=
+t(PHRASES[X1 %in% c("i","want","to","make","america","great","again")][, sum(freq), by=X1])
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Bigram Example}
+
+<<gridsample3, echo=FALSE, size="tiny">>=
+acast(GRID2, X1~X2, value.var="prop")
+@
+\begin{itemize}
+\item Ratio of $\frac{C(w_n, w_{n-1})}{C(w_{n-1})}$ is a maximum Likelihood estimate for $P(w_n|w_{n-1})$
+
+\item We observe that many raw counts are zero: the matrix is sparse.
+
+\item The larger $N$, the more sparse will these matrices get.
+
+\item However, larger $N$ generally results in better performance as more history is incorporated.
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Trade-off: Higher order N-gram versus lower order N-grams}
+Unigram Trump Babbler
+<<unigram,echo=FALSE, cache=TRUE, size="tiny">>=
+str_break(babble(UNITRUMP,genlen=50, seed=130))
+@
+Bigram Trump Babbler
+<<bigram,echo=FALSE, cache=FALSE, size="tiny">>=
+str_break(babble(BITRUMP,genlen=50, seed=130))
+@
+Trigram Trump Babbler
+<<trigram,echo=FALSE, cache=FALSE, size="tiny">>=
+str_break(babble(TRITRUMP,genlen=50, seed=130))
+@
+Quadrigram Trump Babbler
+<<quadgram,echo=FALSE, cache=FALSE, size="tiny">>=
+str_break(babble(QUADTRUMP,genlen=50, seed=130))
+@
+as $N$ increases, the number of parameters to be estimated explodes. In addition, as we have seen, the matrices are very sparse - many zeroes!
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Curse of Dimensionality of N-gram model}
+
+Suppose you have a vocabulary of size $|V|$. Assuming no constraints imposed by language structure. How many different conditional probabilites are there to estimate?
+
+\begin{itemize}
+
+\item There are $|V|$ sentences, containing exactly 1 words.
+
+\item There are $|V| \times |V|$ sentences containing 2 words
+
+\item There are $|V| \times |V| \times |V|$ sentences containing 3 words
+
+\end{itemize}
+
+In total there are $|V|^{N}$  parameters in an n-gram for vocabulary size $|V|$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Babbling Donald Trump}
+<<babbelingtrump, size="tiny",eval=TRUE,cache=FALSE, tidy=TRUE>>=
+library(ngram)
+TRUMP<-readLines(con="../../Data/Trump-Speeches.txt")
+#concatenate into one massive string, remove empty lines
+TRUMP<-TRUMP[-grep("^SPEECH|^$", TRUMP)]
+TRUMP<-gsub(" +"," ",TRUMP) 
+TRUMP<-paste(TRUMP, collapse=" ")
+TRUMP<-ngram(TRUMP, n=3)
+str_break(babble(TRUMP,genlen=35, seed=130))
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram based language categorization}
+
+\begin{center}
+\includegraphics[scale=0.3]<1>{figures/ngram-language-1.png}
+\includegraphics[scale=0.3]<2>{figures/ngram-language-2.png}
+\includegraphics[scale=0.3]<3>{figures/ngram-language-3.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram based language categorization}
+
+\begin{itemize}
+
+\item The simplest n-grams are single- and multi character n-grams.
+
+\item For example the word ``TEXT'' can be tokenized into the following 
+
+\begin{itemize}
+
+\item bi-grams: \_T, TE, EX, XT, T\_
+
+\item tri-grams: \_TE, TEX, EXT, XT\_, T\_ \_
+
+\item quad-grams: \_TEX, TEXT, EXT\_, XT\_ \_, T\_ \_ \_
+
+\end{itemize}
+
+\item Often times do different human languages or documents covering different (technical) topics exhibit different \emph{ngram frequency profiles}.
+
+\item Remember Zipf's law, which stated that the 
+
+\begin{quote}
+The nth most common word in a human language text occurs with a frequency inversely proportional to n.
+\end{quote}
+\end{itemize}
+
+$\Rightarrow$ can use n-gram frequency profiles across different human languages to build a simple classifier of human language
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram based language categorization}
+
+<<textcat, size="tiny",eval=TRUE,cache=FALSE, tidy=TRUE>>=
+library(textcat)
+##ngram top character profiles for english
+TC_char_profiles[["english"]][1:20]
+
+##ngram top character profiles for english
+TC_char_profiles[["german"]][1:20]
+
+##ngram top character profiles for english
+TC_char_profiles[["spanish"]][1:20]
+
+@
+
+Cavnar, W. B., Trenkle, J. M., \& Mi, A. A. (1994). N-Gram-Based Text Categorization. In Proceedings of SDAIR-94, 3rd Annual Symposium on Document Analysis and Information Retrieval, 161–175.
+
+implemented in the \textbf{textcat} package in R.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram based language categorization}
+
+<<textcat2, size="tiny",eval=TRUE,cache=FALSE, tidy=TRUE>>=
+library(textcat)
+
+textcat("Let see whether we can confuse it with fake latin")
+
+textcat("Lorem ipsum dolor sit amet, et dapibus nunc sit gravida, augue vitae, felis massa est augue vehicula")
+@
+Cavnar, W. B., Trenkle, J. M., \& Mi, A. A. (1994). N-Gram-Based Text Categorization. In Proceedings of SDAIR-94, 3rd Annual Symposium on Document Analysis and Information Retrieval, 161–175.
+
+implemented in the \textbf{textcat} package in R.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{N-gram based language categorization}
+
+Computation of distances using an ``out-of-place'' statistic - alternatives for rank-ordered 
+
+\begin{center}
+
+\includegraphics[scale=0.4]{figures/out-of-place-stat.png}
+
+\end{center}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}
+
