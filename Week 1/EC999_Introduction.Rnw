@@ -1,0 +1,1118 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Introduction} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/QTA/Lectures/Week 1")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+stopwords=c("this","a","the","and","for")
+
+textmat <-
+function (vec=A, stopws=stopwords) {
+        dummy <- mapply(wordfreq, vec, 1:length(vec), MoreArgs=list(stopws=stopwords), SIMPLIFY=F)
+        names(dummy) <- NULL
+        dtm <- t(xtabs(Freq ~ ., data = do.call("rbind", dummy)))
+        dtm
+}
+
+options(stringsAsFactors = TRUE)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some Organizatorial Issues}
+
+\begin{enumerate}
+
+\item Housekeeping: Visiting Prof at UChicago, usually based at University of Warwick in the UK. You can reach me on \url{tfetzer@uchicago.edu}.
+
+\item About this course: this is still a relatively new course and you guys are the second cohort of students:
+
+\begin{itemize}
+
+\item Computational Linguistics
+
+\item Machine Learning 
+
+\item Data science
+
+\item Statistics
+
+\item Programming in R
+
+\end{itemize}
+
+
+\item Your input is needed: too slow, too fast, ...? just email me.
+
+\item Assessment: I be based on 5 course assignments and a class project presented in week 10. 
+
+\item Course Material: \url{http://www.trfetzer.com/ec999/}
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Plan for the Course - Part 1}
+First part will introduce simple NLP concepts, introduce the R language and illustrate how we can work with getting text into a useful format for subsequent analysis. The unit of analysis in the first part of the course will mainly be (short) sequences of words.  
+\begin{enumerate}
+
+\item Introduction: Motivation, setting up, examples, basic introduction to ``R''. 
+
+\item Sourcing data: String manipulation, regular expressions, loading text data, basic web scraping, (social media) API's.
+
+\item Text Normalization: Zipf's law, Herd's law, tokenization methods and routines, stemming, Levenshtein distance.
+
+\item Describing Text: readability measures
+
+\item Identifying and extracting collocations: heuristic and statistical methods.
+
+\item Part-of-Speech Tagging.
+
+\item N-Gram generative language model.
+
+\item ...
+
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Plan for the Course - Part 2}
+In the second part, we will turn (larger) documents into a vector-space representation and perform (supervised) machine learning for classification type purposes. 
+\begin{enumerate}
+
+\item Vector Space model: vector space representation, bag of words model, measuring distance/ similarity between texts.
+
+\item Ideological scaling: introduction to supervised learning concepts; naive LBK ideology scaling, Bayesscore.
+
+\item Classification introduction: classification error types, measuring accuracy and bias-variance trade-off
+
+\item kNN classification
+
+\item Naive Bayes: Bernoulli versus Multi-nomial language models
+
+\item Logistic regression: best subset selection, feature selection through regularized logistic regression
+
+\item Application example: sentiment analysis
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Plan for the Course - Part 3}
+In the third part, we will turn to unsupervised learning methods for textual data. 
+\begin{enumerate}
+
+\item Unsupervised learning
+
+\item K-Means clustering: k-medoids (PAM), importance of distance measures
+
+\item Hierarchical clustering: different linkage 
+
+\item Topic Modelling: static and dynamic
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Organization}
+
+
+\begin{itemize}
+
+\item You will be asked to try to reproduce what is done on the lectures. Most slides are written using Markdown, which means the R-Code is executed on the fly behind the scenes.
+
+\item Lectures, including sample source files, are made available on \url{http://www.trfetzer.com/EC999} 
+
+\item Questions can be asked on \url{https://piazza.com/uchicago/spring2017/ph30570/}
+
+\item Homework assignments  will ask you to perform some analysis and coding work. You are asked to produce an Markdown document (more later) that solves the assignment you were asked to do.
+
+\item  Course project will involve own data analysis in groups 
+
+\item \textbf{Teaching Assistant}: Alvaro Valdes Mena, avaldes@uchicago.edu - will be available for appointments.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Introduction and Terminology}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Quantitative Text Analysis as process}
+Above all, there needs to be a formulatedresearch question or \textbf{goal} to be achieved.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.4]{figures/qta-steps}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 1: Corpus Definition}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.2]{figures/qta-steps-corpus.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+First step consists of definition of \emph{corpus}
+\begin{enumerate}
+
+\item Selecting texts: definition of corpus of texts and being aware of underlying selection criteria.
+
+\item Conversion of texts into a common electronic format
+
+\item Defining documents: what will be the unit of analysis
+\begin{itemize}
+\item Sentence, Paragraph, Section, Chapter,...
+\end{itemize}
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 2: Feature Definition and Selection}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.2]{figures/qta-steps-corpus-h}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+Second step typically consists of definition of features 
+\begin{enumerate}
+
+\item This can be word tokens, \emph{n-grams}, keywords, indicators, patterns: challenge is to identify \emph{meaningful} features
+
+\item For example: classification tasks you want to identify words that are characteristic and informative about underlying classes.
+
+\item \emph{Curse of dimensionality}: Feature selection often required/desirable.
+
+\item Convert corpus-features into a numerically accessible data matrix $X$
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 3: Vector space representation \& analysis }
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.2]{figures/qta-steps-corpus-f}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+Third step involves analyzing data repesentation to achieve a give task.
+\begin{enumerate}
+
+\item Classification (=Prediction): estimating a function $\hat{f}$ that maps individual documents $x_i$ into specific classes (e.g. republican versus democrat, sentiment label,...)
+
+\item Clustering: identify groups of documents $x_i$ that are similar because they belong to similar latent class $C$, without knowing the set of classes \emph{ex ante}.
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some Terminology}
+
+\begin{Description}
+  \item[(text) corpus] usually a large set of documents that have limited structure. 
+  \item[tokens] any word – so token count is total words
+  \item[stems] word stems with suffixes removed 
+  \item[lemmas] cannonical word forms: the base form of a word that has the same meaning even when different suffixes (or prefixes) are attached.
+  \item[''key'' words]{words selected because of special attributes, meanings, or rates of occurrence}
+  \item[stopwords] words that are excluded from text analysis for a range of reasons (typically lack of informational content)
+  \item[complexity] word complexity usually measures the number of syllables
+  \item[diversity] (lexical diversity) A measure of how many words occur per fixed word rate (a normalized vocabulary measure)
+\end{Description}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Examples from Research}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Political Slant}
+\begin{Description}
+  \item[Reseach Question] Are newspapers maximizing profits by pandering to the ideology of their readership?
+  \item[Corpus] Republican and democratic speeches, newspaper front page content
+  \item[Features] Distincively Republican and Democratic n-grams
+  \item[Analysis] \emph{Slant measure} of front page newspaper coverage picking up democratic vs. republican features. 
+\end{Description}
+
+See: Gentzkow, M., \& Shapiro, J. M. (2010). What Drives Media Slant? Evidence From U.S. Daily Newspapers. Econometrica, 78(1), 35–71.  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Political Slant}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.5]<1>{figures/genzkow-democrat.png}
+\includegraphics[scale=.5]<2>{figures/genzkow-republican.png}
+\includegraphics[scale=.4]<3>{figures/slant-index.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+Identify n-grams (\emph{collocations}) and extract those that are distinctively more likely to appear in the corpus of republican versus democratic speaches congressional speeches
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting National Identity}
+\begin{Description}
+  \item[Reseach Question] What are the costs of social ostracism? Evidence from two World Wars
+  \item[Corpus] Names in census records
+  \item[Features] Distinctly german letter combinations, suffixes in names and surnames
+  \item[Analysis] Predict national identity and study evolution of distinctively German (+Asian) names.   
+\end{Description}
+
+Use machine learning model to predict national identity and study evolution over time. Are there non-linearities in underlying assimmilation pressures? What is the case if (national) identity is non-malleable. This is ongoing research.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting National Identity}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.3]<1>{figures/anti-german}
+\includegraphics[scale=.3]<2>{figures/letter-combinations-features}
+\includegraphics[scale=.3]<2>{figures/letter-comb-features2}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+Build a predictive model based on common names identified using a Lasso and include dummy coded features extracted using \emph{regular expressions}. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Policy Uncertainty}
+\begin{Description}
+  \item[Reseach Question] Construct a measure of policy uncertainty (second moment shocks) to study economic effects.
+  \item[Corpus] Digital archives of newspaper
+  \item[Features] Counting articles (``uncertain'' OR ``uncertainty'')  AND (``economic'' OR ``economy'') AND (``congress'' OR ``deficit'' OR ``federal reserve'' OR ``legislation'' OR ``regulation'' OR ``white house'') normalize article counts by total newspaper articles that month.
+  \item[Analysis] Perform econometric analysis on resulting index.
+\end{Description}
+
+Baker, Bloom, and Davis measure economic policy uncertainty using Boolean search of newspaper articles: \url{http://www.policyuncertainty.com/}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Policy Uncertainty}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.5]<1>{figures/policy-uncertainty}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+Baker, Bloom, and Davis measure economic policy uncertainty using Boolean search of newspaper articles: \url{http://www.policyuncertainty.com/}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Consumer Confidence}
+\begin{Description}
+  \item[Reseach Question] Can Twitter feeds be used to construct consumer high frequency consumer confidence time series?
+  \item[Corpus] A large collection of twitter feeds
+  \item[Features] Fragments of text around topic keywords: \emph{economy}, \emph{job}.
+  \item[Analysis] (Heuristic) Approach measuring ratio of positive versus negative coded words around topic keywords. 
+\end{Description}
+
+O'Connor, B., Balasubramanyan, R., Routledge, B. R., \& Smith, N. a. (2010). From tweets to polls: Linking text sentiment to public opinion time series. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Consumer Confidence}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.45]<1>{figures/twitter-sentiment.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+O'Connor, B., Balasubramanyan, R., Routledge, B. R., \& Smith, N. a. (2010). From tweets to polls: Linking text sentiment to public opinion time series. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Retrieving (Conflict) Event Information}
+\begin{Description}
+  \item[Reseach Question] Automatically extract (conflict) event information from textual data. 
+  \item[Corpus] Digital archive of newspaper clippings about conflict in South Asia.
+  \item[Features] Individual sentences in newspaper article.
+  \item[Analysis] Extract linguistic features to fill event tuple: Subject, Verb, Object pairs and certain Named Entities (Location, Date)
+\end{Description}
+
+Fetzer, T. (2016) Social Insurance and Conflict: Evidence from India, mimeo.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Retrieving (Conflict) Event Information}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.6]<1>{figures/sentence-fragments.png}
+\includegraphics[scale=.7]<2>{figures/event-tuple.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+Fetzer, T. (2016) Social Insurance and Conflict: Evidence from India, mimeo.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{An Introduction to R}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Learning \code{R} is an investment}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/learning-R.png}
+\end{center}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Advantages of \code{R}}
+
+\begin{itemize}
+
+\item Many of you will have some form of prior experience with various programming languages.\smallskip
+
+\item Separation of tasks is quite common: Python often used for \emph{web scraping}, \emph{Stata} used by some for data cleaning and analysis, \emph{ArcGIS} or \emph{QGIS} (and indirectly python) for spatial analysis,... \smallskip
+
+\item Beautiful feature of $R$ is its versatility due to the many extensions.
+
+
+
+\end{itemize}
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Getting started with \code{R}: Rstudio}
+\begin{quote} RStudio is a free and open-source integrated development environment (IDE) for R, a programming language for statistical computing and graphics.\end{quote}
+
+\begin{center}
+\includegraphics[scale=0.6]{figures/rstudio.png}
+\end{center}
+\url{https://www.rstudio.com/products/rstudio/download/}
+Alternatively: work in Terminal (command line) or using the R-gui that is shipped with base-R.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Markdown for homeworks}
+
+R Markdown makes it easy to turn analyses in R into simple documents or reports. 
+\begin{center}
+
+\includegraphics[scale=0.2]<1>{figures/rmarkdown-example.png}
+\includegraphics[scale=0.2]<2>{figures/rmarkdown-example.png}
+
+\end{center}
+
+You will be asked to provide homeworks in R-Markdown format. You will You can describe in the Markdown document what, why and how you proceed with your analysis proiding the code an the results in a simple document.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types}
+
+
+These are the basic data types
+\begin{Description}
+
+\item[numeric] 8-byte numeric representations\smallskip
+
+\item[integer] non-floating point numbers\smallskip
+
+\item[character] text\smallskip
+
+\item[logical] \code{TRUE} or \code{FALSE}\smallskip
+
+\end{Description}
+
+Recursive types also exist, such as lists and vectors; there are also special classifications for \code{NA}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types: Integer}
+<<datatypes, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x <- 10
+typeof(x)
+
+is.integer(x)
+
+x <- 7L
+typeof(x)
+
+object.size(x)
+
+as.integer(3.14)
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types: Character}
+<<datatypes2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+typeof("test string")
+
+object.size("a")
+
+s <- "" # Unicode cat(s)
+
+as.character("3.14") # coerce numerics to character 
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types: numeric}
+<<datatypes3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x <- 10.5 
+
+typeof(x)
+
+object.size(x)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types: factor}
+<<datatypes3b, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+#create random sample of letters abcd drawn with replacement
+x<-sample(letters[1:4], 50, replace =TRUE)
+head(x)
+x<-factor(x)
+x
+levels(x)
+@
+Factors are more efficiently stored compared to strings as they are coded as numeric values. It can be dangerous. Setting:
+
+\code{options(stringsAsFactors=FALSE)}
+
+ensures that when creating data frames, strings are not automatically replaced as factors.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Types: \code{is.*()} and \code{as.*()}}
+<<datatypes4, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+is.numeric(x)
+
+is.numeric(7.1)
+
+is.numeric("7.1")
+
+is.numeric(as.numeric("7.1"))
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Data Structures}
+R operates on named \emph{data structures}. The simplest such structure is a numeric vector, which is a single entity consisting of a collection of numbers. 
+<<datastructures, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x <- c(10.4, 5.6, 3.1, 6.4, 21.7)
+x
+class(x)
+length(x)
+b<-c(x,"test")
+class(b)
+@
+Operations on vectors are element by element.
+<<datastructures2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+z <- sqrt(x)
+z*sqrt(x)
+#vector - dot product
+z %*% sqrt(x)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Selecting and modifying subsets of a data set}
+You can select data or subset data using logical conditions in \code{[]}.
+<<datastructures3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x <- c(x, 1/0)
+x
+
+x[is.infinite(x)]
+is.infinite(x)
+x[which.max(x)]
+x[!is.infinite(x)]
+x[1:4]
+x[-6]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Functions}
+<<datastructures4, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+plusOne <- function(x){ 
+  	return(x+1)			
+	}
+
+plusOne2 <- function(num){ 
+		return(num+1)			
+	}
+
+	plusOne(8)
+	plusOne2(10)
+  plusOne2(num=5)
+  #plusOne2(wrongVar=2)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Loops}
+<<datastructures5, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+  for (number in 1:5){
+	print (number)
+}
+#Looping over functions
+a <- c(1,2,3,4,5)
+for (value in a){
+	print (
+		plusOne(value)
+	)
+}
+
+listOfNumbers <- c(1,2,3,4,5)
+for (number in listOfNumbers){
+	print (
+		number+1
+	)
+}
+
+
+a <- c(1,2,3,4,5)
+
+for (i in 1:length(a)){
+	print (
+		plusOne(a[i])
+	)
+}
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Complex Data Structures: Matrices}
+Matrices combine data vectors coercing a common type: all vectors that make up a matrix have same data type (e.g. numeric, character).
+<<datastructures6, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x<-rnorm(n=26)
+y<-runif(n=26)
+MAT<-cbind(x,y)
+class(MAT)
+rownames(MAT) <- 1:nrow(MAT)
+colnames(MAT) <- c("x","y")
+
+#subsetting
+MAT[12,"y"]
+MAT[12,]
+
+head(letters)
+MAT<-cbind(MAT, letters)
+#adding a character column changes type of all elements
+head(MAT)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Complex Data Structures: data.frame}
+data.frames allow the combination of multiple object types without their underlying types being changed. This is the central data object that is typically worked with.
+<<datastructures7, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+x<-rnorm(n=26)
+y<-runif(n=26)
+DF<-data.frame(x,y)
+class(DF)
+DF[1:2, c("y","x")]
+head(DF$x)
+class(DF$x)
+
+DF<-cbind(DF, letters)
+class(DF)
+class(DF$x)
+class(DF$letters)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{data.frame}s with functionality: \code{data.table}}
+
+A \code{data.table} is a list of vectors, just like a \code{data.frame}. However :
+
+\begin{itemize}
+
+\item it never has or uses rownames. Rownames based indexing can be done by setting a key of one or more columns or done ad-hoc using the on argument (now preferred).
+
+\item it has enhanced functionality in [.data.table for fast joins of keyed tables, fast aggregation, fast last observation carried forward (LOCF) and fast add/modify/delete of columns by reference with no copy at all.
+
+\item There are  several other methods that are available for operating on data.tables efficiently.
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=.5]{figures/datatable.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{data.frame}s with functionality: \code{data.table}}
+
+<<datastructures8, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(data.table)
+#every data.table is also a data.frame
+DT<-data.table(DF)
+##aggregation
+DT[, list(mean(x), sum(y))]
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Complex Data Structures: Lists}
+Lists are the most versatile data structure, allowing the collection of different lists. 
+<<datastructures9, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+LIST<-list(DT, DF, letters)
+
+class(LIST)
+
+class(LIST[[3]])
+
+head(LIST[[2]])
+
+#can append items
+LIST[[4]]<-y
+
+length(LIST)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Apply functionality: vectorization}
+Loops in R are inherently inefficient; most often you need to apply a function to every observation and this is where the \code{apply()} function family comes into play.
+
+\begin{Description}
+\item[base::apply] 		Apply Functions Over Array Margins
+\item[base::eapply]		Apply a Function Over Values in an Environment
+\item[base::lapply]		Apply a Function over a List or Vector
+\item[base::mapply]		Apply a Function to Multiple List or Vector Arguments
+\item[base::rapply]		Recursively Apply a Function to a List
+\item[base::tapply]		Apply a Function Over a Ragged Array
+\end{Description}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Apply functionality: \code{apply}}
+Returns a vector or array or list of values obtained by applying a function to margins of a matrix.
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/Apply_function.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Apply functionality: \code{apply}}
+Returns a vector or array or list of values obtained by applying a function to margins of a matrix.
+
+<<datastructures11, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>= 
+#create a matrix with 100 rows and 100 colums with random values drawn from uniform distribution 
+DF<- do.call("cbind", lapply(1:100, function(x) runif(n=100)))
+
+class(DF)
+
+#apply function to each row: computing row sums
+res<-apply(DF, 1,  sum)
+
+res
+rowSums(DF)
+
+sum(res!=rowSums(DF))
+#apply function to each column: computing column sums
+res<-apply(DF, 2,  sum)
+
+res
+colSums(DF)
+
+sum(res!=colSums(DF))
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Apply functionality: \code{lapply}}
+\code{lapply} returns a list of the same length as X, each element of which is the result of applying FUN to the corresponding element of X.
+
+<<datastructures10, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>= 
+#apply any function on a vector, returns a list
+res<-lapply(1:1000, function(x) x^0.5)
+
+class(res)
+
+head(unlist(res))
+
+@
+
+``sapply is a user-friendly version of lapply by default returning a vector or matrix if appropriate.``
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Basic Plots}
+\code{R} has amazing plotting functionality, beyond the scope of this course to go in too much detail. Base-R provides simple plotting functionality, advanced and fancy plots are possible with the ggplot package.
+
+Base-R tries to guess the appropriate plotting function dependent on the data type.
+<<plots1, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F,size="tiny",out.width='2in'>>=
+x<-rnorm(n=26)
+y<-runif(n=26)
+DF<-data.frame(x,y,"letters"=sample(letters[1:4],26, replace=TRUE))
+#simple scatter plot
+plot(DF$x,DF$y, col=DF$letters)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Basic Plots}
+<<plots2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F,size="tiny",out.width='2in'>>=
+
+#letters is a factor (an encoded string), so appropriate is to draw a boxplot
+plot(DF$letters,DF$y)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Basic Plots}
+<<plots3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F,size="tiny",out.width='2in'>>=
+#kernel density
+plot(density(DF$x))
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Basic Plots}
+<<plots4, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F,size="tiny",out.width='2in'>>=
+
+#histogram
+hist(DF$x)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Texteditor is very very useful...}
+
+\begin{itemize}
+\item Textwranger (Mac), Notepad++ (Windows), or system text editor (Windows Editor / Mac Text.app)
+
+\item Very good to look at raw text in editor before loading into R to see how messy it is.
+
+\item Especially machine read data (PDFs processed with Optical Character recognition - OCR)
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.2]<1>{figures/textwrangler.jpeg}
+\includegraphics[scale=.2]<1>{figures/notepadpp.png}
+\includegraphics[scale=.2]<1>{figures/windowseditor.jpeg}
+\includegraphics[scale=.2]<2>{figures/messier}
+\includegraphics[scale=.2]<3>{figures/messy}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Text Encoding: A cautionary note}
+
+\begin{itemize}
+\item Especially working with data from different computer systems (Mac, Unix, Windows) and different languages, character encoding issues can occur.
+\item The Latin character set (Encoding: \code{latin-1}) is used by English and most European languages, though the Greek character set is used only by the Greek language.
+
+\item Loading data without knowing character encoding can sometimes cause errors
+
+\item Text editors like Textwranger attempt to recognize character encoding
+
+\item Most common encoding is \code{UTF-8}
+\end{itemize}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.5]<1>{figures/invalid-multibyte}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\end{document}
+

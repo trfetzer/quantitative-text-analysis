@@ -1,0 +1,2162 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.21)  30 MAR 2017 14:32
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**EC999_Sourcing-Data.tex
+(./EC999_Sourcing-Data.tex
+LaTeX2e <2015/01/01>
+Babel <3.9l> and hyphenation patterns for 79 languages loaded.
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamer.cls
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasercs.sty
+Package: beamerbasercs 2015/03/08 (rcs-revision 368aa9ba9d38)
+)
+Document Class: beamer 2015/01/05 3.36 A class for typesetting presentations (r
+cs-revision 8a39122e1f63)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasemodes.sty
+Package: beamerbasemodes 2013/09/03 (rcs-revision 768f2d98ca64)
+\beamer@tempbox=\box26
+\beamer@tempcount=\count79
+\c@beamerpauses=\count80
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasedecode.sty
+Package: beamerbasedecode 2010/05/01 (rcs-revision efa082c6111d)
+\beamer@slideinframe=\count81
+\beamer@minimum=\count82
+)
+\beamer@commentbox=\box27
+\beamer@modecount=\count83
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in PDF mode is detected.
+)
+\headheight=\dimen102
+\headdp=\dimen103
+\footheight=\dimen104
+\sidebarheight=\dimen105
+\beamer@tempdim=\dimen106
+\beamer@finalheight=\dimen107
+\beamer@animht=\dimen108
+\beamer@animdp=\dimen109
+\beamer@animwd=\dimen110
+\beamer@leftmargin=\dimen111
+\beamer@rightmargin=\dimen112
+\beamer@leftsidebar=\dimen113
+\beamer@rightsidebar=\dimen114
+\beamer@boxsize=\dimen115
+\beamer@vboxoffset=\dimen116
+\beamer@descdefault=\dimen117
+\beamer@descriptionwidth=\dimen118
+\beamer@lastskip=\skip41
+\beamer@areabox=\box28
+\beamer@animcurrent=\box29
+\beamer@animshowbox=\box30
+\beamer@sectionbox=\box31
+\beamer@logobox=\box32
+\beamer@linebox=\box33
+\beamer@sectioncount=\count84
+\beamer@subsubsectionmax=\count85
+\beamer@subsectionmax=\count86
+\beamer@sectionmax=\count87
+\beamer@totalheads=\count88
+\beamer@headcounter=\count89
+\beamer@partstartpage=\count90
+\beamer@sectionstartpage=\count91
+\beamer@subsectionstartpage=\count92
+\beamer@animationtempa=\count93
+\beamer@animationtempb=\count94
+\beamer@xpos=\count95
+\beamer@ypos=\count96
+\beamer@showpartnumber=\count97
+\beamer@currentsubsection=\count98
+\beamer@coveringdepth=\count99
+\beamer@sectionadjust=\count100
+\beamer@tocsectionnumber=\count101
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseoptions.sty
+Package: beamerbaseoptions 2013/03/10 (rcs-revision 47431932db0d)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+))
+\beamer@paperwidth=\skip42
+\beamer@paperheight=\skip43
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2010/09/12 v5.6 Page Geometry
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ifvtex.sty
+Package: ifvtex 2010/03/01 v1.5 Detect VTeX and its facilities (HO)
+Package ifvtex Info: VTeX not detected.
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
+)
+\Gm@cnth=\count102
+\Gm@cntv=\count103
+\c@Gm@tempcnt=\count104
+\Gm@bindingoffset=\dimen119
+\Gm@wd@mp=\dimen120
+\Gm@odd@mp=\dimen121
+\Gm@even@mp=\dimen122
+\Gm@layoutwidth=\dimen123
+\Gm@layoutheight=\dimen124
+\Gm@layouthoffset=\dimen125
+\Gm@layoutvoffset=\dimen126
+\Gm@dimlist=\toks15
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/base/size11.clo
+File: size11.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty
+(/usr/local/texlive/2015/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2014/10/28 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2014/10/28 v1.0p Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/graphics.cfg
+File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
+)
+Package graphics Info: Driver file: pdftex.def on input line 94.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
+)
+\Gread@gobject=\count105
+))
+\Gin@req@height=\dimen127
+\Gin@req@width=\dimen128
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.te
+x
+\pgfutil@everybye=\toks16
+\pgfutil@tempdima=\dimen129
+\pgfutil@tempdimb=\dimen130
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-li
+sts.tex))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+\pgfutil@abb=\box34
+(/usr/local/texlive/2015/texmf-dist/tex/latex/ms/everyshi.sty
+Package: everyshi 2001/05/15 v3.00 EveryShipout Package (MS)
+))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex
+Package: pgfrcs 2013/12/20 v3.0.0 (rcs-revision 1.28)
+))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+Package: pgfsys 2013/11/30 v3.0.0 (rcs-revision 1.47)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+\pgfkeys@pathtoks=\toks17
+\pgfkeys@temptoks=\toks18
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfkeysfiltered.c
+ode.tex
+\pgfkeys@tmptoks=\toks19
+))
+\pgf@x=\dimen131
+\pgf@y=\dimen132
+\pgf@xa=\dimen133
+\pgf@ya=\dimen134
+\pgf@xb=\dimen135
+\pgf@yb=\dimen136
+\pgf@xc=\dimen137
+\pgf@yc=\dimen138
+\w@pgf@writea=\write3
+\r@pgf@reada=\read1
+\c@pgf@counta=\count106
+\c@pgf@countb=\count107
+\c@pgf@countc=\count108
+\c@pgf@countd=\count109
+\t@pgf@toka=\toks20
+\t@pgf@tokb=\toks21
+\t@pgf@tokc=\toks22
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
+File: pgf.cfg 2008/05/14  (rcs-revision 1.7)
+)
+Driver file for pgf: pgfsys-pdftex.def
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.d
+ef
+File: pgfsys-pdftex.def 2013/07/18  (rcs-revision 1.33)
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-p
+df.def
+File: pgfsys-common-pdf.def 2013/10/10  (rcs-revision 1.13)
+)))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.
+code.tex
+File: pgfsyssoftpath.code.tex 2013/09/09  (rcs-revision 1.9)
+\pgfsyssoftpath@smallbuffer@items=\count110
+\pgfsyssoftpath@bigbuffer@items=\count111
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.
+code.tex
+File: pgfsysprotocol.code.tex 2006/10/16  (rcs-revision 1.4)
+)) (/usr/local/texlive/2015/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/color.cfg
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1337.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1341.
+Package xcolor Info: Model `RGB' extended on input line 1353.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1355.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1356.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1357.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1358.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1359.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1360.
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+Package: pgfcore 2010/04/11 v3.0.0 (rcs-revision 1.7)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+\pgfmath@dimen=\dimen139
+\pgfmath@count=\count112
+\pgfmath@box=\box35
+\pgfmath@toks=\toks23
+\pgfmath@stack@operand=\toks24
+\pgfmath@stack@operation=\toks25
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.
+tex
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic
+.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigo
+nometric.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.rando
+m.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.compa
+rison.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.
+code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round
+.code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.
+code.tex)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integ
+erarithmetics.code.tex)))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count113
+))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.co
+de.tex
+File: pgfcorepoints.code.tex 2013/10/07  (rcs-revision 1.27)
+\pgf@picminx=\dimen140
+\pgf@picmaxx=\dimen141
+\pgf@picminy=\dimen142
+\pgf@picmaxy=\dimen143
+\pgf@pathminx=\dimen144
+\pgf@pathmaxx=\dimen145
+\pgf@pathminy=\dimen146
+\pgf@pathmaxy=\dimen147
+\pgf@xx=\dimen148
+\pgf@xy=\dimen149
+\pgf@yx=\dimen150
+\pgf@yy=\dimen151
+\pgf@zx=\dimen152
+\pgf@zy=\dimen153
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconst
+ruct.code.tex
+File: pgfcorepathconstruct.code.tex 2013/10/07  (rcs-revision 1.29)
+\pgf@path@lastx=\dimen154
+\pgf@path@lasty=\dimen155
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage
+.code.tex
+File: pgfcorepathusage.code.tex 2013/12/13  (rcs-revision 1.23)
+\pgf@shorten@end@additional=\dimen156
+\pgf@shorten@start@additional=\dimen157
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.co
+de.tex
+File: pgfcorescopes.code.tex 2013/10/09  (rcs-revision 1.44)
+\pgfpic=\box36
+\pgf@hbox=\box37
+\pgf@layerbox@main=\box38
+\pgf@picture@serial@count=\count114
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicst
+ate.code.tex
+File: pgfcoregraphicstate.code.tex 2013/09/19  (rcs-revision 1.11)
+\pgflinewidth=\dimen158
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransform
+ations.code.tex
+File: pgfcoretransformations.code.tex 2013/10/10  (rcs-revision 1.17)
+\pgf@pt@x=\dimen159
+\pgf@pt@y=\dimen160
+\pgf@pt@temp=\dimen161
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.cod
+e.tex
+File: pgfcorequick.code.tex 2008/10/09  (rcs-revision 1.3)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.c
+ode.tex
+File: pgfcoreobjects.code.tex 2006/10/11  (rcs-revision 1.2)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathproce
+ssing.code.tex
+File: pgfcorepathprocessing.code.tex 2013/09/09  (rcs-revision 1.9)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.co
+de.tex
+File: pgfcorearrows.code.tex 2013/11/07  (rcs-revision 1.40)
+\pgfarrowsep=\dimen162
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.cod
+e.tex
+File: pgfcoreshade.code.tex 2013/07/15  (rcs-revision 1.15)
+\pgf@max=\dimen163
+\pgf@sys@shading@range@num=\count115
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.cod
+e.tex
+File: pgfcoreimage.code.tex 2013/07/15  (rcs-revision 1.18)
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.
+code.tex
+File: pgfcoreexternal.code.tex 2013/07/15  (rcs-revision 1.20)
+\pgfexternal@startupbox=\box39
+))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.co
+de.tex
+File: pgfcorelayers.code.tex 2013/07/18  (rcs-revision 1.7)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretranspare
+ncy.code.tex
+File: pgfcoretransparency.code.tex 2013/09/30  (rcs-revision 1.5)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.
+code.tex
+File: pgfcorepatterns.code.tex 2013/11/07  (rcs-revision 1.5)
+)))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/utilities/xxcolor.sty
+Package: xxcolor 2003/10/24 ver 0.1
+\XC@nummixins=\count116
+\XC@countmixins=\count117
+)
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/atbegshi.sty
+Package: atbegshi 2011/10/05 v1.16 At begin shipout hook (HO)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2012/11/06 v6.83m Hypertext links for LaTeX
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+Package: hobsub-hyperref 2012/05/28 v1.13 Bundle oberdiek, subset hyperref (HO)
+
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+Package: hobsub-generic 2012/05/28 v1.13 Bundle oberdiek, subset generic (HO)
+Package: hobsub 2012/05/28 v1.13 Construct package bundles (HO)
+Package hobsub Info: Skipping package `infwarerr' (already loaded).
+Package hobsub Info: Skipping package `ltxcmds' (already loaded).
+Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+Package hobsub Info: Skipping package `ifvtex' (already loaded).
+Package: intcalc 2007/09/27 v1.1 Expandable calculations with integers (HO)
+Package hobsub Info: Skipping package `ifpdf' (already loaded).
+Package: etexcmds 2011/02/16 v1.5 Avoid name clashes with e-TeX commands (HO)
+Package etexcmds Info: Could not find \expanded.
+(etexcmds)             That can mean that you are not using pdfTeX 1.50 or
+(etexcmds)             that some package has redefined \expanded.
+(etexcmds)             In the latter case, load this package earlier.
+Package: kvsetkeys 2012/04/25 v1.16 Key value parser (HO)
+Package: kvdefinekeys 2011/04/07 v1.3 Define keys (HO)
+Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+Package: pdfescape 2011/11/25 v1.13 Implements pdfTeX's escape features (HO)
+Package: bigintcalc 2012/04/08 v1.3 Expandable calculations on big integers (HO
+)
+Package: bitset 2011/01/30 v1.1 Handle bit-vector datatype (HO)
+Package: uniquecounter 2011/01/30 v1.2 Provide unlimited unique counter (HO)
+)
+Package hobsub Info: Skipping package `hobsub' (already loaded).
+Package: letltxmacro 2010/09/02 v1.4 Let assignment for LaTeX macros (HO)
+Package: hopatch 2012/05/28 v1.2 Wrapper for package hooks (HO)
+Package: xcolor-patch 2011/01/30 xcolor patch
+Package: atveryend 2011/06/30 v1.8 Hooks at the very end of document (HO)
+Package atveryend Info: \enddocument detected (standard20110627).
+Package hobsub Info: Skipping package `atbegshi' (already loaded).
+Package: refcount 2011/10/16 v3.4 Data extraction from label references (HO)
+Package: hycolor 2011/01/30 v1.7 Color options for hyperref/bookmark (HO)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/auxhook.sty
+Package: auxhook 2011/03/04 v1.3 Hooks for auxiliary files (HO)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
+)
+\@linkdim=\dimen164
+\Hy@linkcounter=\count118
+\Hy@pagecounter=\count119
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2012/11/06 v6.83m Hyperref: PDFDocEncoding definition (HO)
+)
+\Hy@SavedSpaceFactor=\count120
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/hyperref.cfg
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
+)
+Package hyperref Info: Option `bookmarks' set `true' on input line 4319.
+Package hyperref Info: Option `bookmarksopen' set `true' on input line 4319.
+Package hyperref Info: Option `implicit' set `false' on input line 4319.
+Package hyperref Info: Hyper figures OFF on input line 4443.
+Package hyperref Info: Link nesting OFF on input line 4448.
+Package hyperref Info: Hyper index ON on input line 4451.
+Package hyperref Info: Plain pages OFF on input line 4458.
+Package hyperref Info: Backreferencing OFF on input line 4463.
+Package hyperref Info: Implicit mode OFF; no redefinition of LaTeX internals.
+Package hyperref Info: Bookmarks ON on input line 4688.
+\c@Hy@tempcnt=\count121
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
+\Urlmuskip=\muskip10
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 5041.
+\XeTeXLinkMargin=\dimen165
+\Fld@menulength=\count122
+\Field@Width=\dimen166
+\Fld@charsize=\dimen167
+Package hyperref Info: Hyper figures OFF on input line 6295.
+Package hyperref Info: Link nesting OFF on input line 6300.
+Package hyperref Info: Hyper index ON on input line 6303.
+Package hyperref Info: backreferencing OFF on input line 6310.
+Package hyperref Info: Link coloring OFF on input line 6315.
+Package hyperref Info: Link coloring with OCG OFF on input line 6320.
+Package hyperref Info: PDF/A mode OFF on input line 6325.
+LaTeX Info: Redefining \ref on input line 6365.
+LaTeX Info: Redefining \pageref on input line 6369.
+\Hy@abspage=\count123
+
+
+Package hyperref Message: Stopped early.
+
+)
+
+Package hyperref Message: Driver (autodetected): hpdftex.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2012/11/06 v6.83m Hyperref driver for pdfTeX
+\Fld@listcount=\count124
+\c@bookmark@seq@number=\count125
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+Package: rerunfilecheck 2011/04/15 v1.7 Rerun checks for auxiliary files (HO)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+82.
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaserequires.sty
+Package: beamerbaserequires 2010/05/01  (rcs-revision efa082c6111d)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasecompatibility.st
+y
+Package: beamerbasecompatibility 2012/05/01  (rcs-revision 67c48b3b652d)
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasefont.sty
+Package: beamerbasefont 2015/01/05  (rcs-revision b4b4bee242e2)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\@emptytoks=\toks26
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/sansmathaccent/sansmathaccent.sty
+Package: sansmathaccent 2013/03/28
+(/usr/local/texlive/2015/texmf-dist/tex/latex/filehook/filehook.sty
+Package: filehook 2011/10/12 v0.5d Hooks for input files
+)))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetranslator.sty
+Package: beamerbasetranslator 2010/06/11  (rcs-revision 85fd1cc7fc42)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/translator.sty
+Package: translator 2010/06/12 ver 1.10
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/translator-lang
+uage-mappings.tex)))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasemisc.sty
+Package: beamerbasemisc 2013/09/03  (rcs-revision a55719c41d85)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetwoscreens.sty
+Package: beamerbasetwoscreens 2010/05/01  (rcs-revision efa082c6111d)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseoverlay.sty
+Package: beamerbaseoverlay 2013/12/25  (rcs-revision f6bd5e3805da)
+\beamer@argscount=\count126
+\beamer@lastskipcover=\skip44
+\beamer@trivlistdepth=\count127
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetitle.sty
+Package: beamerbasetitle 2010/09/21  (rcs-revision f0446ed0b6ae)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasesection.sty
+Package: beamerbasesection 2013/06/07  (rcs-revision 60b9fe0f342f)
+\c@lecture=\count128
+\c@part=\count129
+\c@section=\count130
+\c@subsection=\count131
+\c@subsubsection=\count132
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseframe.sty
+Package: beamerbaseframe 2014/02/20  (rcs-revision 4b8ceeeff434)
+\beamer@framebox=\box40
+\beamer@frametitlebox=\box41
+\beamer@zoombox=\box42
+\beamer@zoomcount=\count133
+\beamer@zoomframecount=\count134
+\beamer@frametextheight=\dimen168
+\c@subsectionslide=\count135
+\beamer@frametopskip=\skip45
+\beamer@framebottomskip=\skip46
+\beamer@frametopskipautobreak=\skip47
+\beamer@framebottomskipautobreak=\skip48
+\beamer@envbody=\toks27
+\framewidth=\dimen169
+\c@framenumber=\count136
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseverbatim.sty
+Package: beamerbaseverbatim 2015/01/05  (rcs-revision 431510bb5890)
+\beamer@verbatimfileout=\write4
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseframesize.sty
+Package: beamerbaseframesize 2011/09/12  (rcs-revision 70f9d8411e54)
+\beamer@splitbox=\box43
+\beamer@autobreakcount=\count137
+\beamer@autobreaklastheight=\dimen170
+\beamer@frametitletoks=\toks28
+\beamer@framesubtitletoks=\toks29
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseframecomponents.
+sty
+Package: beamerbaseframecomponents 2013/10/18  (rcs-revision 5cf6c5555a45)
+\beamer@footins=\box44
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasecolor.sty
+Package: beamerbasecolor 2015/02/21  (rcs-revision d944b04ee2d5)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasenotes.sty
+Package: beamerbasenotes 2012/12/19  (rcs-revision 1686da3db3c9)
+\beamer@frameboxcopy=\box45
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetoc.sty
+Package: beamerbasetoc 2015/03/08  (rcs-revision 7270298bbaae)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetemplates.sty
+Package: beamerbasetemplates 2010/05/01  (rcs-revision efa082c6111d)
+\beamer@sbttoks=\toks30
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseauxtemplates.sty
+Package: beamerbaseauxtemplates 2014/06/30  (rcs-revision 580088513a67)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaseboxes.sty
+Package: beamerbaseboxes 2012/05/13  (rcs-revision 56972908a390)
+\bmb@box=\box46
+\bmb@colorbox=\box47
+\bmb@boxshadow=\box48
+\bmb@boxshadowball=\box49
+\bmb@boxshadowballlarge=\box50
+\bmb@temp=\dimen171
+\bmb@dima=\dimen172
+\bmb@dimb=\dimen173
+\bmb@prevheight=\dimen174
+)
+\beamer@blockheadheight=\dimen175
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbaselocalstructure.s
+ty
+Package: beamerbaselocalstructure 2014/09/10  (rcs-revision 393f6dcff371)
+ (/usr/local/texlive/2015/texmf-dist/tex/latex/tools/enumerate.sty
+Package: enumerate 2014/10/28 v3.00 enumerate extensions (DPC)
+\@enLab=\toks31
+)
+\c@figure=\count138
+\c@table=\count139
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasenavigation.sty
+Package: beamerbasenavigation 2015/02/27  (rcs-revision 923f4bf87efa)
+\beamer@section@min@dim=\dimen176
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasetheorems.sty
+Package: beamerbasetheorems 2010/06/06  (rcs-revision 7e7cc5e53e9d)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2013/01/14 v2.14 AMS math features
+\@mathmargin=\skip51
+
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0
+\@emptytoks=\toks32
+\ex@=\dimen177
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d
+\pmbraise@=\dimen178
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 1999/12/14 v2.01 operator names
+)
+\inf@bad=\count140
+LaTeX Info: Redefining \frac on input line 210.
+\uproot@=\count141
+\leftroot@=\count142
+LaTeX Info: Redefining \overline on input line 306.
+\classnum@=\count143
+\DOTSCASE@=\count144
+LaTeX Info: Redefining \ldots on input line 378.
+LaTeX Info: Redefining \dots on input line 381.
+LaTeX Info: Redefining \cdots on input line 466.
+\Mathstrutbox@=\box51
+\strutbox@=\box52
+\big@size=\dimen179
+LaTeX Font Info:    Redeclaring font encoding OML on input line 566.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 567.
+\macc@depth=\count145
+\c@MaxMatrixCols=\count146
+\dotsspace@=\muskip11
+\c@parentequation=\count147
+\dspbrk@lvl=\count148
+\tag@help=\toks33
+\row@=\count149
+\column@=\count150
+\maxfields@=\count151
+\andhelp@=\toks34
+\eqnshift@=\dimen180
+\alignsep@=\dimen181
+\tagshift@=\dimen182
+\tagwidth@=\dimen183
+\totwidth@=\dimen184
+\lineht@=\dimen185
+\@envbody=\toks35
+\multlinegap=\skip52
+\multlinetaggap=\skip53
+\mathdisplay@stack=\toks36
+LaTeX Info: Redefining \[ on input line 2665.
+LaTeX Info: Redefining \] on input line 2666.
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amscls/amsthm.sty
+Package: amsthm 2015/03/04 v2.20.2
+\thm@style=\toks37
+\thm@bodyfont=\toks38
+\thm@headfont=\toks39
+\thm@notefont=\toks40
+\thm@headpunct=\toks41
+\thm@preskip=\skip54
+\thm@postskip=\skip55
+\thm@headsep=\skip56
+\dth@everypar=\toks42
+)
+\c@theorem=\count152
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/beamerbasethemes.sty
+Package: beamerbasethemes 2010/05/01  (rcs-revision efa082c6111d)
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/themes/theme/beamerthemede
+fault.sty
+Package: beamerthemedefault 2010/06/17  (rcs-revision d02a7cf4d8ae)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/themes/font/beamerfontthem
+edefault.sty
+Package: beamerfontthemedefault 2012/12/19  (rcs-revision 1686da3db3c9)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/themes/color/beamercolorth
+emedefault.sty
+Package: beamercolorthemedefault 2012/12/19  (rcs-revision 1686da3db3c9)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/themes/inner/beamerinnerth
+emedefault.sty
+Package: beamerinnerthemedefault 2014/06/30  (rcs-revision 580088513a67)
+\beamer@dima=\dimen186
+\beamer@dimb=\dimen187
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/themes/outer/beamerouterth
+emedefault.sty
+Package: beamerouterthemedefault 2012/12/19  (rcs-revision 1686da3db3c9)
+)))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/framed/framed.sty
+Package: framed 2011/10/22 v 0.96: framed or shaded text with page breaks
+\OuterFrameSep=\skip57
+\fb@frw=\dimen188
+\fb@frh=\dimen189
+\FrameRule=\dimen190
+\FrameSep=\dimen191
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/base/alltt.sty
+Package: alltt 1997/06/16 v2.0g defines alltt environment
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/natbib/natbib.sty
+Package: natbib 2010/09/13 8.31b (PWD, AO)
+\bibhang=\skip58
+\bibsep=\skip59
+LaTeX Info: Redefining \cite on input line 694.
+\c@NAT@ctr=\count153
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pdfpages/pdfpages.sty
+Package: pdfpages 2015/05/11 v0.4x Insert pages of external PDF documents (AM)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2014/10/28 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count154
+\calc@Bcount=\count155
+\calc@Adimen=\dimen192
+\calc@Bdimen=\dimen193
+\calc@Askip=\skip60
+\calc@Bskip=\skip61
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count156
+\calc@Cskip=\skip62
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/eso-pic/eso-pic.sty
+Package: eso-pic 2015/04/20 v2.0e eso-pic (RN)
+)
+\AM@pagewidth=\dimen194
+\AM@pageheight=\dimen195
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pdfpages/pppdftex.def
+File: pppdftex.def 2015/05/11 v0.4x Pdfpages driver for pdfTeX (AM)
+)
+\AM@pagebox=\box53
+\AM@toc@title=\toks43
+\c@AM@survey=\count157
+\AM@templatesizebox=\box54
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/utilities/pgffor.sty
+(/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/pgf/math/pgfmath.sty
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex))
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+Package: pgffor 2013/12/13 v3.0.0 (rcs-revision 1.25)
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)
+\pgffor@iter=\dimen196
+\pgffor@skip=\dimen197
+\pgffor@stack=\toks44
+\pgffor@toks=\toks45
+))
+(/usr/local/texlive/2015/texmf-dist/tex/latex/booktabs/booktabs.sty
+Package: booktabs 2005/04/14 v1.61803 publication quality tables
+\heavyrulewidth=\dimen198
+\lightrulewidth=\dimen199
+\cmidrulewidth=\dimen200
+\belowrulesep=\dimen201
+\belowbottomsep=\dimen202
+\aboverulesep=\dimen203
+\abovetopsep=\dimen204
+\cmidrulesep=\dimen205
+\cmidrulekern=\dimen206
+\defaultaddspace=\dimen207
+\@cmidla=\count158
+\@cmidlb=\count159
+\@aboverulesep=\dimen208
+\@belowrulesep=\dimen209
+\@thisruleclass=\count160
+\@lastruleclass=\count161
+\@thisrulewidth=\dimen210
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2013/05/02 v3.3-89 Customizing captions (AR)
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2013/05/02 v1.6-88 caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 57.
+\captionmargin=\dimen211
+\captionmargin@=\dimen212
+\captionwidth=\dimen213
+\caption@tempdima=\dimen214
+\caption@indent=\dimen215
+\caption@parindent=\dimen216
+\caption@hangindent=\dimen217
+)
+\c@ContinuedFloat=\count162
+Package caption Info: beamer document class.
+Package caption Info: hyperref package is loaded.
+Package caption Info: Hyperref support is turned off
+(caption)             because hyperref has stopped early.
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/base/fixltx2e.sty
+Package: fixltx2e 2015/02/21 v2.0a fixes to LaTeX (obsolete)
+
+
+Package fixltx2e Warning: fixltx2e is not required with releases after 2015
+(fixltx2e)                All fixes are now in the LaTeX kernel.
+(fixltx2e)                See the latexrelease package for details.
+
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/threeparttable/threeparttable.sty
+Package: threeparttable 2003/06/13  v 3.0
+\@tempboxb=\box55
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/tools/verbatim.sty
+Package: verbatim 2014/10/28 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks46
+\verbatim@line=\toks47
+\verbatim@in@stream=\read2
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/cancel/cancel.sty
+Package: cancel 2013/04/12 v2.2 Cancel math terms
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/mathtools/mathtools.sty
+Package: mathtools 2015/05/11 v1.16 mathematical typesetting tools
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/mathtools/mhsetup.sty
+Package: mhsetup 2010/01/21 v1.2a programming setup (MH)
+)
+LaTeX Info: Thecontrolsequence`\('isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\)'isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\['isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\]'isalreadyrobust on input line 129.
+\g_MT_multlinerow_int=\count163
+\l_MT_multwidth_dim=\dimen218
+\origjot=\skip63
+\l_MT_shortvdotswithinadjustabove_dim=\dimen219
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen220
+\l_MT_above_intertext_sep=\dimen221
+\l_MT_below_intertext_sep=\dimen222
+\l_MT_above_shortintertext_sep=\dimen223
+\l_MT_below_shortintertext_sep=\dimen224
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
+(/usr/local/texlive/2015/texmf-dist/tex/latex/l3kernel/expl3.sty
+Package: expl3 2015/03/01 v5547 L3 programming layer (loader) 
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/l3kernel/expl3-code.tex
+Package: expl3 2015/03/01 v5547 L3 programming layer (code) 
+L3 Module: l3bootstrap 2015/02/28 v5542 L3 Bootstrap code
+L3 Module: l3names 2015/02/24 v5535 L3 Namespace for primitives
+L3 Module: l3basics 2015/01/27 v5500 L3 Basic definitions
+L3 Module: l3expan 2014/11/27 v5472 L3 Argument expansion
+L3 Module: l3tl 2015/01/27 v5500 L3 Token lists
+L3 Module: l3str 2015/03/01 v5545 L3 Strings
+L3 Module: l3seq 2014/08/23 v5354 L3 Sequences and stacks
+L3 Module: l3int 2015/02/21 v5529 L3 Integers
+\c_max_int=\count164
+\l_tmpa_int=\count165
+\l_tmpb_int=\count166
+\g_tmpa_int=\count167
+\g_tmpb_int=\count168
+L3 Module: l3quark 2014/08/23 v5354 L3 Quarks
+L3 Module: l3prg 2014/08/23 v5354 L3 Control structures
+\g__prg_map_int=\count169
+L3 Module: l3clist 2014/08/23 v5354 L3 Comma separated lists
+L3 Module: l3token 2014/09/15 v5422 L3 Experimental token manipulation
+L3 Module: l3prop 2014/08/23 v5354 L3 Property lists
+L3 Module: l3msg 2015/02/26 v5537 L3 Messages
+L3 Module: l3file 2014/08/24 v5369 L3 File and I/O operations
+\l_iow_line_count_int=\count170
+\l__iow_target_count_int=\count171
+\l__iow_current_line_int=\count172
+\l__iow_current_word_int=\count173
+\l__iow_current_indentation_int=\count174
+L3 Module: l3skip 2014/08/23 v5354 L3 Dimensions and skips
+\c_zero_dim=\dimen225
+\c_max_dim=\dimen226
+\l_tmpa_dim=\dimen227
+\l_tmpb_dim=\dimen228
+\g_tmpa_dim=\dimen229
+\g_tmpb_dim=\dimen230
+\c_zero_skip=\skip64
+\c_max_skip=\skip65
+\l_tmpa_skip=\skip66
+\l_tmpb_skip=\skip67
+\g_tmpa_skip=\skip68
+\g_tmpb_skip=\skip69
+\c_zero_muskip=\muskip12
+\c_max_muskip=\muskip13
+\l_tmpa_muskip=\muskip14
+\l_tmpb_muskip=\muskip15
+\g_tmpa_muskip=\muskip16
+\g_tmpb_muskip=\muskip17
+L3 Module: l3keys 2015/01/27 v5500 L3 Key-value interfaces
+\g__keyval_level_int=\count175
+\l_keys_choice_int=\count176
+L3 Module: l3fp 2014/08/22 v5336 L3 Floating points
+\c__fp_leading_shift_int=\count177
+\c__fp_middle_shift_int=\count178
+\c__fp_trailing_shift_int=\count179
+\c__fp_big_leading_shift_int=\count180
+\c__fp_big_middle_shift_int=\count181
+\c__fp_big_trailing_shift_int=\count182
+\c__fp_Bigg_leading_shift_int=\count183
+\c__fp_Bigg_middle_shift_int=\count184
+\c__fp_Bigg_trailing_shift_int=\count185
+L3 Module: l3box 2014/08/23 v5354 L3 Experimental boxes
+\c_empty_box=\box56
+\l_tmpa_box=\box57
+\l_tmpb_box=\box58
+\g_tmpa_box=\box59
+\g_tmpb_box=\box60
+L3 Module: l3coffins 2014/08/23 v5354 L3 Coffin code layer
+\l__coffin_internal_box=\box61
+\l__coffin_internal_dim=\dimen231
+\l__coffin_offset_x_dim=\dimen232
+\l__coffin_offset_y_dim=\dimen233
+\l__coffin_x_dim=\dimen256
+\l__coffin_y_dim=\dimen257
+\l__coffin_x_prime_dim=\dimen258
+\l__coffin_y_prime_dim=\dimen259
+\c_empty_coffin=\box62
+\l__coffin_aligned_coffin=\box63
+\l__coffin_aligned_internal_coffin=\box64
+\l_tmpa_coffin=\box65
+\l_tmpb_coffin=\box66
+\l__coffin_display_coffin=\box67
+\l__coffin_display_coord_coffin=\box68
+\l__coffin_display_pole_coffin=\box69
+\l__coffin_display_offset_dim=\dimen260
+\l__coffin_display_x_dim=\dimen261
+\l__coffin_display_y_dim=\dimen262
+L3 Module: l3color 2014/08/23 v5354 L3 Experimental color support
+L3 Module: l3candidates 2015/03/01 v5544 L3 Experimental additions to l3kernel
+\l__box_top_dim=\dimen263
+\l__box_bottom_dim=\dimen264
+\l__box_left_dim=\dimen265
+\l__box_right_dim=\dimen266
+\l__box_top_new_dim=\dimen267
+\l__box_bottom_new_dim=\dimen268
+\l__box_left_new_dim=\dimen269
+\l__box_right_new_dim=\dimen270
+\l__box_internal_box=\box70
+\l__coffin_bounding_shift_dim=\dimen271
+\l__coffin_left_corner_dim=\dimen272
+\l__coffin_right_corner_dim=\dimen273
+\l__coffin_bottom_corner_dim=\dimen274
+\l__coffin_top_corner_dim=\dimen275
+\l__coffin_scaled_total_height_dim=\dimen276
+\l__coffin_scaled_width_dim=\dimen277
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/l3kernel/l3unicode-data.def
+File: l3unicode-data.def 2015/03/01 v5544 L3 Unicode data
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/l3kernel/l3pdfmode.def
+File: l3pdfmode.def 2015/03/01 v5544 L3 Experimental driver: PDF mode
+\l__driver_color_stack_int=\count186
+))
+Package: xparse 2014/11/25 v5471 L3 Experimental document command parser
+\l__xparse_current_arg_int=\count187
+\l__xparse_m_args_int=\count188
+\l__xparse_mandatory_args_int=\count189
+\l__xparse_processor_int=\count190
+\l__xparse_v_nesting_int=\count191
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+Package: etoolbox 2015/05/04 v2.2 e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count192
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/upquote/upquote.sty
+Package: upquote 2012/04/19 v1.3 upright-quote and grave-accent glyphs in verba
+tim
+)
+(./EC999_Sourcing-Data.aux)
+\openout1 = `EC999_Sourcing-Data.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 141.
+LaTeX Font Info:    ... okay on input line 141.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: custom
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: includehead includefoot 
+* h-part:(L,W,R)=(16.0pt, 332.19536pt, 16.0pt)
+* v-part:(T,H,B)=(0.0pt, 273.14662pt, 0.0pt)
+* \paperwidth=364.19536pt
+* \paperheight=273.14662pt
+* \textwidth=332.19536pt
+* \textheight=244.6939pt
+* \oddsidemargin=-56.26999pt
+* \evensidemargin=-56.26999pt
+* \topmargin=-72.26999pt
+* \headheight=14.22636pt
+* \headsep=0.0pt
+* \topskip=11.0pt
+* \footskip=14.22636pt
+* \marginparwidth=4.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count193
+\scratchdimen=\dimen278
+\scratchbox=\box71
+\nofMPsegments=\count194
+\nofMParguments=\count195
+\everyMPshowfont=\toks48
+\MPscratchCnt=\count196
+\MPscratchDim=\dimen279
+\MPnumerator=\count197
+\makeMPintoPDFobject=\count198
+\everyMPtoPDFconversion=\toks49
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/oberdiek/grfext.sty
+Package: grfext 2010/08/19 v1.1 Manage graphics extensions (HO)
+)
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 452.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+ABD: EveryShipout initializing macros
+\AtBeginShipoutBox=\box72
+Package hyperref Info: Link coloring OFF on input line 141.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
+
+(/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
+Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
+)
+\c@section@level=\count199
+)
+LaTeX Info: Redefining \ref on input line 141.
+LaTeX Info: Redefining \pageref on input line 141.
+LaTeX Info: Redefining \nameref on input line 141.
+
+(./EC999_Sourcing-Data.out) (./EC999_Sourcing-Data.out)
+\@outlinefile=\write5
+\openout5 = `EC999_Sourcing-Data.out'.
+
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  OT1/cmr/m/n --> OT1/cmss/m/n on input line 141.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 141.
+\symnumbers=\mathgroup6
+\sympureletters=\mathgroup7
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `normal'
+(Font)                  OT1/cmss/m/n --> OT1/cmr/m/n on input line 141.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/cmss/bx/n on input line 141.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
+(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/bx/n --> OT1/cmss/m/n on input line 141.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
+(Font)                  OT1/cmr/m/it --> OT1/cmss/m/it on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/bx/it --> OT1/cmss/m/it on input line 141.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/m/n on input line 141.
+LaTeX Font Info:    Overwriting symbol font `numbers' in version `bold'
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 141.
+LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
+(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `bold'
+(Font)                  OT1/cmss/bx/n --> OT1/cmr/bx/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
+(Font)                  OT1/cmss/bx/n --> OT1/cmss/bx/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmss/m/it --> OT1/cmss/bx/it on input line 141.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  OT1/cmtt/m/n --> OT1/cmtt/bx/n on input line 141.
+LaTeX Font Info:    Redeclaring symbol font `pureletters' on input line 141.
+LaTeX Font Info:    Overwriting symbol font `pureletters' in version `normal'
+(Font)                  OT1/cmss/m/it --> OT1/mathkerncmss/m/sl on input line 1
+41.
+LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
+(Font)                  OT1/cmss/bx/it --> OT1/mathkerncmss/m/sl on input line 
+141.
+LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
+(Font)                  OT1/mathkerncmss/m/sl --> OT1/mathkerncmss/bx/sl on inp
+ut line 141.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-basic-dictionary/translator-basic-dictionary-English.dict
+Dictionary: translator-basic-dictionary, Language: English 
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-bibliography-dictionary/translator-bibliography-dictionary-English.dict
+Dictionary: translator-bibliography-dictionary, Language: English 
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-environment-dictionary/translator-environment-dictionary-English.dict
+Dictionary: translator-environment-dictionary, Language: English 
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-months-dictionary/translator-months-dictionary-English.dict
+Dictionary: translator-months-dictionary, Language: English 
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-numbers-dictionary/translator-numbers-dictionary-English.dict
+Dictionary: translator-numbers-dictionary, Language: English 
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/beamer/translator/dicts/translato
+r-theorem-dictionary/translator-theorem-dictionary-English.dict
+Dictionary: translator-theorem-dictionary, Language: English 
+)
+LaTeX Info: Redefining \includegraphics on input line 141.
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: Incompatible package detected (regarding \caption).
+(caption)             \caption = macro:->\ifx \@captype \@undefined \@latex@err
+or {\noexpand \caption outside figure or table}\@ehd \expandafter \@gobble \els
+e \refstepcounter \@captype \expandafter \@firstofone \fi {\@dblarg {\@caption 
+\@captype }}.
+
+
+Package caption Warning: \caption will not be redefined since it's already
+(caption)                redefined by a document class or package which is
+(caption)                unknown to the caption package.
+See the caption package documentation for explanation.
+
+Package caption Info: threeparttable package is loaded.
+Package caption Info: End \AtBeginDocument code.
+(./EC999_Sourcing-Data.nav) [1
+
+{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./EC99
+9_Sourcing-Data.toc) [2
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+LaTeX Font Info:    Try loading font information for U+msa on input line 5.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 5.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Try loading font information for OT1+mathkerncmss on input 
+line 5.
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
+File: ot1mathkerncmss.fd 2013/03/27 Fontinst v1.933 font definitions for OT1/ma
+thkerncmss.
+)) [3
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <6> not available
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 9.
+LaTeX Font Info:    Try loading font information for OMS+cmtt on input line 26.
+
+
+(/Library/Frameworks/R.framework/Resources/share/texmf/tex/latex/omscmtt.fd
+File: omscmtt.fd 
+)
+LaTeX Font Info:    Font shape `OMS/cmtt/m/n' in size <6> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 26.
+)
+[4
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [5
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [6
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb) [7
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [8
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb) [9
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [10
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Overfull \hbox (1.288pt too wide) in paragraph at lines 13--13
+[][]\OT1/cmtt/m/n/6 gsub[][]([][]"<a href=\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6 "([^
+\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6 "]*)\OMS/cmsy/m/n/6 nn\OT1/cmtt/m/n/6 >([^<]*)
+</a>"[][],[] []"\OMS/cmsy/m/n/6 nn\OT1/cmtt/m/n/6 1"[][],[] []"<a href=\OMS/cms
+y/m/n/6 n\OT1/cmtt/m/n/6 "http://www.google.com\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6
+ ">Link to Google</a>"[][])[][] 
+ []
+
+) [11
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Overfull \hbox (8.87204pt too wide) in paragraph at lines 6--6
+[][]\OT1/cmtt/m/n/6 strings[] []<-[] []c[][]([][]" 219 733 8965"[][],[] []"329-
+293-8753 "[][],[] []"banana"[][],[] []"595 794 7569"[][],[] []"387 287 6718"[][
+],[] []"myweb@gmail.com"[][],[][] 
+ []
+
+) [12
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [13
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/london-gazette.png, id=388, 687.56876pt x 485.815pt>
+File: figures/london-gazette.png Graphic file (type png)
+
+<use figures/london-gazette.png>
+Package pdftex.def Info: figures/london-gazette.png used on input line 7.
+(pdftex.def)             Requested size: 192.51793pt x 136.02727pt.
+) [14
+
+ <./figures/london-gazette.png>]
+(./EC999_Sourcing-Data.vrb
+<figures/london-gazette-naturalisation.png, id=417, 341.275pt x 297.11pt>
+File: figures/london-gazette-naturalisation.png Graphic file (type png)
+
+<use figures/london-gazette-naturalisation.png>
+Package pdftex.def Info: figures/london-gazette-naturalisation.png used on inpu
+t line 8.
+(pdftex.def)             Requested size: 153.57233pt x 133.69826pt.
+) [15
+
+ <./figures/london-gazette-naturalisation.png>] (./EC999_Sourcing-Data.vrb
+<figures/ocred-naturalisation-lists.png, id=443, 602.25pt x 274.02374pt>
+File: figures/ocred-naturalisation-lists.png Graphic file (type png)
+
+<use figures/ocred-naturalisation-lists.png>
+Package pdftex.def Info: figures/ocred-naturalisation-lists.png used on input l
+ine 9.
+(pdftex.def)             Requested size: 271.01pt x 123.30954pt.
+) [16
+
+ <./figures/ocred-naturalisation-lists.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Overfull \hbox (43.52228pt too wide) in paragraph at lines 20--20
+[][]\OT1/cmtt/m/n/6 START[] []<-[] []grep[][]([][]"Oaths of Allegiance|LIST OF 
+ALIENS|CERTIFICATES OF NATURALISATION"[][], TEMP,[] []ignore.case[] []=[] []TRU
+E[][])[[][]1[][]][][] 
+ []
+
+) [17
+
+] (./EC999_Sourcing-Data.toc) [18
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [19
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Overfull \hbox (3030.66544pt too wide) in paragraph at lines 13--13
+[]\OT1/cmtt/m/n/6 ## [1] "{\"congress\":104,\"title\":\"JOIN THE SENATE AND PAS
+S A CONTINUING RESOLUTION\",\"text\":\"Mr. Speaker, 480,000 Federal employees a
+re working without pay, a form of involuntary servitude; 280,000 Federal employ
+ees are not working, and they will be paid. Virtually all of these workers have
+ mortgages to pay, children to feed, and financial obligations to meet.\\nMr. S
+peaker, what is happening to these workers is immoral, is wrong, and must be re
+ctified immediately. Newt Gingrich and the Republican leadership must not conti
+nue to hold the House and the American people hostage while they push their dis
+astrous 7-year balanced budget plan. The gentleman from Georgia, Mr. Gingrich, 
+and the Republican leadership must join Senator Dole and the entire Senate and 
+pass a continuing resolution now, now to reopen Government.\\nMr. Speaker, that
+ is what the American people want, that is what they need, and that is what thi
+s body must do.\",\"chamber\":\"House\",\"speaker_party\":\"I\",\"date\":\"1996
+-01-04\",\"speaker_name\":\"Bernie Sanders\"}"[] 
+ []
+
+
+Overfull \hbox (3540.67276pt too wide) in paragraph at lines 14--14
+[]\OT1/cmtt/m/n/6 ## [2] "{\"congress\":104,\"title\":\"MEETING THE CHALLENGE\"
+,\"text\":\"Mr. Speaker, a relationship, to work and survive, has got to be hon
+est and we have got to deal with each other in good faith. For a government to 
+govern well, we have to be honest and we have to deal with each other in good f
+aith.\\nThe President has vetoed every measure we have sent to him that would b
+alance the budget. He has a constitutional right to do that. If he believes tha
+t our budget devastates the elderly, he has a moral obligation to fight us. I w
+ill never, never say bad things about somebody that follows their beliefs becau
+se that is what they should do. There comes a time, though, that one has an obl
+igation to do more than just say no.\\nMr. President, if you do not like our vi
+ew of a balanced budget, give us your view. We cannot negotiate against ourselv
+es anymore. You have a legal and a moral obligation to fight us when you think 
+we are wrong. You have a legal and moral obligation to fulfill your commitment 
+you made 40 days ago to put a budget on the table that balances. Please fulfill
+ your obligation.\",\"chamber\":\"House\",\"speaker_party\":\"R\",\"date\":\"19
+96-01-04\",\"speaker_name\":\"Lindsey Graham\"}"[] 
+ []
+
+
+Overfull \hbox (5800.64272pt too wide) in paragraph at lines 15--15
+[]\OT1/cmtt/m/n/6 ## [3] "{\"congress\":104,\"title\":\"DISPOSING OF SENATE AME
+NDMENT TO H.R. 1643, EXTENSION OF MOST-FAVORED- NATION TREATMENT FOR BULGARIA\"
+,\"text\":\"Mr. Speaker, I thank the gentleman for yielding time to me.\\nMr. S
+peaker, this legislation is both good news and bad news. The good news is that 
+the Republicans have finally decided to stop holding three-quarters of a millio
+n American Federal workers as hostage. In Vermont we have close to 2,000 Federa
+l workers who are working today but are not getting paid. These people have mor
+tgages to pay. They have children to feed. They have financial obligations to m
+eet. It is immoral. It is wrong to hold them and every other Federal Worker who
+ is furloughed and not being paid as hostage.\\nIt is also wrong to hold millio
+ns of Americans who need passports, who need environmental protection, who need
+ Meals on Wheels, who need all of the services that this Government should be p
+roviding as hostage, who have paid for these services but are not getting them.
+\\nThe bad news is that, while Federal workers will be paid, many of them will 
+not be given the resources that they need to do their jobs properly. That is in
+sane. Why do we give people the money to go to work but then not allow them the
+ resources to properly fulfill their function?\\nMr. Speaker, the truth of the 
+matter is that this is not a debate about a 7-year balanced budget. If our Repu
+blican friends were serious about balancing the budget in 7 years, which I thin
+k can be done, they would not be spending $50 billion more on defense spending 
+despite the end of the cold war. They would not be spending more money on the C
+IA despite the end of the cold war. They would not be giving huge tax breaks to
+ the rich when the richest people in America today are richer than they have ev
+er been before.\",\"chamber\":\"House\",\"speaker_party\":\"I\",\"date\":\"1996
+-01-05\",\"speaker_name\":\"Bernie Sanders\"}"[] 
+ []
+
+
+Overfull \hbox (3126.29181pt too wide) in paragraph at lines 16--16
+[]\OT1/cmtt/m/n/6 ## [4] "{\"congress\":104,\"title\":\"EXAMINING THE SPEAKER^^
+MS UPCOMING TRAVEL SCHEDULE\",\"text\":\"Mr. Speaker, if we want to understand 
+why in this country the richest people are becoming richer while most working p
+eople are seeing a decline in their standard of living, if we want to understan
+d why the Contract With America provides for huge tax breaks for the wealthiest
+ people and the largest corporations while it cuts back massively on programs f
+or the elderly, working people, and low-income people, we might want to examine
+ Newt Gingrich^^Ms travel schedule for the coming week.\\nMr. Gingrich will be 
+in Seattle, WA, where he will have dinner with his colleagues and his friends f
+or the Washington State Republican Party for $1,000 each. He will be in Dallas,
+ TX, for a dinner for only $10,000 apiece. He will be in Dearborn, MI, for anot
+her private fireside reception at $10,000.\\nWho goes to these events? Most peo
+ple that I know do not spend $1,000 for a dinner.\",\"chamber\":\"House\",\"spe
+aker_party\":\"I\",\"date\":\"1996-01-05\",\"speaker_name\":\"Bernie Sanders\"}
+"[] 
+ []
+
+
+Overfull \hbox (30284.18182pt too wide) in paragraph at lines 17--17
+[]\OT1/cmtt/m/n/6 ## [5] "{\"congress\":104,\"title\":\"FLOODING IN PENNSYLVANI
+A\",\"text\":\"Mr. President, I wanted to follow up the remarks of my senior Se
+nator from Pennsylvania [Mr. Specter], and talk about the problems that we are 
+having in Pennsylvania today. The first thing I wanted to do was make sure the 
+record is very clear in my use of the word \\\"liberal.\\\" I suggested that FE
+MA be more liberal than what they have been to date, as of early this morning, 
+in declaring counties in Pennsylvania eligible for individual assistance, for e
+mergency disaster relief funds. I think that was an appropriate call given the 
+fact that the Governor of Pennsylvania, who knows a little bit about the Emerge
+ncy Relief Act that is in place here because he helped write it several years a
+go and knows it cover to cover, declared 58 of Pennsylvania^^Ms 67 counties dis
+aster areas and was seeking Federal grant recognition for, if not all, certainl
+y a great majority of those counties.\\nSenator Specter, I know, has been trave
+ling the State extensively, as have I. We have seen the tremendous damage done 
+by this heavy snowfall and subsequent quick melting and floods and then freezin
+g again, causing ice jams and horrible damage on our Commonwealth^^Ms rivers an
+d streams. We do believe that several more counties should be included in the l
+ist that are eligible for individual assistance, and obviously the process will
+ commence to determine whether those counties and municipalities will be eligib
+le for public assistance, for reimbursing municipalities and counties for the c
+ost of cleanup and dealing with the problems of this horrible storm.\\nI unders
+tand that the senior Senator has already talked about how today James Lee Witt,
+ the head of FEMA, has been up to the State of Pennsylvania and he has added to
+ the list of 6 counties an additional 19 counties, bringing to 25 the number of
+ counties that will now be eligible for some assistance.\\nWe were in Harrisbur
+g this morning. I know he mentioned we saw some of \\nThat has really made this
+ disaster a lot different because Harrisburg was hit back in 1972 with very sev
+ere flooding as a result of Hurricane Agnes. In fact, the mayor and others have
+ been telling us that while the flood levels were not as high as Hurricane Agne
+s, although in some areas they were almost as high, the damage, they believe, a
+ctually will be more because of the ice. Literally, Senator Specter and I were 
+walking around an area that was 5 feet underwater just 24 hours before, and sit
+ting there all over the place were boulders of ice almost my size and probably 
+bigger, with trees frozen to them. It was really a rather gruesome picture. You
+ could actually see the water level because on the houses and the fences and on
+ the trees you could see where the ice had frozen around the tree, around the h
+ouses, sort of jutting out from the houses. So you could pretty well tell every
+where where the water levels had risen to.\\nWe were through that area and saw 
+the damage that the ice had caused to streets and to houses, the buckling effec
+t of having water there and then freezing and then unfreezing. It looks almost 
+like an earthquake on some of the roads; they are just sort of warped, with big
+ sinkholes and things like that as a result of this freezing and thawing and fr
+eezing again and the amount of water pressure.\\nIn fact, Senator Specter and I
+ met with Mayor Reed of Harrisburg, whom I have to commend; he has done a treme
+ndous job in rallying the troops in Harrisburg, one of our hardest hit cities, 
+and is doing an outstanding job personally. He is someone whom I have known for
+ quite some time and know he puts every ounce of his person in his job. I am su
+re he has not slept for days. He met us in boots and blue jeans and looked like
+ he had not been able to get into his house, probably even to eat a meal, in a 
+few days. He has really just been on the go.\\nThey had a horrible fire in this
+ area I was talking about that was 5 feet under water. They had, unfortunately,
+ a fire break out last night that destroyed four historic town homes. And lucki
+ly no one was injured. The area was evacuated obviously and no one was injured 
+as a resident. But several of the firefighters, they had to cut their way throu
+gh the ice and wade through water, waist high at that time, and fight the fire 
+without obviously any fire hoses. They had to string them literally blocks to g
+et fire hoses there.\\nMy understanding is that a dozen firefighters were carri
+ed from the scene with hypothermia -- a horrible situation. I know Mayor Reed w
+as there the entire time working on it. He showed us the Walnut Street bridge, 
+which is the oldest -- I am not going to get this right -- it is the oldest of 
+some type of bridge having to do with metal construction. That bridge was expec
+ted to collapse during the 1972 flood when actually the river went up over the 
+platform of the bridge.\\nIn this case it was several feet below it. But a sect
+ion of the bridge -- you may have seen on television -- was knocked away. The r
+eason was not because of the water flow. Again, it was the ice jams. An ice jam
+ had a large amount of ice collected at this one abutment, and eventually with 
+all the pressure it was knocked over, was knocked into the river. They expect a
+nother one of those pillars to fall relatively soon.\\nSo there has been a seve
+re amount of damage. Senator Specter and I are very concerned about the Federal
+ response to the damage across Pennsylvania. We believe that in some instances 
+the response was delayed. I know the President would like to see all the people
+ and communities that have been severely hurt by this storm to get the kind of 
+assistance that they need to begin to clean up and rebuild their lives.\\nI am 
+hopeful that we can move forward. As Senator Specter said, initially only six c
+ounties were listed as qualifying for this assistance. One of the counties that
+ did not qualify originally, and did not qualify until this afternoon, was a co
+unty where there were 6 people known dead, 75 people missing from an area that 
+was a large housing development that was literally just swept away. Water rose 
+rapidly. People were given no warning. The consequences were terrible. Yet that
+ county was not listed originally on the disaster list, which amazed many of us
+ and frankly was very discouraging.\\nI had occasion to talk to people up in Wi
+lliamsport, Lycoming County. And they were very discouraged. Somehow they were 
+suffering to this degree, and in fact accounted, from my understanding, for ove
+r half the deaths related to this storm in the Northeast, and yet were not list
+ed as a county eligible for disaster assistance. That caused some legitimate un
+easiness to where actually their needs and concerns were being paid attention t
+o. I am happy to report they were listed in the second round.\\nThere are other
+ counties that we need to look at that I believe have legitimate needs to be me
+t. Hopefully we can do that, we can do that expeditiously. I want to join Senat
+or Specter in congratulating Secretary Pena and Director Witt for being up in P
+ennsylvania today to survey the damage, to see the extent of what seemed to be 
+just a flood.\\nI remind you the compounding effect of the ice is something I d
+o not think anyone recognized. I was in Lancaster County, which unfortunately h
+as yet to be declared a disaster county.\\nI was in Marietta which was flooded,
+ at least the parts nearest the river were flooded. Their big concern right now
+ is the freezing that is going on. They were flooded. They have something like 
+a dike. It is actually a railroad track that runs between the river and the tow
+n that is very high up and serves like a dike. But they got flooded through the
+ir storm sewers, and the water reaching its level filled up both sides of the d
+ike. Now they are concerned with the storm sewers. Because of the very cold tem
+peratures, they are now frozen. If they get any more rain, which is anticipated
+ tomorrow, or any other precipitation, they will have the same problem all over
+ again.\\nMany counties and many cities, they have that same problem with eithe
+r frozen surface areas that prevent water from draining or the infrastructure u
+nderneath the ground itself containing ice and frozen debris is going to cause 
+a real problem with drainage.\\nSo we are not out of the woods yet. There is un
+fortunately still a lot of snow on the ground. The possibility exists, with the
+ warm weather today, we could even see some more problems. So I want to congrat
+ulate Governor Ridge and Lt. Gov. Mark Schweiker for their tremendous role in r
+esponding to this emergency. They have been all over the State, have been very 
+aggressive in trying to seek aid, and have also been very aggressive in trying 
+to help municipalities trying to deal with the problems that have beset them.\\
+nI think we have seen a very good effort on the part of locally elected officia
+ls, and the Governor and Lieutenant Governor. I think -- at least I hope that w
+e can be proud of the Federal role that is being played in Pennsylvania. I thin
+k we are coming along a little slowly, but maybe today with some fly-arounds an
+d other things that are going on, we can impress upon officials here in Washing
+ton and in the regional office that this is a true emergency, a disaster that n
+eeds to be attended to, and the Federal Government has a role to play in helpin
+g those individuals and municipalities that were affected by it.\\nMr. Presiden
+t, I suggest the absence of a quorum.\",\"chamber\":\"Senate\",\"speaker_party\
+":\"R\",\"date\":\"1996-01-22\",\"speaker_name\":\"Rick Santorum\"}"[] 
+ []
+
+
+Overfull \hbox (512.50427pt too wide) in paragraph at lines 18--18
+[]\OT1/cmtt/m/n/6 ## [6] "{\"congress\":104,\"title\":\"EMERGENCY RELIEF\",\"te
+xt\":\"Mr. President, I ask unanimous consent that the order for the quorum cal
+l be rescinded.\",\"chamber\":\"Senate\",\"speaker_party\":\"R\",\"date\":\"199
+6-01-22\",\"speaker_name\":\"Rick Santorum\"}"[] 
+ []
+
+) [20
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [21
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+LaTeX Font Info:    Font shape `OMS/cmtt/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 2.
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no √ in font cmtt8!
+Missing character: There is no ° in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no – in font cmtt8!
+Missing character: There is no ∞ in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no œ in font cmtt8!
+Missing character: There is no ä in font cmtt8!
+Missing character: There is no Á in font cmtt8!
+Missing character: There is no á in font cmtt8!
+Missing character: There is no ¥ in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ï in font cmtt8!
+Missing character: There is no ê in font cmtt8!
+Missing character: There is no ‡ in font cmtt8!
+Missing character: There is no π in font cmtt8!
+Missing character: There is no à in font cmtt8!
+Missing character: There is no ƒ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no √ in font cmtt8!
+Missing character: There is no ï in font cmtt8!
+Missing character: There is no Ï in font cmtt8!
+Missing character: There is no ü in font cmtt8!
+Missing character: There is no ú in font cmtt8!
+Missing character: There is no Ó in font cmtt8!
+Missing character: There is no ∏ in font cmtt8!
+Missing character: There is no µ in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no © in font cmtt8!
+Missing character: There is no √ in font cmtt8!
+Missing character: There is no ù in font cmtt8!
+Missing character: There is no Œ in font cmtt8!
+Missing character: There is no π in font cmtt8!
+Missing character: There is no √ in font cmitt10!
+Missing character: There is no ï in font cmitt10!
+Missing character: There is no √ in font cmtt8!
+Missing character: There is no ï in font cmtt8!
+) [22
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb) [23
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Overfull \hbox (2.49695pt too wide) in paragraph at lines 15--15
+[]            []\OT1/cmtt/m/n/6 DAT[] []<-[] []lapply[][](ffs,[] []function[][]
+([][]x[][])[] []data.table[][]([][]data.frame[][]([][]fname[] []= x,[] []read.c
+sv[][]([][]file[] []=[] []paste[][](folder,[][] 
+ []
+
+) [24
+
+] (./EC999_Sourcing-Data.toc) [25
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [26
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+<figures/html-table-chrome.png, id=734, 1152.305pt x 648.4225pt>
+File: figures/html-table-chrome.png Graphic file (type png)
+
+<use figures/html-table-chrome.png>
+Package pdftex.def Info: figures/html-table-chrome.png used on input line 6.
+(pdftex.def)             Requested size: 288.07555pt x 162.10522pt.
+) [27
+
+ <./figures/html-table-chrome.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Overfull \hbox (5.6845pt too wide) in paragraph at lines 6--6
+[][]\OT1/cmtt/m/n/6 HTML[] []<-[] []readLines[][]([][]con[] []=[] []"https://en
+.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population"[][])[][]
+ 
+ []
+
+
+Overfull \hbox (186.16565pt too wide) in paragraph at lines 8--8
+[][]\OT1/cmtt/m/n/6 HTML[] []<-[] []HTML[[][]grep[][]([][]"<span class=\OMS/cms
+y/m/n/6 n\OT1/cmtt/m/n/6 "mw-headline\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6 " id=\OMS
+/cmsy/m/n/6 n\OT1/cmtt/m/n/6 "States_and_territories\OMS/cmsy/m/n/6 n\OT1/cmtt/
+m/n/6 ">"[][], HTML)[][]:[][]grep[][]([][]"<span class=\OMS/cmsy/m/n/6 n\OT1/cm
+tt/m/n/6 "mw-headline\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6 " id=\OMS/cmsy/m/n/6 n\OT
+1/cmtt/m/n/6 "Summary_of_population_by_region\OMS/cmsy/m/n/6 n\OT1/cmtt/m/n/6 "
+>"[][],[][] 
+ []
+
+
+Overfull \hbox (2.49695pt too wide) in paragraph at lines 14--14
+[]\OT1/cmtt/m/n/6 ## [1] "<h2><span class=\"mw-headline\" id=\"States_and_terri
+tories\">States and territories</span></h2>"[] 
+ []
+
+
+Overfull \hbox (180.99951pt too wide) in paragraph at lines 17--17
+[]\OT1/cmtt/m/n/6 ## [4] "<th style=\"vertical-align: middle\">Rank in the <a h
+ref=\"/wiki/Fifty_States\" class=\"mw-redirect\" title=\"Fifty States\">fifty s
+tates</a>, 2016</th>"[] 
+ []
+
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+)
+Overfull \vbox (59.72687pt too high) detected at line 894
+ []
+
+[28
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/html-copy-xpath.png, id=787, 581.17125pt x 275.0275pt>
+File: figures/html-copy-xpath.png Graphic file (type png)
+
+<use figures/html-copy-xpath.png>
+Package pdftex.def Info: figures/html-copy-xpath.png used on input line 6.
+(pdftex.def)             Requested size: 290.58492pt x 137.51341pt.
+) [29
+
+ <./figures/html-copy-xpath.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ¬ in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ì in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no † in font cmtt8!
+)
+Overfull \vbox (20.72687pt too high) detected at line 963
+ []
+
+[30
+
+] (./EC999_Sourcing-Data.toc) [31
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [32
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Overfull \hbox (2201.90353pt too wide) in paragraph at lines 17--17
+[]\OT1/cmtt/m/n/6 ## [1] "{\"daily_views\": {\"2014-01-15\": 3795, \"2014-01-14
+\": 3754, \"2014-01-17\": 3538, \"2014-01-16\": 3593, \"2014-01-11\": 4508, \"2
+014-01-10\": 4160, \"2014-01-13\": 3816, \"2014-01-12\": 4208, \"2014-01-19\": 
+3284, \"2014-01-18\": 3368, \"2014-01-28\": 3619, \"2014-01-29\": 3843, \"2014-
+01-20\": 4097, \"2014-01-21\": 4755, \"2014-01-22\": 9606, \"2014-01-23\": 5129
+, \"2014-01-24\": 3789, \"2014-01-25\": 3505, \"2014-01-26\": 3671, \"2014-01-2
+7\": 3699, \"2014-01-06\": 0, \"2014-01-07\": 4660, \"2014-01-04\": 3745, \"201
+4-01-05\": 980, \"2014-01-02\": 4278, \"2014-01-03\": 3807, \"2014-01-01\": 298
+0, \"2014-01-08\": 4524, \"2014-01-09\": 4179, \"2014-01-31\": 3449, \"2014-01-
+30\": 3886}, \"project\": \"en\", \"month\": \"201401\", \"rank\": 4060, \"titl
+e\": \"Donald_Trump\"}"[] 
+ []
+
+) [33
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [34
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/knitr-readingtext7-1.pdf, id=946, 505.89pt x 505.89pt>
+File: figures/knitr-readingtext7-1.pdf Graphic file (type pdf)
+
+<use figures/knitr-readingtext7-1.pdf>
+Package pdftex.def Info: figures/knitr-readingtext7-1.pdf used on input line 18
+.
+(pdftex.def)             Requested size: 173.44756pt x 173.45154pt.
+)
+Overfull \vbox (3.1784pt too high) detected at line 1102
+ []
+
+[35
+
+ <./figures/knitr-readingtext7-1.pdf>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [36
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Missing character: There is no ‚ in font cmssi10!
+Missing character: There is no Ä in font cmssi10!
+Missing character: There is no ò in font cmssi10!
+Missing character: There is no ‚ in font cmssi10!
+Missing character: There is no Ä in font cmssi10!
+Missing character: There is no ô in font cmssi10!
+Missing character: There is no ‚ in font cmssi10!
+Missing character: There is no Ä in font cmssi10!
+Missing character: There is no ò in font cmssi10!
+Missing character: There is no ‚ in font cmssi10!
+Missing character: There is no Ä in font cmssi10!
+Missing character: There is no ô in font cmssi10!
+) [37
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Overfull \hbox (5.6845pt too wide) in paragraph at lines 6--6
+[][]\OT1/cmtt/m/n/6 url[] []<-[] []"http://www.huffingtonpost.com/entry/house-r
+epublicans-ethics_us_586bdb14e4b0de3a08f99e66?6ztihpvi"[][] 
+ []
+
+) [38
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/social-media.png, id=1054, 319.1925pt x 159.59625pt>
+File: figures/social-media.png Graphic file (type png)
+
+<use figures/social-media.png>
+Package pdftex.def Info: figures/social-media.png used on input line 8.
+(pdftex.def)             Requested size: 191.51697pt x 95.75847pt.
+) [39
+
+ <./figures/social-media.png>]
+(./EC999_Sourcing-Data.vrb
+<figures/social-media-trump.png, id=1082, 332.24126pt x 365.365pt>
+File: figures/social-media-trump.png Graphic file (type png)
+
+<use figures/social-media-trump.png>
+Package pdftex.def Info: figures/social-media-trump.png used on input line 9.
+(pdftex.def)             Requested size: 132.89413pt x 146.1434pt.
+
+<figures/social-media-warren.png, id=1083, 330.23375pt x 301.125pt>
+File: figures/social-media-warren.png Graphic file (type png)
+
+<use figures/social-media-warren.png>
+Package pdftex.def Info: figures/social-media-warren.png used on input line 9.
+(pdftex.def)             Requested size: 132.09114pt x 120.44786pt.
+) [40
+
+ <./figures/social-media-trump.png> <./figures/social-media-warren.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [41
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+<figures/twitter-register.png, id=1136, 693.59125pt x 210.7875pt>
+File: figures/twitter-register.png Graphic file (type png)
+
+<use figures/twitter-register.png>
+Package pdftex.def Info: figures/twitter-register.png used on input line 18.
+(pdftex.def)             Requested size: 173.39738pt x 52.69675pt.
+) [42
+
+ <./figures/twitter-register.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ô in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+) [43
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no ¶ in font cmtt8!
+) [44
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb
+<figures/fb-temporary-access-token.png, id=1214, 598.235pt x 259.97125pt>
+File: figures/fb-temporary-access-token.png Graphic file (type png)
+
+<use figures/fb-temporary-access-token.png>
+Package pdftex.def Info: figures/fb-temporary-access-token.png used on input li
+ne 13.
+(pdftex.def)             Requested size: 209.38538pt x 90.99129pt.
+) [45
+
+ <./figures/fb-temporary-access-token.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/fb-newapp.png, id=1244, 715.67375pt x 356.33125pt>
+File: figures/fb-newapp.png Graphic file (type png)
+
+<use figures/fb-newapp.png>
+Package pdftex.def Info: figures/fb-newapp.png used on input line 10.
+(pdftex.def)             Requested size: 178.918pt x 89.08258pt.
+) [46
+
+ <./figures/fb-newapp.png>]
+(./EC999_Sourcing-Data.vrb
+<figures/fb-add-platform.png, id=1275, 867.24pt x 493.845pt>
+File: figures/fb-add-platform.png Graphic file (type png)
+
+<use figures/fb-add-platform.png>
+Package pdftex.def Info: figures/fb-add-platform.png used on input line 11.
+(pdftex.def)             Requested size: 173.44493pt x 98.76724pt.
+) [47
+
+ <./figures/fb-add-platform.png>]
+(./EC999_Sourcing-Data.vrb
+<figures/fb-add-website.png, id=1303, 640.3925pt x 505.89pt>
+File: figures/fb-add-website.png Graphic file (type png)
+
+<use figures/fb-add-website.png>
+Package pdftex.def Info: figures/fb-add-website.png used on input line 12.
+(pdftex.def)             Requested size: 128.07622pt x 101.1762pt.
+) [48
+
+ <./figures/fb-add-website.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb) [49
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no î in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no î in font cmtt8!
+Missing character: There is no ‚ in font cmtt8!
+Missing character: There is no Ä in font cmtt8!
+Missing character: There is no î in font cmtt8!
+) [50
+
+]
+(./EC999_Sourcing-Data.toc) [51
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb
+<figures/ropengov.png, id=1409, 967.615pt x 622.325pt>
+File: figures/ropengov.png Graphic file (type png)
+
+<use figures/ropengov.png>
+Package pdftex.def Info: figures/ropengov.png used on input line 5.
+(pdftex.def)             Requested size: 483.80632pt x 311.16173pt.
+
+Overfull \hbox (151.61096pt too wide) in paragraph at lines 5--6
+ [] 
+ []
+
+)
+Overfull \vbox (91.48862pt too high) detected at line 1485
+ []
+
+[52
+
+ <./figures/ropengov.png>]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+ (./EC999_Sourcing-Data.vrb) [53
+
+]
+\openout4 = `EC999_Sourcing-Data.vrb'.
+
+
+(./EC999_Sourcing-Data.vrb) [54
+
+]
+\tf@nav=\write6
+\openout6 = `EC999_Sourcing-Data.nav'.
+
+\tf@toc=\write7
+\openout7 = `EC999_Sourcing-Data.toc'.
+
+\tf@snm=\write8
+\openout8 = `EC999_Sourcing-Data.snm'.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1549.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1549.
+ (./EC999_Sourcing-Data.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1549.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1549.
+
+Package rerunfilecheck Info: File `EC999_Sourcing-Data.out' has not changed.
+(rerunfilecheck)             Checksum: 3FD5FBB4A7FF14188DA8448ABAF8DE18;280.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1549.
+ ) 
+Here is how much of TeX's memory you used:
+ 26128 strings out of 493089
+ 502487 string characters out of 6134842
+ 608948 words of memory out of 5000000
+ 28882 multiletter control sequences out of 15000+600000
+ 13226 words of font info for 50 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 56i,14n,55p,10370b,560s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmitt10.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb><
+/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/
+local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/msam7.pfb>
+Output written on EC999_Sourcing-Data.pdf (54 pages, 2635214 bytes).
+PDF statistics:
+ 1563 PDF objects out of 1728 (max. 8388607)
+ 1442 compressed objects within 15 object streams
+ 114 named destinations out of 1000 (max. 500000)
+ 158 words of extra memory for PDF output out of 10000 (max. 10000000)
+

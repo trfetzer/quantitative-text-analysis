@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Introduction and Terminology}{7}{0}{1}
+\beamer@sectionintoc {2}{Examples from Research}{13}{0}{2}
+\beamer@sectionintoc {3}{An Introduction to R}{28}{0}{3}

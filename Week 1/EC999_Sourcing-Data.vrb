@@ -1,0 +1,23 @@
+\frametitle{\code {rsunlight} package for R}
+
+\textbf{CURRENTLY NOT FUNCTIONAL DUE TO TRANSFER TO POLITICO}
+
+\begin{quote}
+The Sunlight Foundation is an American 501 nonpartisan, nonprofit organization that advocates for open government.
+\end{quote}
+
+An example of the services - many of which have APIs
+\begin{Description}
+
+\item[Capitol Words] Explore and compare what Congress says.
+\item[Email Congress] Contacting Congress is now as easy as email.
+\item[Foreign Lobbying Influence Tracker] Follow foreign influence on U.S. policy.
+\item[Hall of Justice] An inventory of criminal justice data.
+\item[House Staff Directory] Look up House staffers.
+\item[Influence Explorer] Uncover political activity.
+\item[Open States] Discover and follow all state legislatures.
+\item[Party Time] Tracking the political fundraising circuit.
+\item[Political Ad Sleuth] See the details of political ad purchases.
+\item[Politwoops] Archive of deleted tweets from U.S. politicians.
+\end{Description}
+

@@ -1,0 +1,1175 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Sourcing Data} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/QTA/Lectures/Week 1")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+stopwords=c("this","a","the","and","for")
+
+
+str_break = function(x, width = 90L) {
+  n = nchar(x)
+  if (n <= width) return(x)
+  n1 = seq(1L, n, by = width)
+  n2 = seq(width, n, by = width)
+  if (n %% width != 0) n2 = c(n2, n)
+  substring(x, n1, n2)
+}
+
+
+textmat <-
+function (vec=A, stopws=stopwords) {
+        dummy <- mapply(wordfreq, vec, 1:length(vec), MoreArgs=list(stopws=stopwords), SIMPLIFY=F)
+        names(dummy) <- NULL
+        dtm <- t(xtabs(Freq ~ ., data = do.call("rbind", dummy)))
+        dtm
+}
+
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Basic String Manipulation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Basic Manipulating of Strings in R}
+After introducing the R-basics in the last lecture, we will turn to the basics of string manipulation. 
+\begin{itemize}
+
+\item Basic string manipulation functions
+
+\item Regular Expressions, search and replace
+
+\end{itemize}
+
+Top string manipulation functions: - \code{tolower} (also \code{toupper}, capitalize) - \code{nchar} - \code{grep} - \code{gsub} - \code{substring} - \code{paste} and \code{paste0} - and the following from library stringr: \code{strtrim} , \code{str\_extract}, \code{str\_match}, \code{str\_split} but many more.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Case-folding for dimensionality reduction} 
+
+As we will see, due to the curse of dimensionality, we will often simply ignore the case o individual words, as depending on the task at hand, the word case does not carry a lot of information.
+
+<<casefold, size="tiny",eval=TRUE, tidy=TRUE>>=
+#USArrests is a data frame that R comes shipped with 
+states = rownames(USArrests) 
+tolower(states[0:4])
+
+toupper(states[0:4])
+
+#smarter way to do case folding is not to replace acronyms like US or IBM, 
+#for that use regular expressions (see later)
+WORDS<-c("IBM", "Chicago")
+
+WORDS[grep("[^A-Z]{2,}[a-z]*",WORDS)]<-tolower(WORDS[grep("[^A-Z]{2,}[a-z]*",WORDS)])
+
+WORDS
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Number of Characters and Substr} 
+
+Note - whitespaces count as characters.
+
+<<nchar, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+nchar(states)
+
+states[which(nchar(states)==5)]
+
+library(stringr)
+
+#trim leading and trailing white spaces at beginning and end of string
+str_trim(" This is a test  .  ")
+
+#get a substring substr(x, start, stop)
+substr(states[1], 3, nchar(states[1]))
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Splitting Strings} 
+
+A simple word or sentence tokenizer works off splitting near white spaces or sentences.
+<<str_split, size="tiny",eval=TRUE, tidy=TRUE>>=
+link="http://stats.grok.se/json/en/201401/Donald_Trump" 
+str_split(link,'/')
+
+sentence="This is a sentence that is split by white spaces."
+str_split(sentence,' ')
+
+#str_split accepts regexes as split patterns
+sentence="Two sentences example. The split occurs around full-stops followed by white space."
+str_split(sentence,'\\. ')
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Regular Expressions} 
+
+\begin{itemize}
+
+\item The first Information Retrieval pipelines working off textual data were making heavy use of regular expressions.
+
+\item Regular expressions, as the name indicates, is a pattern that describes a set of strings.
+
+\item If a string matches a regular expression, it indicates that the presented string follows the pattern of the regular expression.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Regex Character Classes} 
+
+\begin{itemize}
+
+\item \code{[a-z]} : lower case letters
+
+\item \code{[0-9]} or \code{[[:digit:]]}: Digits: 0 1 2 3 4 5 6 7 8 9.
+
+\item \code{[[:alnum:]]}
+Alphanumeric characters: \code{[[:alpha:]]} and \code{[[:digit:]]}.
+
+\item \code{[[:alpha:]]}
+Alphabetic characters: \code{[[:lower:]]} and \code{[[:upper:]]}.
+
+\item \code{[[:blank:]]}
+Blank characters: space and tab, and possibly other locale-dependent characters such as non-breaking space.
+
+
+\item \code{[[:lower:]]} or  \code{[[:upper:]]} -case letters in the current locale.
+
+\item \code{[[:print:]]}
+Printable characters: \code{[[:alnum:]]}, \code{[[:punct:]]} and space.
+
+\item \code{[[:punct:]]} Punctuation characters:
+%\code{! " # \$ \% & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~.}
+
+\item \code{[[:space:]]} Space characters: tab, newline, vertical tab, form feed, carriage return, space and possibly other locale-dependent characters.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Regex quantifiers and qualifiers} 
+
+\begin{itemize}
+
+\item \code{?} The preceding item is optional and will be matched at most once.
+
+\item \code{*} The preceding item will be matched zero or more times.
+
+\item \code{+} The preceding item will be matched one or more times.
+
+\item \code{ $\{n\}$} The preceding item is matched exactly n times.
+
+\item \code{$\{n,\}$} The preceding item is matched n or more times.
+
+\item \code{$\{n,m\}$} The preceding item is matched at least n times, but not more than m times.
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Functions handeling regular expressions} 
+
+Functions to handle/ deal with regular expressions
+\begin{itemize}
+ 
+ \item \code{grep(pattern, string)} : find presence of pattern in string
+ 
+ \item \code{gsub(pattern, replacement, string)} : replace pattern with replacement in string 
+ 
+ \item \code{str\_extract(string, pattern)} :  extract matching patterns from a string from \code{stringr} package.
+
+\item \code{str\_match(string, pattern)}: extract matched groups from a string from \code{stringr} package.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some Regex Examples} 
+
+
+<<regexexample, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+gsub("([A-z0-9]{3,})@([A-z0-9]{3,})\\.([A-z0-9]{3,})", "\\1 \\2 \\3", "test@devmag.net")
+
+gsub("<a href=\"([^\"]*)\\>([^<]*)</a>", "\\1", '<a href="http://www.google.com">Link to Google</a>')
+
+#Often times, need to extract items of query string in URL, for example 
+#if you want to extract the doodle poll id from the URL http://doodle.com/poll/ga2thc6k5w9xa2z32kt452rz/ a regex for this would be
+
+library(stringr)
+str_match("http://doodle.com/poll/ga2thc6k5w9xa2z32kt452rz/", "poll/([:alnum:]*)/$")[,2]
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{grep}ing strings} 
+
+<<grep, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+strings <- c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
+  "387 287 6718", "myweb@gmail.com", "233.398.9187  ", "482 952 3315",
+  "239 923 8115 and 842 566 4692", "Work: 579-499-7527", "Email: president@whitehouse.gov",
+  "Home: 543.355.3679")
+
+##regex to match phone landlines
+pattern <- "([2-9][0-9]{2})[- .]([0-9]{3})[- .]([0-9]{4})"
+
+strings[grep(pattern,strings)]
+
+#this returns the indices for found matches
+grep(pattern,strings)
+
+#this returns the underlying values
+grep(pattern,strings,value=TRUE)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{str\_extract}ing, \code{str\_match}ing and \code{gsub}} 
+<<str_extract, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+#this actually extracts
+str_extract(strings,pattern)
+
+#this returns the underlying matching character classes (i.e. the area codes)
+str_match(strings,pattern)
+
+#lastly, can use to standardize phone number separating character - 
+#but match/ extract typically much more useful
+gsub(pattern,"\\1-\\2-\\3", strings[grep(pattern,strings)])
+@
+
+$\Rightarrow$ extract email adresses, hash-tags in a tweet, URLs or handles?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Who becomes a British citizen?}
+One example from my research ``Naturalizations of Aliens into the United Kingdom''.
+
+Every person's that adopted the British citizenship was listed with name, original nationality and full address in the British Official Government publication. In total, around 150 k naturalisations.
+
+\begin{center}
+\includegraphics[scale=0.28]<1>{figures/london-gazette.png}
+\includegraphics[scale=0.45]<2>{figures/london-gazette-naturalisation.png}
+\includegraphics[scale=0.45]<3>{figures/ocred-naturalisation-lists.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naturalisation Processing Steps}
+
+\begin{itemize}
+
+\item Bulk download PDFs and bulk OCR processing using Abbyy Fine Reader (see further below)
+
+\item Cleaning lines: removing characters that are not A-z, 0-9, -, ., (, ) 
+<<naturalisation1, size="tiny",eval=FALSE, tidy=TRUE>>=
+OUT<-gsub("([^A-z0-9,;\\-\\.\\(\\) ])","",OUT)
+@
+
+\item \code{grep}ing of start and end lines 
+<<naturalisation2, size="tiny",eval=FALSE, tidy=TRUE>>=
+START<-grep("Oaths of Allegiance|LIST OF ALIENS|CERTIFICATES OF NATURALISATION",
+            TEMP, ignore.case=TRUE)[1]
+
+END<-grep("foregoing|SUMMARY|The list contains",TEMP, ignore.case=TRUE)
+END<-END[END>START][1]
+@
+
+\item \code{str\_split}ing by separation character ";" to separate different pieces; 
+
+
+\item regex for date extraction, something like:  \code{([0-9]+)(rd|th|st)?  ([A-z]{3,})\\,? ([0-9]{4})\$} 
+
+\item and a whole bunch of further refinements...
+
+\end{itemize}
+
+Here, information retrieval does not require a big statistical machinery: simple rules work well as the text data is broadly consistently formatted. 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Functions to Read Text Data}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Accessing Textual Data}
+
+\begin{itemize}
+
+\item Textual data can be stored in multiple different formats
+
+\begin{itemize}
+\item JSON (JavaScript Object Notation) is a lightweight data-interchange format for structured data.
+\item structured XML 
+\item Flat text files
+\item (machine readable?) PDFs
+\item Word
+\item Data bases
+\end{itemize}
+
+\item Parsing or reading text data into R can be achieved by a range of functions.
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Accessing Textual Data}
+
+<<readingtext, size="tiny",eval=TRUE, tidy=TRUE>>=
+#con can be any connection, could be a URL or a path to a file
+TEXT<-readLines(con="https://www.dropbox.com/s/eynnvac4kurnjon/speaches-2016-election.json?dl=1", 
+                encoding = "UTF-8")
+
+head(TEXT)
+@
+
+\code{readLines} is the most basic function. It returns a character vector, where each element is a row in the underlying text document. Knowing and specifying the encoding correctly can make your life a lot easier. UTF-8 encoding is becoming more and more the standard...but
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{What to do in case we do not know the encoding?}
+There are lots of possible encoding standards, they tend to vary by geographic location and by operating system. For example: Latin1 is common in Europe on Microsoft based systems, while MacOS uses Mac-OS Roman.
+
+<<encoding, size="tiny",eval=TRUE, tidy=TRUE>>=
+#list of all system supported character encodings
+iconvlist()[1:50]
+
+#total system supported encodings
+length(iconvlist())
+
+#(older) word / excel documents are typically encoded as CP1251/CP1252
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{What to do in case we do not know the encoding?}
+After reading text data of unknwon encoding, a string is displayed in R internally as \code{D\textbackslash xa0ZCE}  - without knowing the proper encoding, string manipulations often throw the annyoing error \code{unknown multibyte string}. 
+
+<<encodingtrick, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+#We can try out all possible source encodings...
+
+TEMP<-unlist(lapply(iconvlist(), function(x) iconv("D\xa0ZCE",x,"UTF-8")))
+sort(table(TEMP[!is.na(TEMP)]),decreasing=TRUE)
+
+#it seems that "DÕZCE" is the right spelling (a town in Turkey)
+iconvlist()[which(TEMP =="DÕZCE")]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading Tabular Data}
+
+\begin{itemize}
+
+\item A lot of social program data is provided in some form of *SV format: Comma-, Colon-,Tabular- separated values.
+
+\item Writing a function that reads in all files of a specific type in a folder
+\end{itemize}
+
+<<readingtext2, size="tiny",eval=FALSE, tidy=TRUE>>=
+#con can be any connection, could be a URL or a path to a file
+#commonly used for tabular data formats 
+TEXT<-read.table(file="file.txt",sep="\t")
+#may need to iterate over a whole folder of documents
+TEST<-lapply(list.files("Path"), function(x) readLines(con=x))
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Function that reads file types in folders}
+
+<<readingtext3, size="tiny",eval=FALSE, tidy=TRUE>>=
+readFiles<-function(folder, ftype="csv", collate="rbind", Encoding="latin1", fname=TRUE) {
+
+ffs<-list.files(folder)
+ffs<-grep(paste(ftype,"$",sep=""),ffs,value=TRUE) 
+if(ftype=="dta") {
+library(foreign)
+DAT<-lapply(ffs, function(x) read.dta(file=paste(folder,x,sep="")))
+} else if(ftype=="csv") {
+if(fname==TRUE) {
+DAT<-lapply(ffs, function(x) 
+  data.table(data.frame(fname=x,read.csv(file=paste(folder,x,sep=""), fileEncoding=Encoding))))
+} else {
+DAT<-lapply(ffs, function(x) 
+  data.table(data.frame(read.csv(file=paste(folder,x,sep=""), fileEncoding=Encoding))))
+}
+}
+if(collate=="rbind") {
+DAT<-rbindlist(DAT, fill=TRUE)
+}
+DAT
+}
+
+#reads csv files in folder Folder with file extension .csv
+CALL<-readFiles("Folder")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Web scraping}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading and Parsing HTML Data}
+
+\begin{itemize}
+
+\item HTML is a markup language that is derived from the XML standard and is commonly interpreted in the browser.
+
+\item HTML is made up of tags that encapsulate information on how elements inside the tag are to be presented visually in the browser.
+
+\item Can define table-, image-, headline-, and paragraph environments, among many others.
+
+\item There exist many direct ways of parsing HTML using existing R packages
+
+\item HTML, just as any XML document has a tree structure with the whole content of the page being wrapped in a \code{body} environment. 
+
+\item This tree structure allows each item in the document to be ``addressed'' by a path, each element has a unique \code{xpath}.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example: Extracting data from a Wikipedia page table}
+
+
+\begin{center}
+
+\includegraphics[scale=0.25]{figures/html-table-chrome.png}
+
+\end{center}
+
+
+$\Rightarrow$ Chrome's inspect element feature is very helpful in identifying the correct xpath to an element to be extracted (and to learn HTML while you are at it). 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example: Extracting a HTML table the ``hard'' way}
+
+<<scrapemanual, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+HTML<-readLines(con="https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population")
+#subsetting
+HTML<-HTML[grep('<span class="mw-headline" id="States_and_territories">',
+                HTML):grep('<span class="mw-headline" id="Summary_of_population_by_region">',HTML)]
+
+head(HTML)
+#tr is a table-row
+
+#indices of start of new rows
+grep("<tr>",HTML)
+
+population<-lapply(grep("<tr>",HTML), function(x) gsub("<.*?>", "", HTML[x:(x+10)]))
+population<-lapply(population, function(x) x[x!=""])
+
+population<-do.call("rbind", population)
+class(population)
+
+head(population)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example: Extracting data from a Wikipedia page table}
+
+
+\begin{center}
+
+\includegraphics[scale=0.5]{figures/html-copy-xpath.png}
+
+\end{center}
+
+
+$\Rightarrow$ Chrome's inspect element feature is very helpful in identifying the correct xpath to an element to be extracted (and to learn HTML while you are at it). 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example: Extracting a HTML table the ``easy'' way}
+<<rvest, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+#install.packages("rvest")
+library("rvest")
+url <- "http://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population"
+population <- url %>%
+  read_html() %>%
+  html_nodes(xpath='//*[@id="mw-content-text"]/table[1]') %>%
+  html_table()
+  
+population <- population[[1]]
+
+head(population)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\section{API's}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{APIs}
+
+\begin{quote}
+When used in the context of web development, an API is typically defined as a set of Hypertext Transfer Protocol (HTTP) request messages, along with a definition of the structure of response messages, which is usually in an Extensible Markup Language (XML) or JavaScript Object Notation (JSON) format.\\
+\end{quote}
+\begin{quote}
+The practice of publishing APIs has allowed web communities to create an open architecture for sharing content and data between communities and applications. In this way, content that is created in one place can be dynamically posted and updated in multiple locations on the web
+-Wikipedia
+\end{quote}
+
+$\Rightarrow$ many online servies and sites offer APIs, with some having dedicated R-packages (see Twitter and Facebook packages for R in a bit).
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%date%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Lightweight JSON format to send and receive information}
+JSON (Java Script Object Notation) is a very lightweight format to send and receive data, which is why it is typically preferred to XML for sending structured data to APIs.
+
+<<readingtext5, size="tiny",eval=TRUE, cache=FALSE, tidy=TRUE>>=
+
+#download some wikipedia traffic statistics
+var=201401 
+
+url=paste("http://stats.grok.se/json/en/",var,"/Donald_Trump",sep="") 
+raw.data <- readLines(url, warn="F")
+
+#raw JSON data
+raw.data
+
+#parsing JSON string into a list object
+library(RJSONIO)
+data<-fromJSON(raw.data)
+
+class(data)
+
+head(data[[1]])
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading and Parsing JSON Data}
+JSON is a very common format used by web services for sending and receiving data.
+<<readingtext6, size="tiny",eval=TRUE, cache=TRUE, tidy=TRUE>>=
+#download some wikipedia traffic statistics
+
+datevector<- unlist(lapply(2008:2016, function(x) 
+  paste(x,c("01","02","03","04","05","06","07","08","09","10","11","12"),sep="")))
+
+head(datevector)
+
+datevector <- seq(from = as.POSIXct("2008-01-01"), to = as.POSIXct("2016-12-31"), 
+            by = "months")
+datevector<-gsub("-","",substr(datevector, 0,7))
+
+head(datevector)
+
+#this is not treated as character but as numeric as we create a sequence using the : operator
+datevector<- unlist(lapply(2014:2016, function(x) eval(paste(x,"01",sep=""):paste(x,"12",sep=""))))
+
+head(datevector)
+
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Interest in Donald Trump on English Wikipedia over time}
+<<readingtext7, size="tiny",eval=TRUE, tidy=TRUE, cache=TRUE, out.width='2.4in'>>=
+#download some wikipedia traffic statistics
+
+rd<-unlist(lapply(datevector, function(x) fromJSON(readLines(
+  paste("http://stats.grok.se/json/en/",x,"/Donald_Trump",sep="") ))$daily_views))
+
+rd<-data.frame(rd)
+rd$date<-strptime(rownames(rd), "%Y-%m-%d")
+rd<-rd[rd>0,]
+rd<-rd[order(rd$date),]
+plot(rd$date, log(rd$rd+1), type="l")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Social Media API's}
+
+\begin{itemize}
+
+\item All big social media sites  - Facebook and Twitter - provide an API that allows access to their data. \smallskip
+
+\item API's can either be anonymous or require authentication  \smallskip
+
+\item API's tend to communicate through JSON data objects.\smallskip
+
+\item Calls to APIs are sent through HTTP, so you can just call them using your browser\smallskip
+
+\item API calls are just "complicated URLs".\smallskip
+
+\item For our purposes, we will just highlight existing packages implemented for $R$ to access social media data from Facebook and Twitter.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Types of Requests}
+
+\begin{quote}
+\code{GET} requests a representation of the specified resource. Note that GET should not be used for operations that cause side-effects, such as using it for taking actions in web applications. One reason for this is that GET may be used arbitrarily by robots or crawlers, which should not need to consider the side effects that a request should cause. 
+\end{quote}
+
+\begin{quote}
+\code{POST} submits data to be processed (e.g., from an HTML form) to the identified resource. The data is included in the body of the request. This may result in the creation of a new resource or the updates of existing resources or both.
+we use ‘get’ for scraping, ‘post’ is more complicated. Use it to navigate logins, popups, etc.
+\end{quote}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Recognition via Web API}
+
+<<apiexample, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+ url <- 'http://www.huffingtonpost.com/entry/house-republicans-ethics_us_586bdb14e4b0de3a08f99e66?6ztihpvi'
+api <- 'http://juicer.herokuapp.com/api/article?url='
+target <- paste(api,url,sep="") 
+
+raw.data <- readLines(target, warn="F") 
+
+rd <- fromJSON(raw.data)
+dat <- rd$article
+
+ENTITIES<-data.frame(do.call("rbind", dat$entities))
+
+ENTITIES[1:10,]
+@
+
+$\Rightarrow$ this works off the Stanford NLP NER module, which we will also directly use in R. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Social Media}
+
+
+\begin{figure}[htb]
+\begin{center}
+$%
+\begin{array}{cc}
+\includegraphics[scale=.6]<1>{figures/social-media.png}
+\includegraphics[scale=.4]<2>{figures/social-media-trump.png} &\includegraphics[scale=.4]<2>{figures/social-media-warren.png} 
+\end{array}%
+$%
+\end{center}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Why working with Social Media data?}
+
+Social media is changing the way politicians, (government) organizations and corporations are interacting with ther electorate, stakeholders and customers. \smallskip
+
+Questions that arise from reasearch are not constrained but may include...\smallskip
+\begin{itemize}
+
+\item How do politicians engage with their electorate through social media?\smallskip
+
+\item Does direct communication via social media replace reliance on other media sources?\smallskip
+
+\item Does social media allow for a more effective monitoring of elected officials? \smallskip
+
+
+\end{itemize}
+
+And there are likely a lot more... most social media data takes form of texts or tweets, so how can we get this data to work with?
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{TwitteR}}
+
+\begin{itemize}
+
+\item \code{TwitteR} package allows for basic Twitter scraping functionality. \smallskip
+
+\item Need to create an access token to verify identity of requests (and to limit usage) \smallskip
+
+\item \code{TwitteR} package handles authentification process and has core functionality to ...
+
+\begin{itemize}
+
+\item Scrape tweets pertaining to individual hashtags
+\item Scrape timelines of Twitter users
+\item get data on follower network structure (who follows whom)
+\end{itemize}
+
+\includegraphics[scale=.25]{figures/twitter-register.png}
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<twitterouth,size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=FALSE,include=FALSE,message=F, warning=F>>=
+library(twitteR)
+setup_twitter_oauth("NceYxbfLJVswR2zTa0CPTOEtQ", "HQ9S7VhG8x0FhhvJDYFXdSHYxqy8NtDNVOMJiVzvGbki8z5I88", "62849728-QwAzy9LtNGMW8QHIy63GqhhXIakmVmQd94p155cVX", "nTY6xJUnYfYbEnHjaNWvkR6WZJFgOqgRq4pUALop7pFiA")
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sourcing Twitter data: Hash-tag level}
+<<twitter, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(twitteR)
+#setup_twitter_oauth(consumer_key, consumer_secret, access_token=NULL, access_secret=NULL)
+set.seed(12122016)
+tw = searchTwitter('#Brexit', n = 500, since = '2016-12-12', lang="en")
+tw.df<- data.table(twListToDF(tw))
+strwrap(head(tw.df$text))
+save(tw.df, file="../../Data/brexittweets.March.rdata")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Sourcing Twitter data: Individual user level}
+<<twitter2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(twitteR)
+#setup_twitter_oauth(consumer_key, consumer_secret, access_token=NULL, access_secret=NULL)
+set.seed(12122016)
+tw.user = userTimeline('Nigel_Farage',n=500) 
+tw.user.df<- data.table(twListToDF(tw.user))
+strwrap(head(tw.user.df$text))
+save(tw.user.df, file="../../Data/nigelstweets.March..rdata")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+<<facebookauth,size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=FALSE,include=FALSE,message=F, warning=F>>=
+require("Rfacebook")
+ 
+#fb_oauth <- fbOAuth(app_id="1191465307601333", app_secret="464183333117c8439232816ed31789c5",extended_permissions = TRUE)
+
+#save(fb_oauth, file="../../Data/fb_oauth.rdata")
+load("../../Data/fb_oauth.rdata")
+@
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{Rfacebook}}
+
+\begin{itemize}
+
+\item \code{Rfacebook} package allows for very basic access to facebook post data on public profile pages. \smallskip
+
+\item This can be useful to extract data on posting activity by politicians, in particular, regarding the messages sent. \smallskip
+
+\item Authentification for \code{rFacebook} is more involved
+
+\item Simple access token can be generated, but its only valid for two hours
+
+\includegraphics[scale=.35]{figures/fb-temporary-access-token.png}
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Creating a non-temporary authentification token for \code{Rfacebook}}
+
+\begin{itemize}
+
+\item To create a token that is valid for around two month period, you need to follow two steps.
+
+\item Create a new app on \url{developers.facebook.com/apps/}, note down APP ID and APP SECRET and register the URL \url{http://localhost:1410/} under Settings - Basic - New platform
+\end{itemize}
+\begin{center}
+\includegraphics[scale=0.25]<1>{figures/fb-newapp.png}
+\includegraphics[scale=0.2]<2>{figures/fb-add-platform.png}
+\includegraphics[scale=0.2]<3>{figures/fb-add-website.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Creating a non-temporary authentification token for \code{Rfacebook}}
+
+\begin{itemize}
+\item In R, type the following lines
+<<facebookauthillu,size="tiny",eval=FALSE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+require("Rfacebook")
+fb_oauth <- fbOAuth(app_id="APPNUMBER", app_secret="APPSECRET",extended_permissions = TRUE)
+#should open a browser window and facebook page to grant accesss to the app.
+
+#save the token for later reuse
+save(fb_oauth, file="fb_oauth.rdata")
+
+load(file="fb_oauth.rdata")
+@
+\item This should open a browser window in which you are asked to grant permission to the App to login via your account.
+
+\item You should then save the access token and load it, so that you do not need to repeat this process each time you run a script.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{comment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sourcing Facebook-page data}
+<<facebook2, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+load("../../Data/fb_oauth.rdata")
+require("Rfacebook")
+
+me <- getUsers("me", fb_oauth, private_info=TRUE)
+me$name # my name
+
+page <- getPage("barackobama", fb_oauth, n = 100)
+
+strwrap(head(page$message))
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{comment}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sourcing Facebook-page data}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{require}\hlstd{(}\hlstr{"Rfacebook"}\hlstd{)}
+
+\hlstd{me} \hlkwb{<-} \hlkwd{getUsers}\hlstd{(}\hlstr{"me"}\hlstd{, fb_oauth,} \hlkwc{private_info}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{me}\hlopt{$}\hlstd{name} \hlcom{# my name}
+\end{alltt}
+\begin{verbatim}
+## [1] "Thiemo Fetzer"
+\end{verbatim}
+\begin{alltt}
+\hlstd{page} \hlkwb{<-} \hlkwd{getPage}\hlstd{(}\hlstr{"barackobama"}\hlstd{, fb_oauth,} \hlkwc{n} \hlstd{=} \hlnum{100}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## 25 posts 50 posts 75 posts 100 posts
+\end{verbatim}
+\begin{alltt}
+\hlkwd{strwrap}\hlstd{(}\hlkwd{head}\hlstd{(page}\hlopt{$}\hlstd{message))}
+\end{alltt}
+\begin{verbatim}
+##  [1] "\"Our goal wasn't just to make sure more people have coverage—it was to make sure"
+##  [2] "more people have better coverage.\" —President Obama"                             
+##  [3] "NA"                                                                               
+##  [4] "Today marks a crucial step forward in the fight against climate change, as the"   
+##  [5] "historic Paris Climate Agreement officially enters into force."                   
+##  [6] ""                                                                                 
+##  [7] "Let's keep pushing for progress."                                                 
+##  [8] "The economic progress we're making is undeniable—and it's up to all of us to"     
+##  [9] "keep building an economy that works for all Americans."                           
+## [10] "Obamacare was designed on the principle that health care coverage that's"         
+## [11] "affordable, accessible to all, and free from discrimination should be a right,"   
+## [12] "not a privilege. We can't afford to let opponents roll that back."                
+## [13] "Millions of Americans are benefiting from Obamacare."
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Open Government API's and R packages}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some R-accessible open government type API's}
+
+\begin{center}
+
+\includegraphics[scale=0.5]{figures/ropengov.png}
+
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Political Party \code{manifestoR} database for R}
+
+\begin{quote}
+ManifestoR is a free package for the open source statistical software R. It provides access to coded election programmes from the Manifesto Corpus and to the Manifesto Project's Main Dataset.
+\end{quote}
+
+
+Available via 
+
+<<manifestoR, size="tiny",eval=FALSE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+install.packages("manifestoR")
+library(manifestoR)
+
+@
+
+Need to create an account and register for an API key on
+
+\url{https://manifestoproject.wzb.eu/information/documents/manifestoR}
+
+$\Rightarrow$ may be useful to study raising Euro(pe)-skepticism...
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{\code{rsunlight} package for R}
+
+\textbf{CURRENTLY NOT FUNCTIONAL DUE TO TRANSFER TO POLITICO}
+
+\begin{quote}
+The Sunlight Foundation is an American 501 nonpartisan, nonprofit organization that advocates for open government.
+\end{quote}
+
+An example of the services - many of which have APIs
+\begin{Description}
+
+\item[Capitol Words] Explore and compare what Congress says. 
+\item[Email Congress] Contacting Congress is now as easy as email. 
+\item[Foreign Lobbying Influence Tracker] Follow foreign influence on U.S. policy. 
+\item[Hall of Justice] An inventory of criminal justice data. 
+\item[House Staff Directory] Look up House staffers. 
+\item[Influence Explorer] Uncover political activity. 
+\item[Open States] Discover and follow all state legislatures. 
+\item[Party Time] Tracking the political fundraising circuit. 
+\item[Political Ad Sleuth] See the details of political ad purchases. 
+\item[Politwoops] Archive of deleted tweets from U.S. politicians. 
+\end{Description}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}
+
