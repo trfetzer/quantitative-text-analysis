@@ -1,0 +1,27 @@
+\frametitle{NER for Lazy People (3): MonkeyLearn}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# set up an account on Monkeylearn and obtain an API reference 100k calls per month are for}
+\hlcom{# free devtools::install_github('ropensci/monkeylearn') set API key as environment variable}
+\hlcom{# Sys.setenv(MONKEYLEARN_KEY='')}
+
+\hlkwd{library}\hlstd{(}\hlstr{"monkeylearn"}\hlstd{)}
+\hlstd{text} \hlkwb{<-} \hlstr{"In the 19th century, the major European powers had gone to great lengths to maintain a balance of power throughout Europe, resulting in the existence of a complex network of political and military
+alliances throughout the continent by 1900. These had started in 1815, with the Holy Alliancebetween Prussia, Russia, and Austria.
+Then, in October 1873, German Chancellor Otto von Bismarck negotiated the League of the Three Emperors (German: Dreikaiserbund) between the monarchs of Austria-Hungary, Russia and Germany."}
+\hlstd{output} \hlkwb{<-} \hlkwd{monkeylearn_extract}\hlstd{(}\hlkwc{request} \hlstd{= text,} \hlkwc{extractor_id} \hlstd{=} \hlstr{"ex_isnnZRbS"}\hlstd{)}
+\hlstd{output}
+\end{alltt}
+\begin{verbatim}
+##   count      tag            entity                         text_md5
+## 1     1 LOCATION            Europe 97b50d3cf5012f5ba4aa2d40117da521
+## 2     1 LOCATION           Prussia 97b50d3cf5012f5ba4aa2d40117da521
+## 3     1 LOCATION   Austria-Hungary 97b50d3cf5012f5ba4aa2d40117da521
+## 4     1 LOCATION           Austria 97b50d3cf5012f5ba4aa2d40117da521
+## 5     1 LOCATION           Germany 97b50d3cf5012f5ba4aa2d40117da521
+## 6     1   PERSON Otto von Bismarck 97b50d3cf5012f5ba4aa2d40117da521
+## 7     2 LOCATION            Russia 97b50d3cf5012f5ba4aa2d40117da521
+\end{verbatim}
+\end{kframe}
+\end{knitrout}

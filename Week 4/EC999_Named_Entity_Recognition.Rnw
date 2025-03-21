@@ -1,0 +1,636 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Named Entity Recognition} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/Quantitative text analysis/FINAL/Week 4")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+library(tm)
+library(rJava)
+Sys.setenv(MONKEYLEARN_KEY="6964f0376d6761c25ca8ad84b722f21aa5cfc230")
+
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Recognition in Information Retrieval}
+
+\begin{itemize}
+
+\item Information retrieval systems extract clear, factual information
+
+\item Can think of trying to answer questions such as: Who? What? Where? When? 
+
+\item Named Entities are very important subtask to many information retrieval tasks.
+
+\item Named Entity recognition systems are build to \emph{identify} and \emph{classify} named entites of specific types. 
+
+\item Typically they separate: Person, Organization, Date, Location,...
+
+
+\item NER is useful for:
+
+\begin{enumerate}
+\item Named entities can be indexed, linked off, etc.
+\item Sentiment can be attributed to companies or products
+\item A lot of IE relations are associations between named entities
+\item For question answering, answers are often named entities.
+
+\end{enumerate}
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Identification}
+
+The decision by the independent MP \textbf{Andrew Wilkie} to withdraw
+his support for the minority \textbf{Labor} government sounded
+dramatic but it should not further threaten its stability. When,
+after the \textbf{2010} election, \textbf{Wilkie}, \textbf{Rob Oakeshott}, \textbf{Tony Windsor}
+and the \textbf{Greens} agreed to support \textbf{Labor}, they gave just two
+guarantees: confidence and supply.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Categorization}
+
+The decision by the independent MP \textbf{Andrew Wilkie - PERSON} to withdraw
+his support for the minority \textbf{Labor - ORGANIZATION} government sounded
+dramatic but it should not further threaten its stability. When,
+after the \textbf{2010 - DATE} election, \textbf{Wilkie - PERSON}, \textbf{Rob Oakeshott - PERSON}, \textbf{Tony Windsor - PERSON}
+and the \textbf{Greens - ORGANIZATION} agreed to support \textbf{Labor - ORGANIZATION}, they gave just two
+guarantees: confidence and supply.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Recognition}
+
+\begin{itemize}
+
+\item Crucial for Information Extraction, Question Answering and
+Information Retrieval
+\item[] $\Rightarrow$ Up to 10\% of a newswire text may consist of proper names, dates, times,...
+
+\item Relational information is built on top of Named Entities
+\item Many web pages tag various entities, with links to bio
+or topic pages, etc.
+\item[] $\Rightarrow$ knowledge graphs build on top of Wikipedia use NER parsing of articles.
+
+\item \url{https://www.wikidata.org/wiki/Q22686}
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Three Approaches to Named Entity Recognition}
+
+\begin{enumerate}
+
+\item Rule based retrieval: e.g. through regular expressions
+\item[] $\Rightarrow$ remember the email vs telefon number extraction regexes?
+
+\item Classifiers
+\item[] In this course we will introduce a range, especially Naive Bayes, logistic regression, ...
+
+
+\item Sequence models
+\item[] Hiden Markov Models, ...
+
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Rule-based retrieval}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/02_create_new_ical01.jpg}
+\end{center}
+
+Rule based extraction of dates using regular expressions
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Rule-based retrieval}
+
+\begin{itemize}
+\item  If extracting from automatically generated web pages, simple
+regex patterns usually work as behind the scenes a common template forces a layout.
+
+\item[] HTML page
+\item[] \code{<b>(.*?)</b>}
+
+\item For certain restricted, common types of entities in unstructured
+text, simple regex patterns also usually work.
+\item[] Finding (US) phone numbers
+\item[] \code{([2-9][0-9]\{2\})[- .]([0-9]\{3\})[- .]([0-9]\{4\})}
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Rule-based retrieval}
+
+\begin{itemize}
+\item  Can leverage POS tagging to define a set of rules to extract training data for a classifier.
+
+\item Remember pairs of "NN - NN" extracted in collocation discovery exercise?
+
+
+\item Determining which person holds what office in what organization
+ \item[] [person] , [office] of [org]
+ 
+\item[] This defines a sequence of nouns that could be extracted using a regex searching for [NN], [NN] of [NN].
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Machine Learning Approach to Named Entity Recognition}
+
+\textbf{Training}
+\begin{enumerate}
+\item  Collect a set of representative training documents 
+
+\item Label each token for its entity class or other (O) 
+
+\item Design feature extractors appropriate to the text and classes 
+
+\item. Train a sequence classifier to predict the labels from the data [more next week]
+
+\end{enumerate}
+
+\textbf{Testing}
+
+\begin{enumerate}
+\item Receive a set of testing documents 
+\item Run sequence model inference to label each token 
+\item Appropriately output the recognized entities 
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Features for sequence labeling}
+
+
+\begin{itemize}
+
+\item Words, current word, previous word, 
+
+\item Parts of words such as indicators for suffixes common to names of places or locations.
+
+\item Part of speech tags 
+
+\item Shapes of words
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MEMM inference in systems}
+
+\begin{itemize}
+
+\item Conditional Markov Model the classifiers makes a decision at a time conditional on the evidence in the neighborhood.
+
+\item Typically use a type of logistic regression classifier.
+
+\item Example for data used for classifier
+
+\end{itemize}
+
+\begin{tabular}{ccc}
+$w$ & POS $p$ & NER \\ 
+Three & CD & O \\ 
+ISIL & NNP & ORG \\ 
+terrorists & NNS & O  \\
+were & VBD & O \\ 
+killed & VBN & O  \\
+in & IN & O \\ 
+Rakka & NNP & \textbf{LOC}  \\
+. & . & O 
+\end{tabular}
+
+Features at word $w_n = \text{Rakka}$: $\{w_{n-1} = "\text{in}", w_n = \text{Rakka}, w_{n+1} = ".", p_{n-1}="IN", p_{n}="NNP",...\}$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Named Entity Recognition in R}
+
+\begin{itemize}
+
+\item There are a couple of built named entity recognition modules built into easy access NLP packages.
+
+\item Most notably are OpenNLP and the Stanford NLP, both require \code{rJava} package and a Java installation on the operating system.
+\item[] \code{install.packages('rJava')} and installation of \code{Java JDK 1.2 or higher}
+
+\item I will also show how to access purpose built classifiers built for very specific tasks can be made accessible to work in R.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{OpenNLP}
+
+The Apache OpenNLP library is a machine learning based toolkit for the processing of natural language text.
+
+\includegraphics[scale=0.5]{figures/onlplogo.jpg}
+
+It supports the most common NLP tasks, such as tokenization, sentence segmentation, part-of-speech tagging, named entity extraction, chunking, parsing, and coreference resolution. These tasks are usually required to build more advanced text processing services
+
+\url{https://opennlp.apache.org}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Opening a pipeline between OpenNLP and R}
+
+<<opennlp, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=TRUE, warning=FALSE, quietly=TRUE>>=
+#install.packages(c("NLP", "openNLP"))
+#install.packages("openNLPmodels.en",  repos = "http://datacube.wu.ac.at/", type = "source")
+library(NLP)
+library(openNLP)
+library(openNLPmodels.en)
+
+TRUMP <- readLines("../../Data/Speeches/trump-foreignpolicy.txt")
+TRUMP <- paste(TRUMP, collapse=" ")
+TRUMP <- gsub("([A-Z]{4,})","",TRUMP)
+#create instance
+word_ann <- Maxent_Word_Token_Annotator()
+sent_ann <- Maxent_Sent_Token_Annotator()
+
+TRUMP_annotate <- annotate(TRUMP, list(sent_ann,word_ann))
+
+head(TRUMP_annotate)
+
+#combine Annotations with text
+TRUMP_doc<-AnnotatedPlainTextDocument(TRUMP,TRUMP_annotate)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{OpenNLP Named Entity Recognition types}
+OpenNLP can find dates, locations, money, organizations, percentages, people, and times. 
+
+<<opennlp2, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=TRUE>>=
+#need to create instances of different types annotators
+#supported values for kind are "date", "location", "money", "organization", "percentage", "person", "misc"
+person_ann <- Maxent_Entity_Annotator(kind = "person")
+location_ann <- Maxent_Entity_Annotator(kind = "location")
+organization_ann <- Maxent_Entity_Annotator(kind = "organization")
+
+#pipeline for processing, NER annotators require sentence and word boundaries as inputs
+pipeline <- list(sent_ann,
+                 word_ann,
+                 location_ann, organization_ann, person_ann)
+TRUMP_annotate <- annotate(TRUMP, pipeline)
+TRUMP_doc <- AnnotatedPlainTextDocument(TRUMP, TRUMP_annotate)
+
+TRUMP_doc
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{OpenNLP Extract Named Entities from Annotated Document}
+<<opennlp3, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=TRUE>>=
+# Extract entities from an AnnotatedPlainTextDocument
+entities <- function(doc, kind) {
+  s <- doc$content
+  a <- annotations(doc)[[1]]
+  if(hasArg(kind)) {
+    k <- sapply(a$features, `[[`, "kind")
+    s[a[k == kind]]
+  } else {
+    s[a[a$type == "entity"]]
+  }
+}
+
+sort(table(entities(TRUMP_doc, kind = "person")), decreasing=TRUE)[1:10]
+
+sort(table(entities(TRUMP_doc, kind = "location")), decreasing=TRUE)[1:10]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{OpenNLP Handling}
+
+\begin{itemize}
+
+\item OpenNLP handling in R is a bit cumbersome, have to set up pipelines etc...
+
+\item Could write a custom function to perform a specific NLP task and return vector of , e.g. named entities.
+
+\item For SENNA, this type of processing pipeline set up is explained here: \url{http://www.trfetzer.com/a-simple-pipeline-to-access-senna-nlp-toolkit-through-r/}
+
+\item Next present StanfordNLP package, which is easier to work with in R.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Stanford CoreNLP}
+
+Stanford CoreNLP integrates many of Stanford’s NLP tools, including the part-of-speech (POS) tagger, the named entity recognizer (NER), the parser, the coreference resolution system, sentiment analysis, bootstrapped pattern learning, and the open information extraction tools.
+\begin{center}
+\includegraphics[scale=0.4]{figures/CoreNLP.png}
+\end{center}
+\url{http://stanfordnlp.github.io/CoreNLP/}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Stanford CoreNLP}
+\begin{center}
+\includegraphics[scale=0.3]{figures/Xi-Jinping.png}
+\end{center}
+\url{http://stanfordnlp.github.io/CoreNLP/}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{CoreNLP R-package}
+<<corenlp, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE>>=
+#install relevant packages
+#devtools::install_github("statsmaths/coreNLP")
+##this installs the full stanford corenlp 
+#coreNLP::downloadCoreNLP()
+library(rJava)
+library(coreNLP)
+#creating an instance (opening the pipeline)
+initCoreNLP()
+str = c("President George Bush spoke to the troops on board of an aircraft carrier in the Gulf of Mexico.")
+output = annotateString(str)
+getToken(output)
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Other CoreNLP features}
+<<corenlp2, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE>>=
+getDependency(output)
+
+getSentiment(output)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{NER for Lazy People: OpenNLP Access via Web API}
+<<apiexample, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+ url <- 'http://www.huffingtonpost.com/entry/house-republicans-ethics_us_586bdb14e4b0de3a08f99e66?6ztihpvi'
+api <- 'http://juicer.herokuapp.com/api/article?url='
+target <- paste(api,url,sep="") 
+
+raw.data <- readLines(target, warn="F") 
+
+rd <- fromJSON(raw.data)
+dat <- rd$article
+
+ENTITIES<-data.frame(do.call("rbind", dat$entities))
+
+ENTITIES[1:10,]
+@
+
+$\Rightarrow$ this works off the Stanford NLP NER module, which we will also directly use in R. 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{NER for Lazy People (2): MonkeyLearn}
+
+\begin{itemize}
+
+\item Can leverage existing extractors made available on MonkeyLearn platform.
+
+\item MonkeyLearn is a platform through which classifiers for very specific tasks are shared by other data scientists. 
+
+\item They produce benchmark estimates on the performance of extractors and classifiers that allows you to compare different products.
+
+\item This is very useful resource for evaluation of your own proto-types against other classifiers.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{NER for Lazy People (2): MonkeyLearn}
+
+\begin{center}
+\includegraphics[scale=0.4]<1>{figures/monkeylearn.png}
+\includegraphics[scale=0.4]<2>{figures/monkeylearn3.png}\\
+
+\url{http://monkeylearn.com/}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{NER for Lazy People (3): MonkeyLearn}
+<<monkeylearnapi, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+#set up an account on Monkeylearn and obtain an API reference
+#100k calls per month are for free
+#devtools::install_github("ropensci/monkeylearn")
+#set API key as environment variable
+#Sys.setenv(MONKEYLEARN_KEY="")
+
+library("monkeylearn")
+text <- "In the 19th century, the major European powers had gone to great lengths to maintain a balance of power throughout Europe, resulting in the existence of a complex network of political and military 
+alliances throughout the continent by 1900. These had started in 1815, with the Holy Alliancebetween Prussia, Russia, and Austria. 
+Then, in October 1873, German Chancellor Otto von Bismarck negotiated the League of the Three Emperors (German: Dreikaiserbund) between the monarchs of Austria-Hungary, Russia and Germany."
+output <- monkeylearn_extract(request = text,
+                              extractor_id = "ex_isnnZRbS")
+output
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+

@@ -1,0 +1,6 @@
+\frametitle{Plotting Wordscores against Bayesscores - no smoothing}
+
+
+\begin{center}
+\includegraphics[scale=0.45]{figures/knitr-trumpiness8-1.pdf}
+\end{center}

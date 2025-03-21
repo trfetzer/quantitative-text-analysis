@@ -1,0 +1,167 @@
+\frametitle{Lots of other distance metrics}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(proxy)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'proxy'}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:Matrix':\\\#\# \\\#\#\ \ \ \  as.matrix}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:stats':\\\#\# \\\#\#\ \ \ \  as.dist, dist}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:base':\\\#\# \\\#\#\ \ \ \  as.matrix}}\begin{alltt}
+\hlkwd{lapply}\hlstd{(pr_DB}\hlopt{$}\hlkwd{get_entries}\hlstd{(),} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{) x}\hlopt{$}\hlstd{names)}
+\end{alltt}
+\begin{verbatim}
+## $Jaccard
+## [1] "Jaccard" "binary"  "Reyssac" "Roux"
+##
+## $Kulczynski1
+## [1] "Kulczynski1"
+##
+## $Kulczynski2
+## [1] "Kulczynski2"
+##
+## $Mountford
+## [1] "Mountford"
+##
+## $Fager
+## [1] "Fager"   "McGowan"
+##
+## $Russel
+## [1] "Russel" "Rao"
+##
+## $`simple matching`
+## [1] "simple matching" "Sokal/Michener"
+##
+## $Hamman
+## [1] "Hamman"
+##
+## $Faith
+## [1] "Faith"
+##
+## $Tanimoto
+## [1] "Tanimoto" "Rogers"
+##
+## $Dice
+## [1] "Dice"        "Czekanowski" "Sorensen"
+##
+## $Phi
+## [1] "Phi"
+##
+## $Stiles
+## [1] "Stiles"
+##
+## $Michael
+## [1] "Michael"
+##
+## $Mozley
+## [1] "Mozley"   "Margalef"
+##
+## $Yule
+## [1] "Yule"
+##
+## $Yule2
+## [1] "Yule2"
+##
+## $Ochiai
+## [1] "Ochiai"
+##
+## $Simpson
+## [1] "Simpson"
+##
+## $`Braun-Blanquet`
+## [1] "Braun-Blanquet"
+##
+## $cosine
+## [1] "cosine"  "angular"
+##
+## $eJaccard
+## [1] "eJaccard"         "extended_Jaccard"
+##
+## $eDice
+## [1] "eDice"         "extended_Dice" "eSorensen"
+##
+## $correlation
+## [1] "correlation"
+##
+## $`Chi-squared`
+## [1] "Chi-squared"
+##
+## $`Phi-squared`
+## [1] "Phi-squared"
+##
+## $Tschuprow
+## [1] "Tschuprow"
+##
+## $Cramer
+## [1] "Cramer"
+##
+## $Pearson
+## [1] "Pearson"     "contingency"
+##
+## $Gower
+## [1] "Gower"
+##
+## $Euclidean
+## [1] "Euclidean" "L2"
+##
+## $Mahalanobis
+## [1] "Mahalanobis"
+##
+## $Bhjattacharyya
+## [1] "Bhjattacharyya"
+##
+## $Manhattan
+## [1] "Manhattan"  "City-Block" "L1"         "taxi"
+##
+## $supremum
+## [1] "supremum"      "max"           "maximum"       "Tschebyscheff" "Chebyshev"
+##
+## $Minkowski
+## [1] "Minkowski" "Lp"
+##
+## $Canberra
+## [1] "Canberra"
+##
+## $Wave
+## [1] "Wave"   "Hedges"
+##
+## $divergence
+## [1] "divergence"
+##
+## $Kullback
+## [1] "Kullback" "Leibler"
+##
+## $Bray
+## [1] "Bray"   "Curtis"
+##
+## $Soergel
+## [1] "Soergel"
+##
+## $Levenshtein
+## [1] "Levenshtein"
+##
+## $Podani
+## [1] "Podani"      "discordance"
+##
+## $Chord
+## [1] "Chord"
+##
+## $Geodesic
+## [1] "Geodesic"
+##
+## $Whittaker
+## [1] "Whittaker"
+##
+## $Hellinger
+## [1] "Hellinger"
+##
+## $fJaccard
+## [1] "fJaccard"      "fuzzy_Jaccard"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}

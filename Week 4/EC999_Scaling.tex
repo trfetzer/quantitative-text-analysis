@@ -1,0 +1,1038 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Document Scaling} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+
+\begin{document}
+
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Scaling Approaches}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Classification versus Scaling}
+
+\begin{itemize}
+
+\item We introduce the idea of scaling or scoring texts in relation to a reference text for which we know what position that text takes.
+
+\item We will embed this discussion within the framework presented here relating the document scaling approach to the conceptual framework presented here to think about more general classification problems.
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Learning about latent variables}
+
+\begin{center}
+
+\includegraphics[scale=0.4]{figures/scaling-generative.png}
+
+\end{center}
+
+Underlying latent (unobserved) characteristic $\theta$ generates the distribution of word counts. Scaling methods attempt to reverse this process: using the word counts to \emph{infer} the value of $\theta$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Learning about latent variables}
+
+\begin{center}
+
+\includegraphics[scale=0.15]{figures/ideological-scaling-imrs.png}
+
+\end{center}
+
+Idealogical scaling, not based on text, but on Twitter follower network structure.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Document Scaling}
+
+A most common task for language processing is to compute a similarity or an overlap measure between a document and a query.\smallskip
+
+In applications, you may want to score a document relative to a reference text.\smallskip
+
+This is known as wordscoring approach, where you have two sets of texts:
+
+\begin{enumerate}
+
+\item Reference texts: texts which we understand well as representing some latent positions.
+
+\item Virgin texts: texts for which you do not know what their latent position is.
+
+\end{enumerate}
+
+Word scoring approaches are a form of querying where you define a vocabulary based on the training set of the reference texts and you use these to score the virgin texts.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring relative party positions along salient dimensions}
+
+\begin{center}
+\includegraphics[scale=0.38]<1>{figures/party-alignment.png}
+\end{center}
+Alignment of political parties along issues from Dalton (1996)
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Wordscores approach}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wordscores as Heuristic Document Scaling Approach}
+
+\begin{center}
+
+\includegraphics[scale=0.5]<1>{figures/scaling1.png}
+\includegraphics[scale=0.5]<2>{figures/scaling2.png}
+\includegraphics[scale=0.5]<3>{figures/scaling3.png}
+\includegraphics[scale=0.5]<4>{figures/scaling4.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wordscores: Reference Text Normalization}
+
+\begin{itemize}
+
+%\item https://visuals.manifesto-project.wzb.eu/mpdb-shiny/cmp_dashboard_corpus_doc/
+
+\item Start with a set of $J$ reference texts, represented by an $I \times J$ document-term frequency matrix $C_{ij}$ , where $i$ indexes the word types and $j$ indexes the document.
+
+\item Each reference text will have an associated ``score'' $a_i$ , which is a single number locating this text on a single dimension of difference (this could be a scale metric, such as 1–20 or use arbitrary endpoints, such as -1, 1)
+
+\item  We normalize the document-term frequency matrix within each document by converting $C_{ij}$ into a relative document-term frequency matrix (within document), by dividing $C_{ij}$ by its word total marginals:
+
+
+$$F_{ij} = \frac{C_{ij}}{C_{j}}$$
+
+where $C_j =  \sum_{i=1}^{I} C_{ij}$ is the total number of words in reference document $j$.
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wordscores: Computing the Wordscores}
+
+\begin{itemize}
+
+\item Compute an $I \times J$ matrix of relative document probabilities $P_{ij}$ for each word in each reference text, as
+
+$$ P_{ij} =   \frac{F_{ij}}{\sum_{i=1}^I F_{ij}} $$
+
+\item This tells us the probability that given the observation of a specific word $i$, that we are reading a text of a certain reference document $j$.
+
+%\item That is this probability is $P(Y=j |w_j)$
+
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scoring a virgin document}
+
+\begin{itemize}
+
+\item The objective is to obtain a single score for any new text, relative to the reference texts.
+
+\item   We do this by taking the mean of the scores of its words, weighted by their term frequency
+
+
+\item The score $v_k$ of a virgin document $k$ consisting of the $j$ word types is:
+
+$$ v_k = \sum_j F_{kj} ·s_j $$
+
+where as in the reference document $F_{kj} = \frac{C_{kj}}{C_k}$ is the relative word frequency.
+
+\item   Note that new words outside of the set J may appear in the K virgin documents — these are simply ignored (because we have no information on their scores)
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Two Reference Text Example}
+
+\begin{itemize}
+\item  Assume we have two reference texts, $D$ and $R$, Reference Text D has a position of $−1.0$, and Reference Text R has a position of $+1.0$.
+
+\item For example:
+
+\begin{table}
+\scalebox{0.75}{
+\begin{tabular}{llll}
+
+ & test & $C_{iD}$ & $C_{iR}$ \\
+$w_i$ & climate & 30 & 10 \\
+ & marriage & 14 & 40 \\
+ & Wall Street & 35 & 18 \\
+ & energy & 10 & 65 \\
+ & wealth & 31 & 20 \\
+ & ISIS & 15 & 5 \\
+ & Social Security & 25 & 54 \\
+ & Medicare & 22 & 43 \\
+ & economy & 15 & 18 \\
+ & Washington & 5 & 20 \\
+ ...\\
+ & $C_j$ & 1000 & 1500 \\
+
+\end{tabular}
+
+
+
+}
+\end{table}
+
+\end{itemize} 
+
+$\Rightarrow$ Scale the $C_{ij}$ counts by the column sum to normalize for document size.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Two Reference Text Example: Normalizing by document size}
+
+This measures the share of document $j$'s words that are of word type $i$.
+\begin{table}
+\scalebox{0.75}{
+\begin{tabular}{llll}
+
+ &  & $F_{iD}$ & $F_{iR}$ \\
+$w_i$ & climate & 0.030 & 0.007 \\
+ & marriage & 0.014 & 0.027 \\
+ & Wall Street & 0.035 & 0.012 \\
+ & energy & 0.010 & 0.043 \\
+ & wealth & 0.031 & 0.013 \\
+ & ISIS & 0.015 & 0.003 \\
+ & Social Security & 0.025 & 0.036 \\
+ & Medicare & 0.022 & 0.029 \\
+ & economy & 0.015 & 0.012 \\
+ & Washington & 0.005 & 0.013 \\
+
+\end{tabular}
+}
+\end{table}
+
+For reference document $D$, 3\% of the total number of words are "climate". 
+
+$\Rightarrow$ Next step, compute word scores $P_{ij}$.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Two Reference Text Example: Compute  $P_{ij}$}
+
+\begin{table}
+\scalebox{0.75}{
+
+\begin{tabular}{llll}
+ &  & $P_{iD}$ & $P_{iR}$ \\
+$w_i$ & climate & 0.818 & 0.182 \\
+ & marriage & 0.344 & 0.656 \\
+ & Wall Street & 0.745 & 0.255 \\
+ & energy & 0.188 & 0.813 \\
+ & wealth & 0.699 & 0.301 \\
+ & ISIS & 0.818 & 0.182 \\
+ & Social Security & 0.410 & 0.590 \\
+ & Medicare & 0.434 & 0.566 \\
+ & economy & 0.556 & 0.444 \\
+ & Washington & 0.273 & 0.727 \\
+
+\end{tabular}
+
+}
+\end{table}
+
+$\Rightarrow$ conditional on word climate being observed, the chance is more than four times higher that the document is of type $D$.
+
+$\Rightarrow$ Divide the relative frequency $F_{ij}$ by the row-sum to obtain a measure of likelihood that word $w_j$ is appearing in document $i$. In the two reference text case, one is the complement of the other.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scoring a new ``virgin'' document}
+
+Let the reference scores be $A_R = +1$ and $A_D = -1$ (or any other arbitrary value). A word's score is now
+$$S_{i} = A_R · P_{iR} + A_D · P_{iD}$$
+
+\begin{table}
+\scalebox{0.75}{
+
+\begin{tabular}{lllll}
+
+ &  & $P_{jD}$ & $P_{jR}$ & $S_i$ \\
+$w_i$ & climate & 0.818 & 0.182 & -0.636 \\
+ & marriage & 0.344 & 0.656 & 0.311 \\
+ & Wall Street & 0.745 & 0.255 & -0.489 \\
+ & energy & 0.188 & 0.813 & 0.625 \\
+ & wealth & 0.699 & 0.301 & -0.398 \\
+ & ISIS & 0.818 & 0.182 & -0.636 \\
+ & Social Security & 0.410 & 0.590 & 0.180 \\
+ & Medicare & 0.434 & 0.566 & 0.132 \\
+ & economy & 0.556 & 0.444 & -0.111 \\
+ & Washington & 0.273 & 0.727 & 0.455 \\
+ \\
+ & Score & -1 & 1 \\
+
+\end{tabular}
+
+
+}
+\end{table}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scoring a new ``virgin'' document}
+
+A ``virgin'' document is scored as
+
+$$S^{wordscore}_V = \sum_{i=1}^I \frac{C_{iV}}{C_V} S_i$$
+
+\begin{table}
+\scalebox{0.75}{
+\begin{tabular}{llll}
+
+ & Virgin document & Virgin document normalized & $S_i$ \\
+climate & 14 & 0.034 & -0.636 \\
+marriage & 2 & 0.005 & 0.311 \\
+Wall Street & 4 & 0.010 & -0.489 \\
+energy & 4 & 0.010 & 0.625 \\
+wealth & 4 & 0.010 & -0.398 \\
+ISIS & 6 & 0.015 & -0.636 \\
+Social Security & 3 & 0.007 & 0.180 \\
+Medicare & 0 & 0.000 & 0.132 \\
+economy & 2 & 0.005 & -0.111 \\
+Washington & 0 & 0.000 & 0.455 \\
+ &  &  & \textbf{-0.031} \\
+Document length & 412 \\
+
+\end{tabular}
+
+}
+\end{table}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Relating Scaling to Classification Terminology}
+
+
+\begin{itemize}
+\item Wordscores algorithm is not explicitly derived from any statistical model of word
+generation.
+
+\item many aspects of the method can support such interpretations. 
+
+\item Methods for assigning scores to words and documents have a symmetric probabilistic interpretation
+
+\item It turns out (and we will confirm) that there are some Bayesian elements to the algorithm, which is why it compares reasonably well.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some Issues with Wordscores}
+
+\begin{itemize}
+
+\item  Note that new words outside of the set $J$ may appear in the ``virgin documents`` - these are simply ignored (because we have no information on their scores).
+
+\item Because of overlapping or non-discriminating words, the raw text scores will be dragged to the interior of the reference scores (we will see this shortly in the results)
+
+\item The score $S_V$ of any text represents a weighted mean
+
+\item LBG (2003) used this logic to develop a standard error of this mean using a weighted variance of the scores in the virgin text
+
+\item An alternative would be to bootstrap the textual data prior to constructing $C_{ij}$ and $C_{kj}$ — see Lowe and Benoit (2012)
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+    
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scaling illustration: Trumpi- versus Hillariness}
+
+\begin{itemize}
+
+\item We obtain a corpus of Donald Trump's (+1) campaign speeches and a corpus of Hillary Clinton's (-1) speeches and make these our reference texts.
+
+\item We want to then look at speeches given in congress (or any other text) to see to what extent they score on this dimension score. 
+
+\item This will illustrate the usefulness of word scaling of texts and some of its draw backs.
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scaling illustration: Trumpi- versus Hillariness}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{REFERENCE} \hlkwb{<-} \hlkwd{corpus}\hlstd{(}\hlkwd{readtext}\hlstd{(}\hlstr{"../../Data/Speeches/*.txt"}\hlstd{,} \hlkwc{docvarsfrom} \hlstd{=} \hlstr{"filenames"}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in corpus(readtext("{}../../Data/Speeches/*.txt"{}, docvarsfrom = "{}filenames"{})): could not find function "{}readtext"{}}}\begin{alltt}
+\hlkwd{summary}\hlstd{(REFERENCE)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in summary(REFERENCE): object 'REFERENCE' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scaling illustration: Trumpi- versus Hillariness}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{REFERENCE.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(REFERENCE,} \hlkwc{toLower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removePunct} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeSeparators} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{ignoredFeatures} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in dfm(REFERENCE, toLower = TRUE, removeNumbers = TRUE, removePunct = TRUE, : object 'REFERENCE' not found}}\begin{alltt}
+\hlcom{## first 7 elements are clinton speeches, next 6 are Trump}
+\hlstd{refscores} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlopt{-}\hlnum{1}\hlstd{,} \hlnum{7}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{6}\hlstd{))}
+\hlstd{ws} \hlkwb{<-} \hlkwd{textmodel}\hlstd{(REFERENCE.dfm, refscores,} \hlkwc{model} \hlstd{=} \hlstr{"wordscores"}\hlstd{,} \hlkwc{smooth} \hlstd{=} \hlnum{1}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in textmodel(REFERENCE.dfm, refscores, model = "{}wordscores"{}, smooth = 1): object 'REFERENCE.dfm' not found}}\begin{alltt}
+\hlcom{## most trumpy words}
+\hlstd{ws}\hlopt{@}\hlkwc{Sw}\hlstd{[ws}\hlopt{@}\hlkwc{Sw} \hlopt{>} \hlnum{0.5}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{15}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'ws' not found}}\begin{alltt}
+\hlcom{## most hillary words}
+\hlstd{ws}\hlopt{@}\hlkwc{Sw}\hlstd{[ws}\hlopt{@}\hlkwc{Sw} \hlopt{< -}\hlnum{0.5}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{15}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'ws' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scaling illustration: Trumpi- versus Hillariness}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## scoring the reference documents}
+\hlkwd{predict}\hlstd{(ws)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in predict(ws): object 'ws' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Rescaling}
+
+\begin{itemize}
+
+\item  The LBG method was developed to study the evolution of party positions over time, relative to a baseline party position. 
+
+\item For virgin text, not all words overlap and most likely non discriminating words overlap with the words for which we have word-scores. 
+
+\item This will drag the distribution of the average scores to the interior, while still preserving the ranking.
+
+\item We need to rescale the scores to allow a sustantive interpretation of the scores relative to the reference text.
+
+\item Some procedures can be applied to rescale them, either to a unit normal metric or to a more ``natural'' metric
+
+\item Martin and Vanberg (2008) have proposed alternatives to the LBG (2003) rescaling
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scaling illustration: Trumpi- versus Hillariness}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## rescale the scores}
+\hlkwd{predict}\hlstd{(ws,} \hlkwc{rescaling} \hlstd{=} \hlstr{"lbg"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in predict(ws, rescaling = "{}lbg"{}): object 'ws' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Smoothing or no smoothing? }
+
+\begin{itemize}
+
+\item If reference documents have non-overlap in vocabularly (words exclusively used by one speaker, but not the other), this can move scores around significantly.
+
+\item Words exclusively used by one speaker should carry significant information about the underlying $\theta$.
+
+\item However, if a word is exclusively used by one speaker this could also reflect a rare event not necessarily carrying information.
+
+\item Laplace smoothing adds +1 to the word count, so that an incidence of a word being used once by one speaker and never by the other does not get a wordscore of 1, but of 1/2.
+
+\item Scores for words more frequently (but exclusively) used by a speaker are not dramatically affected by smoothing. 
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Smoothing or no smoothing? }
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ws2} \hlkwb{<-} \hlkwd{textmodel}\hlstd{(REFERENCE.dfm, refscores,} \hlkwc{model} \hlstd{=} \hlstr{"wordscores"}\hlstd{,} \hlkwc{smooth} \hlstd{=} \hlnum{0}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in textmodel(REFERENCE.dfm, refscores, model = "{}wordscores"{}, smooth = 0): object 'REFERENCE.dfm' not found}}\begin{alltt}
+\hlcom{## most trumpy words}
+\hlstd{ws2}\hlopt{@}\hlkwc{Sw}\hlstd{[ws2}\hlopt{@}\hlkwc{Sw} \hlopt{==} \hlnum{1}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{15}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'ws2' not found}}\begin{alltt}
+\hlcom{## most hillary words}
+\hlstd{ws2}\hlopt{@}\hlkwc{Sw}\hlstd{[ws2}\hlopt{@}\hlkwc{Sw} \hlopt{== -}\hlnum{1}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{15}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'ws2' not found}}\begin{alltt}
+\hlkwd{predict}\hlstd{(ws2)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in predict(ws2): object 'ws2' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Who sounds more like Hillary?}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# LOAD SOME OTHER SPEECHES, TURN INTO DFM AND PREDICT BASED ON WORD SCORES}
+\hlstd{TEXT} \hlkwb{<-} \hlkwd{readLines}\hlstd{(}\hlkwc{con} \hlstd{=} \hlstr{"../../Data/speeches-2016-election.json"}\hlstd{)}
+\hlstd{VIRGIN} \hlkwb{<-} \hlkwd{lapply}\hlstd{(TEXT,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{data.frame}\hlstd{(}\hlkwd{fromJSON}\hlstd{(x)))}
+\hlstd{VIRGIN} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{rbindlist}\hlstd{(VIRGIN))}
+\hlstd{VIRGIN} \hlkwb{<-} \hlstd{VIRGIN[}\hlkwd{year}\hlstd{(date)} \hlopt{>} \hlnum{2008}\hlstd{]}
+\hlstd{VIRGIN} \hlkwb{<-} \hlstd{VIRGIN[,} \hlkwd{list}\hlstd{(}\hlkwc{text} \hlstd{=} \hlkwd{paste}\hlstd{(text,} \hlkwc{collapse} \hlstd{=} \hlstr{" "}\hlstd{)),} \hlkwc{by} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"speaker_name"}\hlstd{,} \hlstr{"speaker_party"}\hlstd{)]}
+\hlstd{VIRGIN.corp} \hlkwb{<-} \hlkwd{corpus}\hlstd{(VIRGIN}\hlopt{$}\hlstd{text)}
+\hlkwd{docnames}\hlstd{(VIRGIN.corp)} \hlkwb{<-} \hlstd{VIRGIN}\hlopt{$}\hlstd{speaker_name}
+
+\hlstd{VIRGIN.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(VIRGIN.corp,} \hlkwc{toLower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removePunct} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeSeparators} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{ignoredFeatures} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+
+\hlkwd{predict}\hlstd{(ws2, VIRGIN.dfm)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in predict(ws2, VIRGIN.dfm): object 'ws2' not found}}\begin{alltt}
+\hlstd{VIRGIN}\hlopt{$}\hlstd{speaker_party}
+\end{alltt}
+\begin{verbatim}
+## [1] "D" "R" "I" "D" "D" "R" "R" "R" "R"
+\end{verbatim}
+\begin{alltt}
+\hlcom{## }
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formalizing Wordscores}
+
+\begin{itemize}
+
+\item Lets derive Wordscores scoring function 
+
+\item Suppose there be two reference texts, labeled $R$ and $D$.
+
+\item In Laver, Benoit and Garry (2003) approach is to start with $P(R |w_i)$, i.e. the probability that a document is of type $R$ if we observe word $w_i$.
+
+\item Using Bayes Rule we can write:
+
+$$P(R | w_i) = \frac{P(w_i | R) P(R)}{P(w_i)} =  \frac{P(w_i | R) P(R)}{P(w_i|R) P(R) + P(w_i|D) P(D)}$$ 
+
+\item How would we estimate this? $P(w_i|R) = \frac{C_{iR}}{C_R}$ and $P(R) = \frac{C_R}{C_R + C_D}$
+
+\item Substituting yields
+
+$$P(R | w_i) =  \frac{ \frac{C_{iR}}{C_R}  \frac{C_R}{C_R + C_D}}{ \frac{C_{iR}}{C_R} \frac{C_R}{C_R + C_D} + \frac{C_{iD}}{C_D}\frac{C_D}{C_R + C_D}  } = \frac{  C_{iR}}{ C_{iR} + C_{iD}} $$ 
+
+\end{itemize} 
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formalizing Wordscores}
+
+\begin{itemize}
+
+\item So we can estimate
+$$P(R | w_i) = \frac{P(w_i | R) P(R)}{P(w_i)} =  \frac{P(w_i | R) P(R)}{P(w_i|R) P(R) + P(w_i|D) P(D)}$$ 
+
+\item By
+
+$$P(R | w_i) = \frac{  C_{iR}}{ C_{iR} + C_{iD}} $$ 
+
+
+\item What does the wordscore algorithm ask us to compute in the two label case?
+
+$$ P_{iR} =   \frac{F_{iR}}{F_{iR} + F_{iD}} =  \frac{\frac{C_{iR}}{C_R} } {\frac{C_{iR}}{C_R} + \frac{C_{iD}}{C_D}}  $$
+
+\item For similar length documents $C_R \approx C_D$, so the two are nearly identical.
+
+\item So we can think of the $P_{ij}$ as being the posterior probabilites.
+
+\end{itemize} 
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formalizing Wordscores}
+
+\begin{itemize}
+
+\item So how does our wordscore actually look like in the two reference case with reference scores (+1) and (-1)?
+
+$$S_{i} = 1 · P_{iR} -1 · P_{iD}$$
+
+\item I.e. we can think of this as simply being
+
+$$S_{i} \approx P(R | w_i) -  P(D | w_i)$$
+
+\item The difference in the word level posteriors.
+
+\end{itemize} 
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wordscores}
+
+\begin{itemize}
+
+\item We have briefly introduced wordscores that are most commonly used to infer underlying positions along policy dimensions.
+
+\item These are quite popular nowadays and are easily implementable.
+
+\item We next turn to Bayesscore which is an alternative scaling method that draws upon the Naive Bayes classifier logic.
+
+\item We will highlight how Bayesscoreing and Wordscores are related by formally comparing them.
+
+\end{itemize} 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Bayesscore}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bayesscore at the word level}
+
+\begin{itemize}
+
+
+\item As indicated, Wordscores method does not actually constitute a formal statistical method, but rather, describes an algorithm.
+
+\item Formalization suggested that wordscores are essentially differences in posterior probabilities of class given a word.
+
+\item Bayesscores are more formally derived and closely related to Wordscores
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bayesscore at the word level}
+Suppose there are two classes, here $R$ and $D$. We observe some word count $w_i$ and want to know what is
+
+$$P(R | w_i) = \frac{P(w_i|R) P(R)}{P(w_i)}$$
+
+Similarly, we have
+
+$$P(D | w_i) = \frac{P(w_i|D) P(D)}{P(w_i)}$$
+
+Then the likelihood ratio for word $w_i$ becomes
+
+$$\frac{P(R | w_i)}{P(D | w_i)} = \frac{P(w_i|R) P(R)}{P(w_i|D) P(D)}$$
+
+Beauchamp (2012) calls this Bayesscore.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bayesscore at the word level}
+Converting this to to logs
+$$\log{\frac{P(R | w_i)}{P(D | w_i)}} = \log{\frac{P(R)}{P(D)}} + \log\frac{P(w_i|R)}{P(w_i|D)}$$
+
+The priors $P(R)$ and $P(D)$ are fixed for all $w_i$ and thus do not affect the relative ordering, when computing a score.
+
+\begin{itemize}
+
+\item The individual word score $S_i = \log{\frac{P(w_i | R)}{P(w_i | D)}}$. 
+
+\item This word score is thus proportional to the ratio $\log{\frac{P(R | w_i)}{P(D | w_i)}}$. 
+
+\item Typically we assume priors $P(R) = P(D)$, in which case the ratio of logs is 0 (the constant).
+
+\item This implies that the LHS and RHS are identical.
+
+\end{itemize}
+
+$\Rightarrow$ we  estimate $P(w_i | R) \approx F_{iR}$ as the share of words that word $i$ makes up in reference document $R$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bayesscore at word level for our example}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{REFERENCE.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(REFERENCE,} \hlkwc{toLower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removePunct} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeSeparators} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{ignoredFeatures} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in dfm(REFERENCE, toLower = TRUE, removeNumbers = TRUE, removePunct = TRUE, : object 'REFERENCE' not found}}\begin{alltt}
+\hlstd{bs} \hlkwb{<-} \hlkwd{textmodel}\hlstd{(REFERENCE.dfm, refscores,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{,} \hlkwc{smooth} \hlstd{=} \hlnum{1}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in textmodel(REFERENCE.dfm, refscores, model = "{}NB"{}, smooth = 1): object 'REFERENCE.dfm' not found}}\begin{alltt}
+\hlcom{## F_ij are presented in this matrix - the probability of a word given class}
+\hlkwd{head}\hlstd{(}\hlkwd{t}\hlstd{(bs}\hlopt{$}\hlstd{PwGc))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in t(bs\$PwGc): object 'bs' not found}}\begin{alltt}
+\hlcom{# Hillary}
+\hlkwd{sort}\hlstd{(}\hlkwd{log}\hlstd{(bs}\hlopt{$}\hlstd{PwGc[}\hlnum{1}\hlstd{, ]}\hlopt{/}\hlstd{bs}\hlopt{$}\hlstd{PwGc[}\hlnum{2}\hlstd{, ]),} \hlkwc{decreasing} \hlstd{=} \hlnum{TRUE}\hlstd{)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in sort(log(bs\$PwGc[1, ]/bs\$PwGc[2, ]), decreasing = TRUE): object 'bs' not found}}\begin{alltt}
+\hlcom{# Trump}
+\hlkwd{sort}\hlstd{(}\hlkwd{log}\hlstd{(bs}\hlopt{$}\hlstd{PwGc[}\hlnum{1}\hlstd{, ]}\hlopt{/}\hlstd{bs}\hlopt{$}\hlstd{PwGc[}\hlnum{2}\hlstd{, ]),} \hlkwc{decreasing} \hlstd{=} \hlnum{FALSE}\hlstd{)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in sort(log(bs\$PwGc[1, ]/bs\$PwGc[2, ]), decreasing = FALSE): object 'bs' not found}}\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Priors versus Posteriors: Bayesscore at word level}
+
+$$S_i = \log{\frac{P(w_i | R)}{P(w_i | D)}}$$
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Hillary}
+\hlkwd{sort}\hlstd{(}\hlkwd{log}\hlstd{(bs}\hlopt{$}\hlstd{PwGc[}\hlnum{1}\hlstd{, ]}\hlopt{/}\hlstd{bs}\hlopt{$}\hlstd{PwGc[}\hlnum{2}\hlstd{, ]),} \hlkwc{decreasing} \hlstd{=} \hlnum{TRUE}\hlstd{)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in sort(log(bs\$PwGc[1, ]/bs\$PwGc[2, ]), decreasing = TRUE): object 'bs' not found}}\end{kframe}
+\end{knitrout}
+
+$$\log{\frac{P(R | w_i)}{P(D | w_i)}}$$
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Hillary this ranking is identical when looking at the ratio of the posteriors}
+\hlkwd{sort}\hlstd{(}\hlkwd{log}\hlstd{(bs}\hlopt{$}\hlstd{PcGw[}\hlnum{1}\hlstd{, ]}\hlopt{/}\hlstd{bs}\hlopt{$}\hlstd{PcGw[}\hlnum{2}\hlstd{, ]),} \hlkwc{decreasing} \hlstd{=} \hlnum{TRUE}\hlstd{)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in sort(log(bs\$PcGw[1, ]/bs\$PcGw[2, ]), decreasing = TRUE): object 'bs' not found}}\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Using Bayesscores to scoring a new document}
+
+We can score reference documents as
+$$S^{bayesscore} =  \sum_{i=1}^{I} \log{\frac{P(w_i | R)}{P(w_i | D)}}$$
+
+Scoring a new document $V$ as
+
+$$S_V^{bayesscore} =  \sum_{i=1}^{I} C_{iV} \log{\frac{F_{iR}}{F_{iD}}}$$
+
+Practically - to normalize by document length  - we usually compute
+
+$$S_V^{bayesscore} =  \sum_{i=1}^{I} \frac{C_{iV}}{C_V} \log{\frac{F_{iR}}{F_{iD}}}$$
+
+The log transformation implies that we have an issue with zero counts in numerator and denominator. Hence its common to use Laplace smoothing or to restrict set of features to those that have non zero count in \emph{both} reference documents. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Implicit assumption: Naive Bayes Assumption}
+
+When computing the scores, we make the simplifying assumption that the words making $w_i$ making up our texts are conditionally independently drawn from some distribution.
+
+Suppose our document vector is $S$, we assume that:
+
+$$P(S|R) = \prod_{i=1}^V P(w_i | R)$$
+
+which yields
+
+$$P(R | S) = \frac{\prod_{i=1}^V P(w_i | R) P(R)}{P(S)}$$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wordscores vs Bayesscore}
+
+\begin{itemize}
+
+\item Remember that Worscores are approximately (in the two class case with reference class values -1 and +1) are
+
+$$S^{wordscore}_{i} \approx P(R | w_i) -  P(D | w_i)$$
+
+\item Here our Bayesscore is given by
+
+$$S_i^{bayesscore} =  \log{\frac{P(w_i | R)}{P(w_i | D)}} = \log{P(w_i | R)} - \log{P(w_i | D)} $$
+
+\item So in the two reference class case, Bayes scores are just the log differences, while wordscores are the absolute differences.
+
+\item Thats why word scores and bayesscores are very similar.
+
+\end{itemize} 
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Plotting Wordscores against Bayesscores - no smoothing}
+
+

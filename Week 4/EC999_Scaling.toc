@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Scaling Approaches}{2}{0}{1}
+\beamer@sectionintoc {2}{Wordscores approach}{8}{0}{2}
+\beamer@sectionintoc {3}{Bayesscore}{35}{0}{3}

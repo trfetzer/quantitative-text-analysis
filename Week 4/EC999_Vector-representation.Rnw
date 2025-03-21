@@ -1,0 +1,764 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Vector Space Representation} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/QTA/Lectures/Week 4")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+library(tm)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Quantitative Text Analysis as process}
+Above all, there needs to be a formulatedresearch question or \textbf{goal} to be achieved.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.4]{figures/qta-steps}
+\end{center}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bag of Words Language Model}
+
+\begin{itemize}
+\item For most of what we will do, we will represent documents as vectors of word frequency counts.
+
+\item This is called the bag of words language model, as the order in which terms appear is disregarded.
+
+\item This implies grammatic structure is disregarded.
+
+\item Central to this language model is the representation of text as vectors of weighted word counts combined into document term matrices (dtm's) or their transpose tdm's.
+
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sparsity revisited}
+
+\begin{itemize}
+\item As we noted, Zipfs Law and Heap's law imply an exploding vocabulary space the more text is added.
+
+\item Storing large matrices in memory is an issue - it simply becomes not feasible.
+
+\item Thats why most text packages in R work with a construct called \emph{sparse} matrix.
+
+\item Sparse matrices are arranged as \emph{triplets} consisting of three arrays (A,B,C). 
+
+\begin{itemize}
+\item A contains all of the nonzero entries reading top to bottom one column after the other
+\item B contains indices of/pointers to A indicating where each new column begins
+\item C contains the row index of each element in A. 
+\end{itemize}
+
+\item Most statistical packages for machine learning/ text analysis in R support sparse matrices. 
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sparse Matrix Storage efficiency vs assignment inefficiency}
+
+<<sparsematrix, size="tiny", include=TRUE, eval=TRUE, echo=TRUE>>=
+
+library('Matrix')
+ 
+m1 <- matrix(0, nrow = 1000, ncol = 100)
+m2 <- Matrix(0, nrow = 1000, ncol = 100, sparse = TRUE)
+ 
+#storage efficiency
+object.size(m1)
+
+object.size(m2)
+
+#assignment can take more time 
+system.time(m1[, 1:10] <- 1)
+
+system.time(m2[, 1:10] <- 1)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building a document-term matrix}
+
+\begin{itemize}
+
+\item In the quanteda package, building a dfm is easy.
+
+<<quantedadfm, size="tiny", include=TRUE, eval=TRUE, echo=TRUE>>=
+
+myCorpus <- corpus_subset(data_corpus_inaugural, Year > 1990)
+#stemming, stopword removal
+myStemMat <- dfm(myCorpus, remove = stopwords("english"), stem = TRUE, removePunct = TRUE)
+myStemMat[, 1:5]
+
+#top features
+topfeatures(myStemMat, 20)
+@
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building a document-term matrix}
+
+\begin{itemize}
+\item In the tm package, building a dfm is easy as well.
+\end{itemize}
+<<tmpackagedtm, size="tiny", include=TRUE, eval=TRUE, echo=TRUE>>=
+library(tm)
+reut21578 <- system.file("texts", "crude", package = "tm")
+reuters <- VCorpus(DirSource(reut21578), readerControl = list(reader = readReut21578XMLasPlain))
+reuters
+##tm_map function to manipulate corpus / dfm matrix objects
+reuters <- tm_map(reuters, removeWords, stopwords("english"))
+reuters <-tm_map(reuters, stemDocument)
+dtm <- DocumentTermMatrix(reuters)
+inspect(dtm[5:10, 740:743])
+
+findFreqTerms(dtm, lowfreq=10)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Working with DTMs / DFMs}
+
+\begin{itemize}
+
+\item In the coming weeks, we will mostly work with DTMs/ DFMs as main data objects.
+
+\item Thus we can think of moving beyond the initial focus, which was on short fragments of text, and start to discuss how we can treat documents represented as vectors.
+
+\item At the end of the day, our $\mathbf{X}$ document term matrices are just data matrices that you would analyize using statistical methods, such as regression techniques.
+
+\item Specific nature of text data means that we can not translate methods one to one.
+
+\item We start by defining concept of measuring distance in high dimensional vector spaces
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Distance between Texts?}
+
+\begin{itemize}
+\item The idea is that (weighted) features form a vector for each document, and that these vectors can be judged using metrics of similarity.
+
+\item Most often, you want to know how similar or dissimilar text is from one another.
+
+\item So we need to have a metric to capture distance.
+
+\item A document’s vector for us is simply (for us) the row of the document-feature matrix
+  
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Characteristics of similarity measures}
+
+Let $A$ and $B$ be any two documents in a set and $d(A,B)$ be the distance between $A$ and $B$.
+
+\begin{enumerate}
+\item $d(A,B) \geq 0$ (the distance between any two points must be non-negative)
+\item $d(A,B) = 0$ iff $A = B$ (the distance between two documents must be zero if and only if the two objects are identical)
+
+\item $d(A, B) = d(B, A)$ (distance must be symmetric: A to B is the same distance as from B to A)
+
+\item $d(A,C) \leq d(A,B)+d(B,C)$ (the measure must satisfy the triangle inequality)
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Euclidian Distance between two vectors}
+Euclidian distance is defined as
+$$d^{Euclidian}(A,B)  = \sqrt{\sum_{j=1}^p (y_{Aj} - y_{Bj})^2}$$
+where $p$ is the set of distinct words (the number of columns in our document-term matrix).
+
+Another common notation is
+
+$$\lVert \mathbf{y_A - y_B} \rVert$$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+<<euclidiandist, size="tiny", include=TRUE, eval=TRUE, echo=FALSE, include=FALSE, fig.keep='all'>>=
+plot(cbind(c(0, 5,10,7.5),c(0,15,3,22.5)), xlab="x", ylab="y")
+lines(cbind(c(0, 5,10,0),c(0,15,3,0)), col="blue")
+dist(cbind(c(5,10),c(15,3)), method = "euclidean")
+lines(cbind(c(5,10,7.5,5),c(15,3,22.5,15)), col="red")
+
+plot(rbind(rbind(c(0,0),c(1,0),c(0,1)),cbind(c(0, 5,10,7.5),c(0,15,3,22.5))/as.matrix(dist(cbind(c(0, 5,10,7.5),c(0,15,3,22.5))))[,1]), xlab="x", ylab="y")
+lines(rbind(cbind(0,0),cbind(c(0, 5,10,7.5),c(0,15,3,22.5))/as.matrix(dist(cbind(c(0, 5,10,7.5),c(0,15,3,22.5))))[,1])[c(1,3,1,4),], col="blue")
+@
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Euclidian Distance between two vectors}
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/knitr-euclidiandist-1.pdf}
+\includegraphics[scale=0.35]<2>{figures/knitr-euclidiandist-2.pdf}
+\includegraphics[scale=0.35]<3>{figures/knitr-euclidiandist-3.pdf}
+\end{center}
+\begin{itemize}
+\item  Euclidian distance $\lVert \mathbf{y_A  - y_B} \rVert = 13 $ 
+%dist(cbind(c(5,10),c(15,3)), method = "euclidean")
+\item Transformed $\lVert \mathbf{1.5 y_A - y_B} \rVert  = 19.6596 $ 
+%dist(cbind(c(7.5,10),c(22.5,3)), method = "euclidean")
+\item[] $\Rightarrow$ What does that imply for textual vectors?
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Issue with Euclidian Distance}
+
+\begin{itemize}
+
+\item Textual data may consist of documents that are \emph{very similar} in their usage of vocabular, but could have different length.
+
+\item In the extreme case, the Euclidian distance between two identical documents where one document just repeates all words would be large.
+
+\item Euclidian distance does not measure degree of \emph{linear dependence}. 
+
+\item So $d(A,2B)$ will be much larger than $d(A,B)$, even though the angle between the vectors stay the same.
+
+\item Similarly, $d(2A,2B)$ will have same angle, but their Euclidian distance will be twice as long as distance $d(A,B)$
+
+\item A large Euclidian distance could be due to documents having different length, not because they are using different vocabulary.
+
+\item So what can be done? Lets normalize the length of the vector to 1.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity: Measuring Angle between two unit lenght vectors}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/knitr-euclidiandist-5.pdf}
+\end{center}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity: Measuring Angle between two unit length vectors}
+
+\begin{itemize}
+
+\item What is the length of a vector $A$ and $B$? its simply the Euclidian distance from origin, i.e. $\lVert \mathbf{y_A} \rVert$,$\lVert \mathbf{y_B} \rVert$ 
+
+\item So the vectors $\mathbf{y'_A}=\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\mathbf{y'_B}=\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$ both have length 1.
+
+\item What is the angle between the vectors $\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$?
+
+$$\cos{(\mathbf{y_A,y_B})} ={\mathbf {y_A} \cdot \mathbf {y_B}  \over \|\mathbf {y_A} \|\|\mathbf {y_B} \|}={\frac {\sum \limits _{i=1}^{n}{y_{iA}y_{iB}}}{{\sqrt {\sum \limits _{i=1}^{n}{y_{iA}^{2}}}}{\sqrt {\sum \limits _{i=1}^{n}{y_{iB}^{2}}}}}}$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity: Relationship to Euclidian Distance}
+
+$$\|\mathbf{\tilde{y}_A-\tilde{y}_B}\|^{2}=(\mathbf{\tilde{y}_A-\tilde{y}_B})^{'}(\mathbf{\tilde{y}_A-\tilde{y}_B})=\|\mathbf{\tilde{y}_A}\|^{2}+\|\mathbf{\tilde{y}_B}\|^{2}-2\mathbf{\tilde{y}_A}^{'}\mathbf{\tilde{y}_B}$$
+
+Note that the normalization of the vectors $\mathbf{\tilde{y}_A,\tilde{y}_B}$ to length one imply that
+
+$$\|\mathbf{\tilde{y}_A-\tilde{y}_B}\|^{2}=(\mathbf{\tilde{y}_A-\tilde{y}_B})^{'}(\mathbf{\tilde{y}_A-\tilde{y}_B})= 2 (1-\mathbf{\tilde{y}_A}^{'}\mathbf{\tilde{y}_B}) = 2(1-\cos(\tilde{y}_A,\tilde{y}_B))$$
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity Examples}
+
+\begin{center}
+\includegraphics[scale=0.42]{figures/cosine-similarity-cases.png}
+\end{center}
+
+So Cosine similarity ranges from -1.0 to 1.0 for term frequencies; or 0 to 1.0 for normalized term frequencies (or tf-idf) - why?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine (dis) similarity}
+ 
+\begin{itemize}
+
+\item When introducing the dot product, we introduced the idea of angles between vectors as a measure of linear dependence.
+
+
+\item For two vectors $x$ and $x'$, the angle was given as
+ $$ \theta =\cos^{-1}(\frac{\langle x_i,x_{i'} \rangle}{||x_i||_2 ||x_{i'}||_2} )$$
+
+
+\item We can define a dissimilarity function as
+
+$$ 1 - \cos{(\frac{\langle x_i,x_{i'} \rangle}{||x_i||_2 ||x_{i'}||_2} )} $$
+
+\item We saw how this measure behaves with perfectly positively correlated vectors.
+
+\item Cosine similarity is widely used in text clustering because two documents with the same proportions of term occurrences but different lengths are often considered identical. 
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Binary Jaccard Dissimilarity}
+ 
+\begin{itemize}
+
+\item Jaccard Similarity is the simplest of the similarities and is nothing more than a combination of binary operations of set algebra. 
+
+\item To calculate the Jaccard Distance or similarity is treat our document as a set of tokens. 
+
+\item Formally: 
+
+$$ J(A,B) = {{|A \cap B|}\over{|A \cup B|}} = {{|A \cap B|}\over{|A| + |B| - |A \cap B|}}.$$
+
+\item For example, given two sets' binary indicator vectors  $ \mathbf{y}_A = (0, 1, 1, 0)^{\dagger}$ and  $ \mathbf{y}_B = (1, 1, 0,
+0)^{\dagger}$, the cardinality of their intersect is 1 and the cardinality of their union is 3, rendering their Jaccard coefficient 1/3.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/Intersection_of_sets_A_and_B.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Extended Jaccard Distance}
+ 
+$$J(\mathbf{y_A,y_B}) = \frac{\mathbf{{y}_A'{y}_B}}{  \|\mathbf{y_A}\|^{2}+\|\mathbf{y_B}\|^{2} -   \mathbf{y_A'y_B}  }$$
+
+The extended Jaccard coefficient allows elements of vectors $\mathbf{y}_A$ and  $ \mathbf{y}_B$ to be arbitrary positive real numbers. This coefficient captures a \emph{vector-length-sensitive measure of similarity}. \\
+
+However, it is scale invariant:
+
+$$J(\mathbf{2 y_A, 2 y_B}) = J(\mathbf{y_A,y_B})$$
+
+But not length invariant:
+
+$$J(\mathbf{2 y_A,  y_B}) \neq J(\mathbf{y_A,y_B})$$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sample Application: Is there a decline in legislative output?}
+ 
+\begin{center}
+
+\includegraphics[scale=0.5]{figures/enacted-laws.png}
+
+\end{center}
+ 
+Number of enacted bills across different congresses, starting from 1979 to 2016. There is a declining trend in the number of bills being passed, while the total bills considered stayed reasonably stable.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence or Productivity}
+ 
+\begin{itemize} 
+
+\item Most proposed bills do never make it into actual law. 
+
+\item It seems that over time, the number of bills that get passed has been going down.
+
+\item However, the actually passed bills may still contain a lot of information from bills that did not pass.
+
+\item Consider the following examples for the US:
+
+\begin{itemize}
+\item  H.R. 1060 (105th): Pharmacy Compounding Act
+
+\item S. 830 (105th): Food and Drug Administration Modernization Act of 1997 
+ \end{itemize}
+ 
+\end{itemize} 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]<1>{figures/food-drug-example1.png} 
+\includegraphics[scale=.35]<2>{figures/food-drug-example2.png} 
+\includegraphics[scale=.25]<3>{figures/fda-drug-example.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Can Cosine Similarity be used to identify other ``intellectual owners''?}
+
+\begin{itemize}
+
+\item The idea here is that bills that are enacted are combinations of bills that have been introduced by a range of politicians, the vast majority of which never got enacted or passed.
+
+\item Build two different corpora:
+
+\begin{enumerate}
+\item texts of all bills that were introduced in a congress
+\item texts of all bills that were enacted
+\end{enumerate}
+
+\item Perform cosine similarity analysis at the bill level, the ``section'' or ``paragraph'' level.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Introducing \code{govtrack.us} }
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/govtrackus-screenshot.png}
+\end{center}
+
+\code{govtrack.us} provides an \textbf{API} as well as \emph{bulk data downloads}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bulk downloading legislative text versions}
+
+\begin{itemize}
+
+\item You can browse the data structure here: \url{https://www.govtrack.us/data/}
+
+\item Bills go through multiple stages: IS - Introduced in Senate, IH - Introduced in House to being an Enrolled Bill (ENR)
+
+\item Bulk download is possible 
+
+\item E.g. using rsync on Mac/ *nix computers or cwrsync (\url{https://www.itefix.net/cwrsync} on windows)
+
+\item Alternatively could download using HTTP, but they dont like that.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bulk downloading legislative text versions}
+
+Downloading all bill versions of the 105th congress - roughly 13k documents. On a Mac/*nix machine just type in Terminal:
+
+\code{rsync -avz  --include='*.txt' --include='*/' --exclude='*'  govtrack.us::govtrackdata/congress/105/bills/hr/ /Users/...}
+\begin{center}
+\includegraphics[scale=0.3]{figures/rsync-download.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Plain Text Files}
+\begin{center}
+\includegraphics[scale=0.3]{figures/document-txt.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<legislativetextsload, size="tiny", include=TRUE, eval=TRUE, echo=FALSE, results='hide',tidy=TRUE,cache=TRUE>>=
+library(readtext)
+TEXT <- readtext(list.files(path = "../../Data/105", pattern = "*.txt",  full.names = TRUE, recursive = TRUE))
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building a corpus}
+
+<<legislativetexts, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE, warning=FALSE>>=
+#devtools::install_github("kbenoit/readtext") 
+#library(readtext)
+#TEXT <- readtext(list.files(path = "../../Data/105", pattern = "*.txt",  full.names = TRUE, recursive = TRUE))
+CORP <- corpus(TEXT, docnames=list.files(path =  "../../Data/105", pattern = "*.txt",  full.nheadames = FALSE, recursive = TRUE))
+docvars(CORP)[["id"]] <- docnames(CORP)
+docvars(CORP)[["bill"]] <- gsub("([a-z]+)/([a-z]+[0-9]+)/text-versions/([a-z]+)/document.txt$","\\2",docnames(CORP))
+docvars(CORP)[["version"]] <- gsub("([a-z]+)/([a-z]+[0-9]+)/text-versions/([a-z]+)/document.txt$","\\3",docnames(CORP))
+docvars(CORP)[["doctype"]] <- gsub("([a-z]+)/([a-z]+[0-9]+)/text-versions/([a-z]+)/document.txt$","\\1",docnames(CORP))
+docvars(CORP)[["congress"]] <- 106
+#preserve introduced and engrossed
+CORP<-subset(CORP, version %in% c("ih","enr"))
+CORP.dfm<-dfm(CORP, ignoredFeatures = c("will", stopwords("english")), stem = TRUE)
+
+#cosine similarity computation
+SIMS<-similarity(CORP.dfm, "hr/hr1060/text-versions/ih/document.txt", margin="documents", method="cosine")[[1]]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Distribution of Cosine Similarity Across Whole Corpus}
+<<legislativetexts2, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE,out.width='2.5in'>>=
+plot(density(SIMS), main="Cosine Dissimilarity")+abline(v=SIMS[["s/s830/text-versions/enr/document.txt"]], col="red")
+
+SIMS[["s/s830/text-versions/enr/document.txt"]]
+##many docs with similar score
+sum(SIMS>=SIMS[["s/s830/text-versions/enr/document.txt"]])
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Distribution of Cosine Similarity Across Corpus of Enacted Bills}
+<<legislativetexts3, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE,out.width='2.5in'>>=
+plot(density(SIMS[grep("/enr/",names(SIMS))]), main="Cosine Dissimilarity")+abline(v=SIMS[["s/s830/text-versions/enr/document.txt"]], col="red")
+
+##many docs with similar score
+sum(SIMS[grep("/enr/",names(SIMS))]>=SIMS[["s/s830/text-versions/enr/document.txt"]])
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Refinement?}
+
+\begin{itemize}
+
+\item We see that cosine similarity is able to detect significant overlap between the much smaller docment HR1060 and the much longer document S830.
+
+\item Can refine this a bit further by chunking text into paragraphs and remove very short section titles
+<<legislativetexts4, size="tiny", include=TRUE, eval=FALSE, echo=TRUE, tidy=TRUE,cache=FALSE,out.width='2.5in'>>=
+CORP.PARA<-changeunits(CORP, to="paragraphs")
+@
+
+\item Alternative segmenting using the \code{segment} function
+
+\item Reducing the unit of analysis to capture individual bill sections may improve performance but can blow up dimensionality, so may be best to proceed iteratively. 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Extended Jaccard Similarity}
+<<legislativetexts5, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=FALSE,out.width='2.5in'>>=
+SIMS<-similarity(CORP.dfm, "hr/hr1060/text-versions/ih/document.txt", margin="documents", method="eJaccard")[[1]]
+
+plot(density(SIMS), main="Jaccard Dissimilarity")+abline(v=SIMS[["s/s830/text-versions/enr/document.txt"]], col="red")
+
+##many docs with similar score
+sum(SIMS>=SIMS[["s/s830/text-versions/enr/document.txt"]])
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Lots of other distance metrics}
+<<distancefunctions, size="tiny", include=TRUE, eval=TRUE, echo=TRUE, tidy=TRUE,cache=TRUE,out.width='2.5in'>>=
+library(proxy)
+
+lapply(pr_DB$get_entries(), function(x) x$names)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}
+
