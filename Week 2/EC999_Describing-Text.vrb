@@ -1,0 +1,19 @@
+\frametitle{Guess who speaks more informally?}
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(formality2016)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-debates2016p5-1}
+
+}
+
+
+
+\end{knitrout}
+
+

@@ -1,0 +1,53 @@
+\frametitle{Combine this with POS Tag patterns}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{WIDE} \hlkwb{<-} \hlkwd{join}\hlstd{(WIDE, DF[,} \hlkwd{list}\hlstd{(token, TAGGED)])[}\hlkwd{grep}\hlstd{(}\hlstr{"NN.? NN.?|JJ.? NN.?"}\hlstd{, TAGGED)]}
+\hlstd{WIDE[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{][}\hlkwd{order}\hlstd{(chi2,} \hlkwc{decreasing} \hlstd{=} \hlnum{TRUE}\hlstd{)]}
+\end{alltt}
+\begin{verbatim}
+##                token bushcount obamacount totalcount totalobama totalbush
+##  1:  Social Security        45         11         56       2225      1776
+##  2:    ground United        33          5         38       2225      1776
+##  3:   Saddam Hussein        22          0         22       2225      1776
+##  4:       tax relief        21          2         23       2225      1776
+##  5:     clean energy         2         28         30       2225      1776
+##  6: Members Congress        23          5         28       2225      1776
+##  7:      Middle East        26          7         33       2225      1776
+##  8:  fellow citizens        20          4         24       2225      1776
+##  9:        men women        41         21         62       2225      1776
+## 10:       first time         2         20         22       2225      1776
+## 11:        hard work         3         15         18       2225      1776
+## 12:   States America         7         23         30       2225      1776
+## 13:    United States        44         37         81       2225      1776
+## 14:      high school         7         19         26       2225      1776
+## 15:        last year         7         17         24       2225      1776
+## 16: health insurance        16         12         28       2225      1776
+## 17:  American people        26         44         70       2225      1776
+## 18: small businesses        10         14         24       2225      1776
+## 19:      health care        34         44         78       2225      1776
+## 20:   Vice President        10         12         22       2225      1776
+##            chi2   TAGGED
+##  1: 29.76542402  NNP NNP
+##  2: 28.01000046   NN NNP
+##  3: 27.71432764  NNP NNP
+##  4: 20.62658903    NN NN
+##  5: 17.42404175    JJ NN
+##  6: 16.28159834  NNS NNP
+##  7: 15.95019450  NNP NNP
+##  8: 14.83470943   NN NNS
+##  9: 12.05764904  NNS NNS
+## 10: 11.16558446    JJ NN
+## 11:  5.62926109    JJ NN
+## 12:  5.42860232  NNP NNP
+## 13:  3.30379030 NNP NNPS
+## 14:  3.23405308    JJ NN
+## 15:  2.26644527    JJ NN
+## 16:  1.85806910    NN NN
+## 17:  1.51540879   JJ NNS
+## 18:  0.07248363   JJ NNS
+## 19:  0.02058143    NN NN
+## 20:  0.01017665  NNP NNP
+\end{verbatim}
+\end{kframe}
+\end{knitrout}

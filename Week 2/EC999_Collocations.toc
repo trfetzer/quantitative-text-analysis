@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Heuristic Approaches}{5}{0}{1}
+\beamer@sectionintoc {2}{Statistical Tests}{11}{0}{2}
+\beamer@sectionintoc {3}{Application: $\chi ^2$ test for corpus similarity}{28}{0}{3}

@@ -1,0 +1,674 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Describing Text} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Descriptive Statistics for Text data}
+Before performing analysis, you want to get to know your data - this may inform you as to what are the necessary steps for dimensionality reduction. Some simple stats may be...
+\begin{Description}
+\item[Word (relative) frequency]
+
+\item[Theme (relative) frequency]
+
+\item[Length] in characters, words, lines, sentences, paragraphs, pages, sections, chapters, etc.
+
+\item[Vocabulary diversity] (At its simplest) involves measuring a type-to-token ratio (TTR) where unique words are types and the total words are tokens.
+
+\item[Readability]  Use a combination of syllables and sentence length to indicate ``readability'' in terms of complexity
+
+\item[Formality] Measures relationship of different parts of speech.
+
+\end{Description}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Vocabulary diversity}
+ (At its simplest) involves measuring a type-to-token ratio (TTR) where unique words are
+types and the total words are tokens. \bigskip
+
+We have already talked about this in the section on Text normalization (pre-processing.)\bigskip
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Type-Token Ratio in Congressional speaches}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{dat}
+\end{alltt}
+\begin{verbatim}
+##        Text Types Tokens Sentences   speaker_name speaker_party
+## text1 text1  4658  34151      1370     Mike Pence             R
+## text2 text2 12509 440340     18343 Bernie Sanders             I
+## text3 text3 11849 350175     18239      Rand Paul             R
+## text4 text4  8212 182977      8843 Lindsey Graham             R
+## text5 text5 10788 270801     12671    Marco Rubio             R
+## text6 text6  5003  41051      1613       Jim Webb             D
+## text7 text7 12862 304637     14101       Ted Cruz             R
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+$\Rightarrow$ this highlights that there is a negative correlation between the TTR and the total corpus length as measured by the number of sentences. We have seen this previously as \emph{Heap's Law}.  
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Alternative Lexical Diversity Measures}
+\begin{Description}
+
+\item[TTR] $\frac{\text{total types}}{\text{total tokens}}$
+
+\item[Guiraud] $\frac{\text{total types}}{\sqrt{\text{total tokens}}}$
+
+\item[D] iversity: Randomly sample a fixed number of tokens and count number of types.
+
+\item[MTLD] the mean length of sequential word strings in a text that maintain a given TTR value (McCarthy and Jarvis, 2010) ??? fixes the TTR at 0.72 and counts the length of the text required to achieve it
+
+\end{Description}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Complexity and Readability}
+
+\begin{itemize}
+
+\item Use of language is endogenous, and electoral incentives may affect the \emph{communication strategies} chosen by elected officials.
+
+\item Readability scores us a combination of syllables and sentence length to indicate ``complexity`` of text
+
+\item  Common in educational research, but could also be used to describe textual complexity and increasingly some political science applications.
+
+\item No natural scale, so most are calibrated in terms of some interpretable metric
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/readability.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading Ease in Congress By Party}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.29]{figures/reading-ease.png}
+\end{center}
+\end{figure}
+
+$${\displaystyle 206.835-1.015\left({\frac {\text{total words}}{\text{total sentences}}}\right)-84.6\left({\frac {\text{total syllables}}{\text{total words}}}\right)}$$
+
+$\Rightarrow$ corpus data obtained via the Capitolwords API.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading Age in Congress By Party}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.56]{figures/reading-age.pdf}
+\end{center}
+\end{figure}
+
+$$\left({\frac  {{\mbox{total words}}}{{\mbox{total sentences}}}}\right)+11.8\left({\frac  {{\mbox{total syllables}}}{{\mbox{total words}}}}\right)-15.59$$
+
+$\Rightarrow$ corpus data obtained via the Capitolwords API.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gunning fog index}
+
+\begin{itemize}
+\item Measures the readability in terms of the years of formal education required for a person to easily understand the text on first reading
+
+\item  Usually taken on a sample of around 100 words, not omitting any sentences or words
+  
+\item Computed as 
+
+$$ 0.4 [ ( \frac{\text{total words}}{{\text{total sentences}}} )] + 100 \frac{\text{complex words}}{{\text{total words}}}$$
+
+\item Complex words are defined as those having three or more syllables, not including proper nouns (for example, Ljubljana), familiar jargon or compound words, or counting common suffixes such as -es, -ed, or -ing as a syllable.
+
+\item in $R$ all readability features are embedded in the \code{quanteda} function \code{readability()}.
+  
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example Readability computation}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{class}\hlstd{(CORPUS.COMBINED)}
+\end{alltt}
+\begin{verbatim}
+## [1] "corpus" "list"
+\end{verbatim}
+\begin{alltt}
+\hlcom{# can compute various readability indices on a corpus index in quanteda package}
+\hlstd{TEMP} \hlkwb{<-} \hlkwd{readability}\hlstd{(CORPUS.COMBINED,} \hlkwc{measure} \hlstd{=} \hlstr{"Flesch.Kincaid"}\hlstd{)}
+\hlstd{TEMP}
+\end{alltt}
+\begin{verbatim}
+## text1 text2 text3 text4 text5 text6 text7 
+## 11.50 10.57  8.32  9.02  9.32 12.21 10.03
+\end{verbatim}
+\begin{alltt}
+\hlcom{# can add this as piece of meta information}
+\hlstd{CORPUS.COMBINED[[}\hlstr{"readability"}\hlstd{]]} \hlkwb{<-} \hlstd{TEMP}
+
+\hlkwd{summary}\hlstd{(CORPUS.COMBINED)}
+\end{alltt}
+\begin{verbatim}
+## Corpus consisting of 7 documents.
+## 
+##   Text Types Tokens Sentences   speaker_name speaker_party readability
+##  text1  4658  34151      1370     Mike Pence             R       11.50
+##  text2 12509 440340     18343 Bernie Sanders             I       10.57
+##  text3 11849 350175     18239      Rand Paul             R        8.32
+##  text4  8212 182977      8843 Lindsey Graham             R        9.02
+##  text5 10788 270801     12671    Marco Rubio             R        9.32
+##  text6  5003  41051      1613       Jim Webb             D       12.21
+##  text7 12862 304637     14101       Ted Cruz             R       10.03
+## 
+## Source:  /Users/thiemo/Dropbox/Teaching/Quantitative Text Analysis/Week 2d/* on x86_64 by thiemo
+## Created: Mon Nov 21 16:25:05 2016
+## Notes:
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality of Language}
+
+\begin{quote}
+This is to inform you that
+your book has been rejected
+by our publishing company as
+it was not up to the required standard. In case you would
+like us to reconsider it, we
+would suggest that you go over
+it and make some necessary
+changes.
+\end{quote}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality of Language}
+
+\begin{quote}
+You know that book I wrote?
+Well, the publishing company
+rejected it. They thought it
+was awful. But hey, I did the
+best I could, and I think it
+was great. I???m not gonna redo
+it the way they said I should.
+\end{quote}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Features of (In)formal language}
+
+\begin{itemize}
+
+\item A formal style is characterized by detachment, accuracy, rigidity and heaviness
+\item Nouns, adjectives, articles and prepositions are more frequent in formal language
+
+\item an informal style is more flexible, direct, implicit, and involved, but less informative
+\item Pronouns, adverbs, verbs and interjections are more frequent in informal styles.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality Score}
+
+\includegraphics[scale=0.5]{figures/formality-example-type.png}
+
+Heylighen, F., \& Dewaele, J. (1999). Formality of Language : definition , measurement and behavioral determinants.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality Score}
+Language is considered more formal when it contains much of the information directly in the text, whereas, contextual language relies on shared experiences to more efficiently dialogue with others.\smallskip
+
+A candidate measure is the Heylighen \& Dewaele's (1999) F-measure. \smallskip
+
+$$F = 50(\frac{nf - nc}{N}+1)$$
+
+Where:
+
+\begin{itemize}
+
+\item $f =  \text{\{noun, adjective, preposition, article\}}$
+
+\item $c = \text{\{pronoun, verb, adverb, interjection\}}$
+
+\item $N = nf + nc$
+
+\end{itemize}
+
+This yields an F-measure between 0 and 100\%, with completely contextualized language on the zero end and completely formal language on the 100 end.
+
+As is evident, this requires known \emph{Parts of Speech}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Computing Formality Scores in R}
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# installing the formality package which is in developmental state}
+\hlkwa{if} \hlstd{(}\hlopt{!}\hlkwd{require}\hlstd{(}\hlstr{"pacman"}\hlstd{))} \hlkwd{install.packages}\hlstd{(}\hlstr{"pacman"}\hlstd{)}
+\hlstd{pacman}\hlopt{::}\hlkwd{p_load_gh}\hlstd{(}\hlkwd{c}\hlstd{(}\hlstr{"trinker/formality"}\hlstd{))}
+\hlkwd{library}\hlstd{(formality)}
+\hlkwd{data}\hlstd{(presidential_debates_2012)}
+\hlstd{debateformality} \hlkwb{<-} \hlkwd{formality}\hlstd{(presidential_debates_2012}\hlopt{$}\hlstd{dialogue, presidential_debates_2012}\hlopt{$}\hlstd{person)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some plotting capability}
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(debateformality)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-formalityplot-1} 
+
+}
+
+
+
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Presidential Debates Online}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+\includegraphics[scale=0.3]{figures/debates-presidency.png}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{The 2016 Debates}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{load}\hlstd{(}\hlstr{"../../Data/PRESIDENTIAL-DEBATES.rdata"}\hlstd{)}
+
+\hlstd{debates_2016_final[, .N,} \hlkwc{by} \hlstd{= debate][}\hlkwd{order}\hlstd{(N,} \hlkwc{decreasing} \hlstd{=} \hlnum{TRUE}\hlstd{)][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##                                                                                             debate
+##  1:                                        Republican Candidates Debate in Simi Valley, California
+##  2:                                              Republican Candidates Debate in Las Vegas, Nevada
+##  3:                                      Republican Candidates Debate in Manchester, New Hampshire
+##  4:                                                 Republican Candidates Debate in Houston, Texas
+##  5:                                              Republican Candidates Debate in Detroit, Michigan
+##  6:                                               Republican Candidates Debate in Des Moines, Iowa
+##  7: Democratic Presidential Candidates Debate at Saint Anselm College in Manchester, New Hampshire
+##  8:                         Vice Presidential Debate at Longwood University in Farmville, Virginia
+##  9:         Democratic Presidential Candidates Debate at The Citadel in Charleston, South Carolina
+## 10:                               Presidential Debate at Hofstra University in Hempstead, New York
+##       N
+##  1: 968
+##  2: 756
+##  3: 585
+##  4: 535
+##  5: 531
+##  6: 516
+##  7: 509
+##  8: 500
+##  9: 471
+## 10: 470
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cleaning HTML fragments}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{cleanfragment} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{htmlString}\hlstd{) \{}
+
+    \hlstd{htmlString} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"<.*?>"}\hlstd{,} \hlstr{""}\hlstd{, htmlString)}
+    \hlstd{htmlString} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"\textbackslash{}\textbackslash{}[.*]"}\hlstd{,} \hlstr{""}\hlstd{, htmlString)}
+    \hlstd{htmlString} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"&.*;"}\hlstd{,} \hlstr{""}\hlstd{, htmlString)}
+
+    \hlkwd{return}\hlstd{(htmlString)}
+\hlstd{\}}
+
+\hlstd{debates_2016_final}\hlopt{$}\hlstd{fragment} \hlkwb{<-} \hlkwd{cleanfragment}\hlstd{(debates_2016_final}\hlopt{$}\hlstd{fragment)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cleaning HTML fragments}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(formality)}
+
+\hlkwd{head}\hlstd{(debates_2016_final[speaker} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"TRUMP"}\hlstd{,} \hlstr{"CLINTON"}\hlstd{)]}\hlopt{$}\hlstd{fragment)}
+\end{alltt}
+\begin{verbatim}
+## [1] "Thank you very much, Chris. And thanks to UNLV for hosting us.You know, I think when we talk about the Supreme Court, it really raises the central issue in this election, namely, what kind of country are we going to be? What kind of opportunities will we provide for our citizens? What kind of rights will Americans have?And I feel strongly that the Supreme Court needs to stand on the side of the American people, not on the side of the powerful corporations and the wealthy. For me, that means that we need a Supreme Court that will stand up on behalf of women's rights, on behalf of the rights of the LGBT community, that will stand up and say no to Citizens United, a decision that has undermined the election system in our country because of the way it permits dark, unaccountable money to come into our electoral system.I have major disagreements with my opponent about these issues and others that will be before the Supreme Court. But I feel that at this point in our country's history, it is important that we not reverse marriage equality, that we not reverse Roe v. Wade, that we stand up against Citizens United, we stand up for the rights of people in the workplace, that we stand up and basically say"                                                                                                                   
+## [2] "Well, first of all, it's great to be with you, and thank you, everybody. The Supreme Court"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+## [3] "Well, first of all, I support the Second Amendment. I lived in Arkansas for 18 wonderful years. I represented upstate New York. I understand and respect the tradition of gun ownership. It goes back to the founding of our country.But I also believe that there can be and must be reasonable regulation. Because I support the Second Amendment doesn't mean that I want people who shouldn't have guns to be able to threaten you, kill you or members of your family.And so when I think about what we need to do, we have 33,000 people a year who die from guns. I think we need comprehensive background checks, need to close the online loophole, close the gun show loophole. There's other matters that I think are sensible that are the kind of reforms that would make a difference that are not in any way conflicting with the Second Amendment.You mentioned the Heller decision. And what I was saying that you referenced, Chris, was that I disagreed with the way the court applied the Second Amendment in that case, because what the District of Columbia was trying to do was to protect toddlers from guns and so they wanted people with guns to safely store them. And the court didn't accept that reasonable regulation, but they've accepted many others. So I see no conflict between saving people's lives and defending the Second Amendment."
+## [4] "Well, the D.C. vs. Heller decision was very stronglyand she was extremely angry about it. I watched. I mean, she was very, very angry when upheld. And Justice Scalia was so involved. And it was a well-crafted decision. But Hillary was extremely upset, extremely angry. And people that believe in the Second Amendment and believe in it very strongly were very upset with what she had to say."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+## [5] "Well, I was upset because, unfortunately, dozens of toddlers injure themselves, even kill people with guns, because, unfortunately, not everyone who has loaded guns in their homes takes appropriate precautions.But there's no doubt that I respect the Second Amendment, that I also believe there's an individual right to bear arms. That is not in conflict with sensible, commonsense regulation.And, you know, look, I understand that Donald's been strongly supported by the NRA. The gun lobby's on his side. They're running millions of dollars of ads against me. And I regret that, because what I would like to see is for people to come together and say"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+## [6] "Well, let me just tell you before we go any further. In Chicago, which has the toughest gun laws in the United States, probably you could say by far, they have more gun violence than any other city. So we have the toughest laws, and you have tremendous gun violence.I am a very strong supporter of the Second Amendment. And I amthis is the best way to help the Second Amendment. We are going to appoint justices that will feel very strongly about the Second Amendment, that will not do damage to the Second Amendment."
+\end{verbatim}
+\begin{alltt}
+\hlstd{FINAL} \hlkwb{<-} \hlstd{debates_2016_final[pid} \hlopt{==} \hlnum{119039}\hlstd{][speaker} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"TRUMP"}\hlstd{,} \hlstr{"CLINTON"}\hlstd{)]}
+
+\hlstd{formality2016} \hlkwb{<-} \hlkwd{formality}\hlstd{(FINAL}\hlopt{$}\hlstd{fragment, FINAL}\hlopt{$}\hlstd{speaker)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Guess who speaks more informally?}
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{formality2016}
+\end{alltt}
+\begin{verbatim}
+##    speaker noun preposition adjective article verb pronoun adverb interjection formal
+## 1: CLINTON 1376        1006       577     411 1568     876    444            8   3370
+## 2:   TRUMP  714         516       385     222 1066     639    342            7   1837
+##    contextual    n    F
+## 1:       2896 6266 53.8
+## 2:       2054 3891 47.2
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Guess who speaks more informally?}
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(formality2016)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-debates2016p5-1} 
+
+}
+
+
+
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+

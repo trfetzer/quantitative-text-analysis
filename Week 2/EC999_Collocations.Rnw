@@ -1,0 +1,683 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Collocations} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+<<setup, include=FALSE, cache=TRUE>>=
+library(knitr)
+
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=120)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/Quantitative text analysis/Final/Week 2")
+options(stringsAsFactors = FALSE)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+library(data.table)
+library(calibrate)
+library(plyr)
+library(reshape2)
+library(plyr)
+library(stringr)
+@
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Collocations}
+
+\begin{quote}\emph{Collocations} of a given word are statements of the habitual or customary places of that word.\end{quote}
+
+\begin{itemize}
+\item Noun phrases: ``strong tea'' and ``weapons of mass destruction''
+
+\item Phrasal verbs: like ``to make up'', 
+
+\item Stock phrases: ``the rich and powerful''
+\end{itemize}
+
+Collocations very useful for \emph{terminology extraction}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Measuring Political Slant}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.5]<1>{figures/genzkow-democrat.png}
+\includegraphics[scale=.5]<2>{figures/genzkow-republican.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+Identify n-grams (\emph{collocations}) and extract those that are distinctively more likely to appear in the corpus of republican versus democratic congressional speeches.
+
+Gentzkow, M., \& Shapiro, J. M. (2010). What Drives Media Slant? Evidence From U.S. Daily Newspapers. Econometrica, 78(1), 35???71.  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Heuristic Approaches}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A heuristic way of identifying collocations}
+A simple heuristic approach to identify collocations is simply counting raw occurences of word sequences, e.g. $C(w_1, w_2)$
+<<sotucounts, size="tiny", tidy=TRUE,message=F, warning=F>>=
+library(quanteda)
+library(data.table)
+data(SOTUCorpus, package = "quantedaData")
+TOKENS<-unlist(tokenize(corpus_subset(SOTUCorpus, Date>'1993-01-01'), ngrams=2, removeNumbers=TRUE, removePunct=TRUE, removeSymbols=TRUE, concatenator=" "))
+DF<-data.table("token"=TOKENS, "president"=names(TOKENS))
+DF[, .N, by=token][order(N, decreasing=TRUE)][1:15]
+@
+
+selecting the most frequently occurring bigrams is not very interesting...
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A refinement to heuristic}
+A simple method to make these more informative is to remove \emph{stopwords}. Quanteda has a nice feature facilitating this through the \code{removeFeatures()} function.
+
+<<sotucountsrefine1, size="tiny",cache=TRUE, tidy=TRUE,message=F, warning=F>>=
+TOKENS<-removeFeatures(tokenize(corpus_subset(SOTUCorpus, Date>'1994-01-01'), removePunct = TRUE),stopwords("english"))
+TOKENS<-unlist(tokens_ngrams(TOKENS, n=2, concatenator=" "))
+DF<-data.table("token"=TOKENS, "president"=names(TOKENS))
+DF<-DF[, .N, by=token][order(N, decreasing=TRUE)]
+DF$N<-as.numeric(DF$N)
+DF[1:10]
+#DF<-DF[1:5000]
+@
+
+the resulting bigrams are much more intuitive. Though this still presents no formal statistical method.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another refinement to heuristic }
+A further refinement due to Part of speech (POS) tag patterns for collocation filtering. We will talk more about POS, but here is just an illustration 
+<<sotucountsrefine2, size="tiny",chache=TRUE,tidy=TRUE,message=F, warning=F>>=
+#install.packages("pacman")
+library(pacman)
+#loads packages in development
+pacman::p_load_gh(c(
+    "trinker/termco", 
+    "trinker/tagger",
+    "trinker/textshape"
+))
+#THIS TAKES A WHILE
+TAGGED<-unlist(lapply(lapply(tag_pos(DF$token), names), function(x) paste(x, collapse=" ")))
+DF<-cbind(DF,TAGGED)
+head(DF)
+@
+We can now filter out individual sequences of words that are common.
+<<sotucountsrefine3, size="tiny",chache=TRUE,echo=FALSE, tidy=TRUE,message=F, warning=F>>=
+DF[,total := sum(N)]
+DF[, w1 := str_extract(token,"^[A-z]*")]
+DF[, w2 := str_extract(token,"[A-z]*$")]
+DF<-join(DF, DF[, list(c_1 = sum(N)), by=w1])
+DF<-join(DF, DF[, list(c_2 = sum(N)), by=w2])
+cbind(head(DF[grep("^NN NN$",TAGGED)][,list(token,TAGGED)]),head(DF[grep("^JJ NN$",TAGGED)][,list(token,TAGGED)]))
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Word location distances}
+An alternative method is to look at the distribution of distances between words in a corpus of texts and pick candidate word pairs as those that are ``nearby''.
+
+\includegraphics[scale=0.4]{figures/strong-opposition-example.png}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Summary Heuristic Approaches}
+Can be surprisingly successful in identifying collocations. In this case, we saw that
+
+\begin{enumerate}
+
+\item A simple quantitative technique - a mere frequency filter 
+
+\item Joint with the importance of parts of speech
+
+\end{enumerate}
+
+is able to produce quite some nice results.
+
+We next turn to more formal statistical methods to identify and differentiate collocations.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Statistical Tests}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formal Statistical Tests}
+We now turn to formal statistical tests to identify collocations. The tests are all a variant of testing the hypothesis that the sequence of words is drawn at random, formally this hypothesis can be stated as
+
+$$H_0: \quad P(w_1, w_2) = P(w_1) P(w_2)$$
+
+We present three approaches
+
+\begin{itemize}
+
+\item Simple T-tests
+
+\item $\chi^2$ tests (also used to evaluate similarity of corpora)
+
+\item Likelihood ratio tests
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{T-Tests}
+For a word pair $w_1 w_2$, the hypothesis we want to test is whether:
+$$H_0: P(w_1 w_2) = P(w_1) P(w_2)$$
+We can estimate the three parameters by looking at our data and estimating the number of times a word appears. For example for the word pair \code{health care}.
+<<ttestexample, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+DF[token=="health care"]$N
+
+sum(DF[grep("^\\bhealth\\b",token)]$N)
+
+sum(DF[grep("\\bcare\\b$",token)]$N)
+
+sum(DF$N)
+@
+<<ttestexampleback, echo=FALSE, include=FALSE, eval=TRUE, chache=TRUE, tidy=TRUE>>=
+mu=(sum(DF[grep("\\bcare\\b$",token)]$N)*sum(DF[grep("^\\bhealth\\b",token)]$N))/(sum(DF$N)^2)
+@
+Under the Null, this is a \emph{Bernoulli trial} whose probability of success we can estimate as:
+\begin{eqnarray*}
+P(\text{health care}) &=& P(\text{health}) \times P(\text{care})\\
+&=& \frac{\Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)}}{\Sexpr{sum(DF$N)}} \times \frac{\Sexpr{sum(DF[grep("\\bcare\\b$",token)]$N)}}{\Sexpr{sum(DF$N)}} = \Sexpr{mu}
+\end{eqnarray*}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{T-Tests}
+<<ttestexample2, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+DF[token=="health care"]$N
+sum(DF$N)
+xbar = DF[token=="health care"]$N/sum(DF$N)
+@
+We estimate 
+$$P(\text{health care}) =\frac{\Sexpr{DF[token=="health care"]$N}}{\Sexpr{sum(DF$N)}}$$
+
+Under $H_0$, T-statistic follows approximately a t-distribution with $N-1$ degrees of freedom.
+$$T = \frac{\bar{x} - \mu}{\sqrt{\frac{s^2}{N}}}$$
+with $\mu = $ and variance $\sigma^2 = p(1-p)$ (Variance of Bernoulli distribution).
+
+So compute
+$$T = \frac{\Sexpr{xbar} - \Sexpr{mu}}{\sqrt{\frac{\Sexpr{mu*(1-mu)}}{\Sexpr{sum(DF$N)}}}} = \Sexpr{(xbar -mu)/((mu*(1-mu)/sum(DF$N))^0.5)}$$
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{T-Tests for whole data frame}
+<<ttestexample3, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+DF[, ttest := (N/total - c_1/total * c_2/total)/(((c_1/total *c_2/total*(1-c_1/total * c_2/total))/total )^0.5)]
+DF[order(ttest, decreasing=TRUE)][c_1+c_2>20][1:20]
+@
+We condition on words occuring at least 20 times.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{T-Tests for whole data frame}
+<<ttestexample4, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F,out.width='3in'>>=
+plot(density(DF$ttest), main="Kernel Density of t-stats")
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pearson's $\chi^2$ tests}
+It turns out that t-tests are extremely optimistic (lots of false positives), but also that the underlying assumption of approximate normality is often invalid due to low counts. The $\chi^2$ test we discuss next is more useful and allows for meaningfull cross corpora analysis.
+The $\chi^2$ test
+
+\begin{itemize}
+
+\item Compares the observed frequencies in the table with the frequencies expected for independence.
+
+\item If the difference between observed and expected frequencies is large, then we can reject the null hypothesis of independence.
+\end{itemize}
+We can think of as word counts for a specific bigram to be arranged in tabular format
+\begin{center}
+  \begin{tabular}{ l | c | r }
+    \hline
+ & $w_1 = \text{health}$ &   $w_1 \neq \text{health}$ \\
+$w_2 = \text{care}$ &  \Sexpr{DF[token=="health care"]$N} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)][-grep("^health",token)]$N)} \\
+$w_2 \neq \text{care}$ &  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)][-grep("care$",token)]$N)} &  \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)} \\
+    \hline
+  \end{tabular}
+\end{center}  
+Note that $\sum_{j} C(w_1=\text{health},w_j) = C(w_1=\text{health})$.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pearson's $\chi^2$ tests}
+
+We can think of as word counts for a specific bigram to be arranged in tabular format
+\begin{center}
+  \begin{tabular}{ l | c | r }
+    \hline
+ & $w_1 = \text{health}$ &   $w_1 \neq \text{health}$ \\
+$w_2 = \text{care}$ &  \Sexpr{DF[token=="health care"]$N} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)][-grep("^health",token)]$N)} \\
+$w_2 \neq \text{care}$ &  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)][-grep("care$",token)]$N)} &  \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)} \\
+    \hline
+  \end{tabular}
+\end{center}  
+
+The $\chi^2$ test statistic sums the differences between observed and expected values in all cells of the table, scaled by the magnitude of the expected values, as follows
+
+$$X^2 = \sum_{ij}\frac{{(O_{ij} - E_{ij})^2}}{E_{ij}}$$
+
+where $O_{ij}$ measures the observed count, while $E_{ij}$ measures the expected count. It is usually thought of as a measure of \emph{goodness of fit} to evaluate the fit of empirical against. $\chi^2$ tests are commonly implemented for collocation detected, e.g. in the \code{quanteda} R-package.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Computing $\chi^2$ tests statistic}
+\begin{center}
+  \begin{tabular}{ l | c | c | c }
+    \hline
+ & $w_1 = \text{health}$ &   $w_1 \neq \text{health}$ &  \\
+$w_2 = \text{care}$ &  \Sexpr{DF[token=="health care"]$N} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)][-grep("^health",token)]$N)} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)]$N)} \\
+  &  \Sexpr{ sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)} & \Sexpr{ sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)} &  \\
+$w_2 \neq \text{care}$ &  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)} & \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)} &  \Sexpr{sum(DF[-grep("\\bcare\\b$",token)]$N)} \\
+
+  &  \Sexpr{ sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)} & \Sexpr{ sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)} &  \\
+  
+\hline
+&  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)} & \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)} &  \Sexpr{sum(DF$N)} \\
+    \hline
+  \end{tabular}
+\end{center} 
+\begin{itemize}
+\item Expected frequencies $E_{ij}$ computed from the marginal probabilities; compute totals of rows and columns and  convert to proportions. 
+\item Example: expected frequency (``health care'') is marginal probability of ``health'' occurring as the first part of a bigram times the marginal probability of ``care'' occurring as the second.
+\end{itemize} 
+
+\begin{eqnarray*}
+X^2 = \frac{(\Sexpr{DF[token=="health care"]$N}- \Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)})^2}{\Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)}} +  \frac{(\Sexpr{sum(DF[-grep("^\\bhealth\\b",token)][grep("\\bcare\\b$",token)]$N)}- \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)})^2}{\Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)}}  \\
++ \frac{(\Sexpr{sum(DF[grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)}- \Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)})^2}{\Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)}} + \frac{(\Sexpr{sum(DF[-grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)}- \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)})^2}{{\Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)/sum(DF$N) * sum(DF[-grep("\\bcare\\b$",token)]$N)/sum(DF$N) * sum(DF$N)}}}
+\end{eqnarray*}
+
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Special formula for 2x2 tables}
+\begin{center}
+  \begin{tabular}{ l | c | c | c }
+    \hline
+ & $w_1 = \text{health}$ &   $w_1 \neq \text{health}$ &  \\
+$w_2 = \text{care}$ &  \Sexpr{DF[token=="health care"]$N} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)][-grep("^health",token)]$N)} & \Sexpr{sum(DF[grep("\\bcare\\b$",token)]$N)} \\
+$w_2 \neq \text{care}$ &  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)} & \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)][-grep("\\bcare\\b$",token)]$N)} &  \Sexpr{sum(DF[-grep("\\bcare\\b$",token)]$N)} \\
+\hline
+&  \Sexpr{sum(DF[grep("^\\bhealth\\b",token)]$N)} & \Sexpr{sum(DF[-grep("^\\bhealth\\b",token)]$N)} &  \Sexpr{sum(DF$N)} \\
+    \hline
+  \end{tabular}
+\end{center} 
+
+For 2 x 2 tables, there is a condensed formula [Can you show this?]
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.6]<1>{figures/chi2-2x2.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+For a 2 x 2 design, this statistic has a $\chi^2$ distribution with one degree of freedom. Can you show that this statistic reaches maximal value in case off diagonals are zero (words exclusively appear together)?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Identified Bigrams in State of the Union Speeches}
+<<chisquareexample, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+DF[,O11 := N]
+DF[,O12 := (c_2-N)]
+DF[,O21 := (c_1-N)]
+DF[,O22 := (total- c_1  - c_2+N)]
+DF[, chi2 := (total*(O11*O22 - O12*O21)^2)/( (O11+O12)*(O11+O21)*(O12+O22)*(O21+O22) )]
+
+DF[c_1+c_2>20][order(chi2, decreasing=TRUE)][1:30]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Identified Bigrams in State of the Union Speeches}
+<<chisquareexample2, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F,out.width='3in'>>=
+plot(DF$ttest, DF$chi2) 
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Problems for $\chi^2$ tests}
+
+\begin{itemize}
+\item T-test and $\chi^2$ test statistic provide almost identical ordering
+\item $\chi^2$ test is also appropriate for large probabilities, for which the normality assumption of the t-test fails. 
+\item But approximation to the chi-squared distribution breaks down if expected frequencies are too low. It will normally be acceptable so long as no more than 20\% of the events have expected frequencies below 5 (Read and Cressie 1988) $\rightarrow$ this is violated here.
+\item Rule of thumb: advise against using $\chi^2$ if the expected value in any of the cells is 5 or less, use likelihood ratio test presented next.
+\item In case of low expected counts, perform \emph{Yates correction}, modifying $X^2 = \sum_{ij}\frac{{|(O_{ij} - E_{ij}| -0.5)^2}}{E_{ij}}$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Likelihood Ratio Tests}
+
+Likelihood ratios are another approach to hypothesis testing. Developed in Dunning (1993), they are most appropriate for working with sparse data (few cell counts).
+
+Two alternative hypothesis:
+\begin{itemize}
+
+\item Hypothesis 1: $P(w_2|w_1)  = p = P(w_2 | \neg w_1)$
+
+\item Hypothesis 2: $P(w_2|w_1)  = p_1 \neq p_2 = P(w_2 | \neg w_1)$
+
+\end{itemize}
+
+Hypothesis is just another way of stating the independence assumption (a draw of word $w_2$ is independent of any information regarding the occurence or non-occurence of word $w_1$). Hypothesis 2  says that the probability of $w_2$ following $w_1$ is different from probability of $w_2$ not following $w_1$.\\
+
+It is clear that $H_1$ is \emph{nested} into $H_2$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Likelihood ratio test}
+
+Denote $c_1$, $c_2$ and $c_{12}$ , for the number of occurences of word $w_1$, $w_2$ and the pair $w_1 w_2$.
+$$p = \frac{c_2}{N} \quad p_1 = \frac{c_{12}}{c_1} \quad p_2 = \frac{c_2 - c_{12}}{N- c_1}$$
+We assume that word counts are binomially distributed
+$$B(k; n,p) = \binom{n}{k} p^k (1-p)^{(n-k)}$$
+
+Binomial distribution gives the probability of observing $k$ heads in a sequence of $n$ coin tosses, with success probability $p$.
+
+What is the probability of observing counts $c_{12}$ in $c_1$ trials?
+$$B(c_{12}; c_{1},p) = \binom{c_1}{c_{12}} p^{c_{12}} (1-p)^{(c_1-c_{12})}$$
+
+What is the probability of observing counts $c_{2}-c_{12}$ in $N-c_{12}$ trials? I.e. probability of seeing $c_2$ by itself?
+
+$$B(c_{2}-c_{12}; N-c_{12},p) = \binom{N-c_{12}}{c_{2}-c_{12}} p^{c_{2}-c_{12}} (1-p)^{(N-c_{12})}$$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Likelihood ratio test}
+
+Under Hypothesis 1 \& 2, the likelihood of observing counts are given as
+\begin{eqnarray*}
+L(H_1) = B(c_{12}; c_1,p)  B(c_2-c_{12}; N-c_1,p) \\
+L(H_2) = B(c_{12}; c_1,p_1)  B(c_2-c_{12}; N-c_1,p_2)
+\end{eqnarray*}
+Likelihood ratio
+\begin{eqnarray*}
+\log(\lambda) &=& \log{\frac{L(H_1)}{L(H_2)}} \\
+  & = & \log( p^{(c_1-c_{12})} (1-p)^{c_1}) + \log(p^{(c_2-c_{12})} (1-p)^{(N-c_1)}) \\
+  & & - \log( p_1^{(c_1-c_{12})} (1-p_1)^{c_1}) - \log(p_2^{(c_2-c_{12})} (1-p_2)^{(N-c_1)})
+\end{eqnarray*}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Advantage of LR test}
+
+\begin{itemize}
+
+\item One advantage of likelihood ratios is that they have a clear intuitive interpretation: the $\exp$ of the LR provides a number that tells us how much more likely one hypothesis is than the other.
+
+\item So numbers are easier to interpret than the scores of the $\chi^2$  test 
+
+\item If $\lambda$  is a likelihood ratio of a particular form, then the quantity $-2 \log{\lambda}$ is asymptotically $\chi^2$ distributed 
+
+\item Dunning (1993) shows they are more appropriate for sparse data.
+
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\section{Application: $\chi^2$ test for corpus similarity}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{$\chi^2$ test for corpus similarity}
+
+\begin{itemize}
+
+\item So far, we have used various statistical tests to study whether words appearing together appear so in a non-random fashion.
+
+\item We were comparing observed frequencies of pairs appearing with some notion of expected frequency under a null-hypothesis of independence.
+
+\item We can apply the same test to distinguish word use \emph{between} texts.
+
+\item The null-hypothesis here is that the probability of observing a word or a word pair is independent across speakers.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{$\chi^2$ test for corpus similarity}
+We can use the $\chi^2$ statistic to differentiate two corpora from one another or to identify distinctive word features characteristic of a corpus. Below is an example of Bush versus Obama state of the union speeches.
+<<corpussimilarity, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+TOK<-data.table("sotu"=names(TOKENS),"token"=TOKENS) 
+TOK[, president := str_extract(sotu, "([A-z]*)")]
+TOK<-TOK[, .N, by=c("president","token")][president %in% c("Bush","Obama")]
+TOK[order(N, decreasing=TRUE)][1:20]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{$\chi^2$ test to identify distinct words across corpora}
+
+We can coonvert this into wide format and compute the $\chi^2$ test statistic for each word feature, i.e. computing
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.6]<1>{figures/chi2-2x2.png}
+\end{center}
+%\caption{\small{EU Enlargement in 2004}}
+\end{figure}
+
+<<corpussimilaritywide, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+WIDE<-data.table(join(TOK[president=="Bush"][, list(token, bushcount=as.numeric(N))], TOK[president=="Obama"][, list(token, obamacount=as.numeric(N))], type="full"))
+WIDE[is.na(obamacount)]$obamacount<-0
+WIDE[is.na(bushcount)]$bushcount<-0
+WIDE[, totalcount := obamacount+bushcount]
+WIDE<-WIDE[order(totalcount, decreasing=TRUE)][totalcount>5]
+WIDE[, totalobama := sum(obamacount)]
+WIDE[, totalbush := sum(bushcount)]
+WIDE[, chi2 := (totalobama+totalbush)*(bushcount*(totalobama-obamacount) - obamacount*(totalbush-bushcount))^2/((bushcount+obamacount)*(bushcount+(totalbush-bushcount))*(obamacount+(totalobama-obamacount))*((totalbush-bushcount)+(totalobama-obamacount)))] 
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{$\chi^2$ test to identify distinct words across corpora}
+Present list sorted by $X^2$ test statistic score
+<<corpussimilaritywideresult1, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+WIDE[1:20][order(chi2, decreasing=TRUE)]
+@
+We had already removed stopwords, but we can exctract distinct part of speech pairs common for
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Combine this with POS Tag patterns}
+<<corpussimilaritywidepos, size="tiny",chache=TRUE, tidy=TRUE,message=F, warning=F>>=
+WIDE<-join(WIDE, DF[, list(token, TAGGED)])[grep("NN.? NN.?|JJ.? NN.?",TAGGED)]
+WIDE[1:20][order(chi2, decreasing=TRUE)]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}
+

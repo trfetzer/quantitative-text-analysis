@@ -1,0 +1,545 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Describing Text} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+options(warn=-1)
+setwd("~/Dropbox/Teaching/QTA/Lectures/Week 2")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Descriptive Statistics for Text data}
+Before performing analysis, you want to get to know your data - this may inform you as to what are the necessary steps for dimensionality reduction. Some simple stats may be...
+\begin{Description}
+\item[Word (relative) frequency]
+
+\item[Theme (relative) frequency]
+
+\item[Length] in characters, words, lines, sentences, paragraphs, pages, sections, chapters, etc.
+
+\item[Vocabulary diversity] (At its simplest) involves measuring a type-to-token ratio (TTR) where unique words are types and the total words are tokens.
+
+\item[Readability]  Use a combination of syllables and sentence length to indicate ``readability'' in terms of complexity
+
+\item[Formality] Measures relationship of different parts of speech.
+
+\end{Description}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Vocabulary diversity}
+ (At its simplest) involves measuring a type-to-token ratio (TTR) where unique words are
+types and the total words are tokens. \bigskip
+
+We have already talked about this in the section on Text normalization (pre-processing.)\bigskip
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<readingspeeches, size="tiny",eval=TRUE,cache=FALSE,echo=FALSE,include=FALSE, warning=FALSE, message=FALSE, tidy=TRUE>>=
+options(stringsAsFactors=FALSE)
+library(data.table) 
+library(RJSONIO)
+library(quanteda)
+TEXT<-readLines(con="../../Data/speeches-2016-election.json")
+TEXT[1]
+SPEECHES<-lapply(TEXT, function(x) data.frame(fromJSON(x)))
+SPEECHES<-rbindlist(SPEECHES)
+
+
+SPEECHES.COMBINED<-SPEECHES[year(date)>2010][, list(text = paste(text, collapse=" ")), by=c("speaker_party","speaker_name")]
+CORPUS<-corpus(SPEECHES$text) 
+CORPUS[["congress"]]<-SPEECHES$congress
+CORPUS[["speaker_name"]]<-SPEECHES$speaker_name
+CORPUS[["speaker_party"]]<-SPEECHES$speaker_party
+CORPUS[["date"]]<-SPEECHES$date
+
+CORPUS.COMBINED<-corpus(SPEECHES.COMBINED$text) 
+CORPUS.COMBINED[["speaker_name"]]<-SPEECHES.COMBINED$speaker_name
+CORPUS.COMBINED[["speaker_party"]]<-SPEECHES.COMBINED$speaker_party
+dat<-summary(CORPUS.COMBINED)
+dat$TTR<-dat$Types/dat$Tokens
+@
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Type-Token Ratio in Congressional speaches}
+<<corpusspeeches, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE>>=
+dat
+@
+$\Rightarrow$ this highlights that there is a negative correlation between the TTR and the total corpus length as measured by the number of sentences. We have seen this previously as \emph{Heap's Law}.  
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Alternative Lexical Diversity Measures}
+\begin{Description}
+
+\item[TTR] $\frac{\text{total types}}{\text{total tokens}}$
+
+\item[Guiraud] $\frac{\text{total types}}{\sqrt{\text{total tokens}}}$
+
+\item[D] iversity: Randomly sample a fixed number of tokens and count number of types.
+
+\item[MTLD] the mean length of sequential word strings in a text that maintain a given TTR value (McCarthy and Jarvis, 2010) ??? fixes the TTR at 0.72 and counts the length of the text required to achieve it
+
+\end{Description}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Complexity and Readability}
+
+\begin{itemize}
+
+\item Use of language is endogenous, and electoral incentives may affect the \emph{communication strategies} chosen by elected officials.
+
+\item Readability scores us a combination of syllables and sentence length to indicate ``complexity`` of text
+
+\item  Common in educational research, but could also be used to describe textual complexity and increasingly some political science applications.
+
+\item No natural scale, so most are calibrated in terms of some interpretable metric
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/readability.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading Ease in Congress By Party}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.29]{figures/reading-ease.png}
+\end{center}
+\end{figure}
+
+$${\displaystyle 206.835-1.015\left({\frac {\text{total words}}{\text{total sentences}}}\right)-84.6\left({\frac {\text{total syllables}}{\text{total words}}}\right)}$$
+
+$\Rightarrow$ corpus data obtained via the Capitolwords API.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading Age in Congress By Party}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=.56]{figures/reading-age.pdf}
+\end{center}
+\end{figure}
+
+$$\left({\frac  {{\mbox{total words}}}{{\mbox{total sentences}}}}\right)+11.8\left({\frac  {{\mbox{total syllables}}}{{\mbox{total words}}}}\right)-15.59$$
+
+$\Rightarrow$ corpus data obtained via the Capitolwords API.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gunning fog index}
+
+\begin{itemize}
+\item Measures the readability in terms of the years of formal education required for a person to easily understand the text on first reading
+
+\item  Usually taken on a sample of around 100 words, not omitting any sentences or words
+  
+\item Computed as 
+
+$$ 0.4 [ ( \frac{\text{total words}}{{\text{total sentences}}} )] + 100 \frac{\text{complex words}}{{\text{total words}}}$$
+
+\item Complex words are defined as those having three or more syllables, not including proper nouns (for example, Ljubljana), familiar jargon or compound words, or counting common suffixes such as -es, -ed, or -ing as a syllable.
+
+\item in $R$ all readability features are embedded in the \code{quanteda} function \code{readability()}.
+  
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Example Readability computation}
+
+<<readability, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE>>=
+class(CORPUS.COMBINED)
+#can compute various readability indices on a corpus index in quanteda package
+TEMP<-readability(CORPUS.COMBINED,measure="Flesch.Kincaid")
+TEMP
+#can add this as piece of meta information  
+CORPUS.COMBINED[["readability"]]<-TEMP
+
+summary(CORPUS.COMBINED)
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality of Language}
+
+\begin{quote}
+This is to inform you that
+your book has been rejected
+by our publishing company as
+it was not up to the required standard. In case you would
+like us to reconsider it, we
+would suggest that you go over
+it and make some necessary
+changes.
+\end{quote}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality of Language}
+
+\begin{quote}
+You know that book I wrote?
+Well, the publishing company
+rejected it. They thought it
+was awful. But hey, I did the
+best I could, and I think it
+was great. I???m not gonna redo
+it the way they said I should.
+\end{quote}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Features of (In)formal language}
+
+\begin{itemize}
+
+\item A formal style is characterized by detachment, accuracy, rigidity and heaviness
+\item Nouns, adjectives, articles and prepositions are more frequent in formal language
+
+\item an informal style is more flexible, direct, implicit, and involved, but less informative
+\item Pronouns, adverbs, verbs and interjections are more frequent in informal styles.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality Score}
+
+\includegraphics[scale=0.5]{figures/formality-example-type.png}
+
+Heylighen, F., \& Dewaele, J. (1999). Formality of Language : definition , measurement and behavioral determinants.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Formality Score}
+Language is considered more formal when it contains much of the information directly in the text, whereas, contextual language relies on shared experiences to more efficiently dialogue with others.\smallskip
+
+A candidate measure is the Heylighen \& Dewaele's (1999) F-measure. \smallskip
+
+$$F = 50(\frac{nf - nc}{N}+1)$$
+
+Where:
+
+\begin{itemize}
+
+\item $f =  \text{\{noun, adjective, preposition, article\}}$
+
+\item $c = \text{\{pronoun, verb, adverb, interjection\}}$
+
+\item $N = nf + nc$
+
+\end{itemize}
+
+This yields an F-measure between 0 and 100\%, with completely contextualized language on the zero end and completely formal language on the 100 end.
+
+As is evident, this requires known \emph{Parts of Speech}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Computing Formality Scores in R}
+
+
+<<formality, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE>>=
+#installing the formality package which is in developmental state
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load_gh(c(
+    "trinker/formality"
+))
+library(formality)
+data(presidential_debates_2012)
+debateformality<-formality(presidential_debates_2012$dialogue,presidential_debates_2012$person)
+@
+
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some plotting capability}
+
+
+<<formalityplot, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+plot(debateformality)
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Presidential Debates Online}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+\includegraphics[scale=0.3]{figures/debates-presidency.png}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{The 2016 Debates}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+<<debates2016, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+load("../../Data/PRESIDENTIAL-DEBATES.rdata")
+
+debates_2016_final[, .N, by=debate][order(N, decreasing=TRUE)][1:10]
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cleaning HTML fragments}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+<<debates2016p2, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+cleanfragment<- function(htmlString) {
+  
+  htmlString <- gsub("<.*?>", "", htmlString)
+  htmlString <- gsub("\\[.*]", "", htmlString)
+  htmlString <- gsub("&.*;", "", htmlString)
+  
+  return(htmlString)
+}
+
+debates_2016_final$fragment<-cleanfragment(debates_2016_final$fragment)
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cleaning HTML fragments}
+
+Last course iteration, scraping and building the 2016 Presidential Debates corpus was one of the assignments.
+
+<<debates2016p3, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+library(formality)
+
+head(debates_2016_final[speaker %in% c("TRUMP","CLINTON")]$fragment)
+
+FINAL<-debates_2016_final[pid==119039][speaker %in% c("TRUMP","CLINTON")]
+
+formality2016<-formality(FINAL$fragment,FINAL$speaker)
+
+
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Guess who speaks more informally?}
+
+
+<<debates2016p4, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+
+formality2016
+
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Guess who speaks more informally?}
+
+
+<<debates2016p5, size="tiny",eval=TRUE,cache=TRUE, tidy=TRUE, out.width='3in'>>=
+
+plot(formality2016)
+
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
