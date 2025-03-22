@@ -1,0 +1,308 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Variable Selection } \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Note on Variable Selection}
+
+\begin{itemize}
+
+\item Last week we spoke about Logistic regression and the possibility to do a penalized estimation, e.g. using Lasso.
+
+\item I wanted to briefly revisit this here.
+
+\end{itemize}
+
+
+$$ p(X\beta)= \frac{e^{\beta_0 + \sum_{k=1}^{p}{\beta_k X_k}}}{1 + e^{\beta_0 + \sum_{k=1}^{p}{\beta_k X_k}}} = \frac{e^{X\beta}}{1+ e^{X\beta}}$$
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Best Subset Selection}
+
+In estimating the  $\hat{P}(Y=y|X)$, we typically have a whole range of regressor variables available to us.\\
+
+Not all variables $X$, here, some word features are good predictors. In fact, the occurrence of some word features may be specific due to the random draw of the training data set.\\
+
+Ideally, we "try out" all possible combinations of features $X$ - this approach is known as \emph{Best Subset Selection}.
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Best subset selection}
+
+ \begin{itemize}
+ 
+ \item We can express the best subset selection problem as a nonconvex and combinatorial optimization problem.
+
+ 
+ \item The objective is to find the optimal $s$
+ 
+\begin{equation}
+      max_\beta \sum_{i=1}^{n}{y_i \log(p(x_i'\beta)) + (1-y_i) \log((1-p(x_i'\beta)))} \; \text{subject to} \; \sum_{j=1}^{p}{\mathbf{I}(\beta_{j} \neq 0)} \leq s
+\end{equation}
+
+\item This requires that the optimial solution involves finding a vector $\beta$ such that the maximum likelihood is minimal and no more than $s$ coefficients are non-zero.
+
+\item The best subset selection approach would try out all possible combinations of regressors such that the above is maximized. This can result in \emph{non nested} models.
+ 
+ \end{itemize}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regularized Lasso}
+
+Lasso approximates this optimization problem
+
+\begin{equation}
+      min_\beta  \underbrace{\sum_{i=1}^n{(y_i  - \beta_0 - \sum_{j=1}^{p}{x_{ij} \beta_j})^2}}_{\text{Residual Sum of Squares}} \; \text{subject to} \; \sum_{j=1}^{p}{\mid \beta_j \mid } \leq s
+\end{equation}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlstd{L1} \hlkwb{<-} \hlkwd{create_matrix}\hlstd{(}\hlkwd{c}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]),}
+                   \hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+\hlstd{DTM}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(L1)}
+
+\hlkwd{dim}\hlstd{(DTM)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1397 2460
+\end{verbatim}
+\begin{alltt}
+\hlcom{##changing column names}
+\hlkwd{colnames}\hlstd{(DTM)} \hlkwb{<-} \hlkwd{paste}\hlstd{(}\hlstr{"stem_"}\hlstd{,} \hlkwd{colnames}\hlstd{(DTM),}\hlkwc{sep}\hlstd{=}\hlstr{""}\hlstd{)}
+
+\hlcom{##turn this into a document-term-incidence matrix}
+\hlstd{DTM}\hlkwb{<-}\hlkwd{apply}\hlstd{(DTM,} \hlnum{2}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{as.factor}\hlstd{(x}\hlopt{>}\hlnum{0}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{library}\hlstd{(glmnet)}
+\hlstd{x}\hlkwb{<-}\hlkwd{model.matrix}\hlstd{(label1}\hlopt{~}\hlstd{.,} \hlkwc{data}\hlstd{=}\hlkwd{data.frame}\hlstd{(}\hlkwc{label1}\hlstd{=}\hlkwd{as.factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1), DTM))[,}\hlopt{-}\hlnum{1}\hlstd{]}
+
+\hlstd{lasso.mod}\hlkwb{=}\hlkwd{glmnet}\hlstd{(x,} \hlkwd{as.factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1),}\hlkwc{alpha}\hlstd{=}\hlnum{1}\hlstd{,}\hlkwc{standardize}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{family}\hlstd{=}\hlstr{'multinomial'}\hlstd{)}
+
+\hlkwd{plot}\hlstd{(lasso.mod,} \hlkwc{xvar}\hlstd{=}\hlstr{"lambda"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-regularizedlasso2-1} 
+\includegraphics[width=\maxwidth]{figures/knitr-regularizedlasso2-2} 
+\includegraphics[width=\maxwidth]{figures/knitr-regularizedlasso2-3} 
+
+}
+
+
+
+\end{knitrout}
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+\hlstd{cv.glmmod}\hlkwb{<-}\hlkwd{cv.glmnet}\hlstd{(x,}\hlkwc{y}\hlstd{=}\hlkwd{as.factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1),}\hlkwc{alpha}\hlstd{=}\hlnum{1}\hlstd{,}\hlkwc{standardize}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{family}\hlstd{=}\hlstr{"multinomial"}\hlstd{)}
+
+
+\hlkwd{plot}\hlstd{(cv.glmmod)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-regularizedlasso3-1} 
+
+}
+
+
+
+\end{knitrout}
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}

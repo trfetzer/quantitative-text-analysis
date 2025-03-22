@@ -1,0 +1,259 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Variable Selection } \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("~/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 6")
+library(glmnet)
+library(ggplot2)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Note on Variable Selection}
+
+\begin{itemize}
+
+\item Last week we spoke about Logistic regression and the possibility to do a penalized estimation, e.g. using Lasso.
+
+\item I wanted to briefly revisit this here.
+
+\end{itemize}
+
+
+$$ p(X\beta)= \frac{e^{\beta_0 + \sum_{k=1}^{p}{\beta_k X_k}}}{1 + e^{\beta_0 + \sum_{k=1}^{p}{\beta_k X_k}}} = \frac{e^{X\beta}}{1+ e^{X\beta}}$$
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Best Subset Selection}
+
+In estimating the  $\hat{P}(Y=y|X)$, we typically have a whole range of regressor variables available to us.\\
+
+Not all variables $X$, here, some word features are good predictors. In fact, the occurrence of some word features may be specific due to the random draw of the training data set.\\
+
+Ideally, we "try out" all possible combinations of features $X$ - this approach is known as \emph{Best Subset Selection}.
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Best subset selection}
+
+ \begin{itemize}
+ 
+ \item We can express the best subset selection problem as a nonconvex and combinatorial optimization problem.
+
+ 
+ \item The objective is to find the optimal $s$
+ 
+\begin{equation}
+      max_\beta \sum_{i=1}^{n}{y_i \log(p(x_i'\beta)) + (1-y_i) \log((1-p(x_i'\beta)))} \; \text{subject to} \; \sum_{j=1}^{p}{\mathbf{I}(\beta_{j} \neq 0)} \leq s
+\end{equation}
+
+\item This requires that the optimial solution involves finding a vector $\beta$ such that the maximum likelihood is minimal and no more than $s$ coefficients are non-zero.
+
+\item The best subset selection approach would try out all possible combinations of regressors such that the above is maximized. This can result in \emph{non nested} models.
+ 
+ \end{itemize}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regularized Lasso}
+
+Lasso approximates this optimization problem
+
+\begin{equation}
+      min_\beta  \underbrace{\sum_{i=1}^n{(y_i  - \beta_0 - \sum_{j=1}^{p}{x_{ij} \beta_j})^2}}_{\text{Residual Sum of Squares}} \; \text{subject to} \; \sum_{j=1}^{p}{\mid \beta_j \mid } \leq s
+\end{equation}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+<<naivebayesconflict, echo=FALSE, message=FALSE>>=
+library(RTextTools)
+library(data.table)
+library(plyr)
+library(lubridate)
+library(e1071)
+
+CLASSIFIER<-data.table(read.csv(file="/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/classification-tree.csv")) 
+
+
+load("/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/TTIM-lab2.rdata")
+
+TTIM<-join(TTIM,CLASSIFIER)
+ 
+ 
+TTIM<- TTIM[objectcleanpp!=""][label1 %in% c("civilian","security","terrorist",NA)]
+TTIM$label1<-as.character(TTIM$label1)
+TTIM$label1<-as.factor(TTIM$label1)
+
+TTIM<-TTIM[!is.na(label1)]
+
+@
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+ <<regularizedlasso, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+L1 <- create_matrix(c(TTIM[,paste(objectcleanpp,sep=" ")]),
+                    language="english",stemWords=FALSE)
+##CREATION OF NON SPARSE MATRIX
+DTM<-as.matrix(L1)
+
+dim(DTM)
+##changing column names
+colnames(DTM) <- paste("stem_", colnames(DTM),sep="")
+
+##turn this into a document-term-incidence matrix
+DTM<-apply(DTM, 2, function(x) as.factor(x>0))
+@
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+ <<regularizedlasso2, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+library(glmnet)
+x<-model.matrix(label1~., data=data.frame(label1=as.factor(TTIM$label1), DTM))[,-1]
+
+lasso.mod=glmnet(x, as.factor(TTIM$label1),alpha=1,standardize=TRUE,family='multinomial') 
+
+plot(lasso.mod, xvar="lambda") 
+
+@
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An illustration}
+ 
+ <<regularizedlasso3, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+
+cv.glmmod<-cv.glmnet(x,y=as.factor(TTIM$label1),alpha=1,standardize=TRUE,family="multinomial") 
+
+
+plot(cv.glmmod)
+
+@
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}

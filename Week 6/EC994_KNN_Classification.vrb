@@ -1,0 +1,6 @@
+\frametitle{Accuracy for different values of $k$}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/knitr-knntextksensitivity2-1.pdf}
+\end{center}
+

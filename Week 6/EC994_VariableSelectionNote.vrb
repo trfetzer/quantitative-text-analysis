@@ -1,0 +1,23 @@
+\frametitle{An illustration}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+\hlstd{cv.glmmod}\hlkwb{<-}\hlkwd{cv.glmnet}\hlstd{(x,}\hlkwc{y}\hlstd{=}\hlkwd{as.factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1),}\hlkwc{alpha}\hlstd{=}\hlnum{1}\hlstd{,}\hlkwc{standardize}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{family}\hlstd{=}\hlstr{"multinomial"}\hlstd{)}
+
+
+\hlkwd{plot}\hlstd{(cv.glmmod)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-regularizedlasso3-1}
+
+}
+
+
+
+\end{knitrout}
+
+

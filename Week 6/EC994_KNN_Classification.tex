@@ -1,0 +1,807 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: K-Nearest Neighbours (KNN)} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+\begin{itemize}
+
+\item The first classification algorithm we present is called \textbf{K nearest neighbors} or KNN.
+
+\item KNN assigns a label to a new observation $y_i$ based on ``what is the most common class around the vector $x_i$''?
+
+\item The idea is that, if you have similar $X's$ values, then also the label $y$ should be similar.
+
+\item One dimensional space [draw example]
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/Data3classes-star-0.png} 
+\includegraphics[scale=.375]<2>{figures/Data3classes-star-00.png} 
+\includegraphics[scale=.5]<3>{figures/Data3classes-star-1.png} 
+\includegraphics[scale=.5]<4>{figures/Data3classes-star-2.png} 
+\includegraphics[scale=.5]<5>{figures/Data3classes-star-3.png} 
+\includegraphics[scale=.4]<6>{figures/Data3classes-star-4.png} 
+\end{array}$
+\caption{A three class nearest neighbours visual example with two features $X_1, X_2$}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+ 
+ \begin{algorithm}[K Nearest Neighbours]
+   \begin{enumerate}
+   
+   \item Store all the training data $(y_i, x_{i1},...,x_{ip})$
+   
+   \item For each new point $x_q = (x_{q1},...x_{qp})$, find the $K$ \textbf{nearest} neighbours in the training set, indexed by $\mathcal{N}_0$.
+   
+   \item For each possible value  $j \in \mathcal{C}$, compute 
+   $$\hat{P}(Y=j|X=x_q) = \frac{1}{K} \sum_{i \in \mathcal{N}_0} I(y_j=j)$$
+   
+   \item Assign the class $j$ for which $\hat{P}(Y=j|X=x_q)$ is maximal.
+   
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours Estimates Complicated Functions}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/Map1NN.png} 
+\end{array}$
+\caption{A three class nearest neighbours visual example with two features $X_1, X_2$}
+\end{center}
+\end{figure}
+  
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Some thoughts on KNN}
+ 
+\begin{itemize}
+\item KNN is among the simplest of all machine learning algorithms.
+
+\item Its explicitly non-parametric (you dont estimate any coefficients)
+
+\item KNN is referred to as a lazy learning algorithm: the function is only approximated locally and all computation is deferred until classification. 
+
+\item So there is actually no explicit training step.
+
+\item Results from KNN are sensitive to the local structure of the data (example highly skewed, ``majority voting'' distorted, weights).
+
+\item Its (potentially) too slow, as it may be impossible to hold all the training data in memory.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Applications in Research: Fetzer and Marden, 2014}
+ 
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/landuse-knn1.png} 
+\includegraphics[scale=.4]<2>{figures/landuse-knn2.png} 
+\includegraphics[scale=.4]<3>{figures/landuse-knn3.png} 
+\includegraphics[scale=.4]<4>{figures/landuse-knn4.png} 
+\end{array}$
+\caption{Classifiying historical landsat imagery into Forest or Non Forest Status.}
+\end{center}
+\end{figure}
+
+[See forested.R]
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Plotting Out Band Values for Red, Near Infrared}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{options}\hlstd{(}\hlkwc{stringsAsFactors}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{library}\hlstd{(data.table)}
+\hlkwd{library}\hlstd{(plyr)}
+\hlkwd{library}\hlstd{(class)}
+\hlstd{FORESTED} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{read.csv}\hlstd{(}\hlstr{"R/forested.csv"}\hlstd{))}
+\hlstd{COMPOSITE} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{read.csv}\hlstd{(}\hlstr{"R/composite.csv"}\hlstd{))}
+\hlstd{MODIS} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{read.csv}\hlstd{(}\hlstr{"R/modis.csv"}\hlstd{))}
+\hlkwd{setnames}\hlstd{(MODIS,} \hlstr{"mean"}\hlstd{,} \hlstr{"landcover"}\hlstd{)}
+\hlkwd{setnames}\hlstd{(FORESTED,} \hlstr{"mean"}\hlstd{,} \hlstr{"forestcover"}\hlstd{)}
+\hlstd{DF}\hlkwb{<-} \hlkwd{join}\hlstd{(}\hlkwd{join}\hlstd{(FORESTED[,} \hlkwd{c}\hlstd{(}\hlstr{"system.index"}\hlstd{,} \hlstr{"forestcover"}\hlstd{),} \hlkwc{with}\hlstd{=F],}
+               \hlstd{MODIS[,} \hlkwd{c}\hlstd{(}\hlstr{"system.index"}\hlstd{,} \hlstr{"landcover"}\hlstd{),} \hlkwc{with}\hlstd{=F]), COMPOSITE)}
+\hlstd{DF[, Forested} \hlkwb{:=} \hlstd{forestcover}\hlopt{>}\hlnum{.8}\hlstd{]}
+\hlstd{DF[, MODISforested} \hlkwb{:=} \hlstd{(landcover}\hlopt{>}\hlnum{0} \hlopt{&} \hlstd{landcover}\hlopt{<=}\hlnum{5}\hlstd{)]}
+\hlstd{DF[, B3}\hlkwb{:=}\hlkwd{scale}\hlstd{(B3)]}
+\hlstd{DF[, B4}\hlkwb{:=}\hlkwd{scale}\hlstd{(B4)]}
+\hlstd{df.xlim} \hlkwb{<-} \hlkwd{range}\hlstd{(DF}\hlopt{$}\hlstd{B3)}
+\hlstd{df.ylim}\hlkwb{<-} \hlkwd{range}\hlstd{(DF}\hlopt{$}\hlstd{B4)}
+\hlkwd{plot}\hlstd{(DF[Forested}\hlopt{==}\hlnum{TRUE}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{120}\hlstd{,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,} \hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{col}\hlstd{=}\hlstr{"green"}\hlstd{,} \hlkwc{xlim}\hlstd{=df.xlim,} \hlkwc{ylim}\hlstd{=df.ylim)}
+\hlkwd{points}\hlstd{(DF[Forested}\hlopt{==}\hlnum{FALSE}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{80}\hlstd{,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,} \hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{,} \hlkwc{xlim}\hlstd{=df.xlim,} \hlkwc{ylim}\hlstd{=df.ylim)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knnforestedexample-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=10}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1151}\hlstd{)}
+\hlstd{train}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{1000}\hlstd{,} \hlnum{800}\hlstd{)}
+\hlcom{# get the contour map}
+\hlstd{px1} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B3)}
+\hlstd{px1}\hlkwb{<-}\hlkwd{seq}\hlstd{(px1[}\hlnum{1}\hlstd{], px1[}\hlnum{2}\hlstd{],} \hlnum{0.05}\hlstd{)}
+\hlstd{px2} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B4)}
+\hlstd{px2}\hlkwb{<-}\hlkwd{seq}\hlstd{(px2[}\hlnum{1}\hlstd{], px2[}\hlnum{2}\hlstd{],}\hlnum{0.05}\hlstd{)}
+\hlstd{xnew} \hlkwb{<-} \hlkwd{expand.grid}\hlstd{(}\hlkwc{x1} \hlstd{= px1,} \hlkwc{x2} \hlstd{= px2)}
+\hlstd{knn10} \hlkwb{<-} \hlkwd{knn}\hlstd{(DF[train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{test} \hlstd{= xnew,} \hlkwc{cl} \hlstd{= DF[train]}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{=} \hlnum{10}\hlstd{,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{attr}\hlstd{(knn10,} \hlstr{"prob"}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(knn10}\hlopt{==}\hlnum{TRUE}\hlstd{, prob,} \hlnum{1}\hlopt{-}\hlstd{prob)}
+\hlstd{prob10} \hlkwb{<-} \hlkwd{matrix}\hlstd{(prob,} \hlkwc{nrow} \hlstd{=} \hlkwd{length}\hlstd{(px1),} \hlkwc{ncol} \hlstd{=} \hlkwd{length}\hlstd{(px2))}
+\hlkwd{par}\hlstd{(}\hlkwc{mar} \hlstd{=} \hlkwd{rep}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{4}\hlstd{))}
+\hlkwd{contour}\hlstd{(px1, px2, prob10,} \hlkwc{levels}\hlstd{=}\hlnum{.5}\hlstd{,} \hlkwc{labels}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{main}\hlstd{=} \hlstr{"10-nearest neighbour"}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{points}\hlstd{(DF[train,}\hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(DF[train]}\hlopt{$}\hlstd{Forested}\hlopt{==}\hlnum{TRUE}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{points}\hlstd{(xnew,} \hlkwc{pch}\hlstd{=}\hlstr{"."}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{3.5}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(prob10}\hlopt{>}\hlnum{.5}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{box}\hlstd{()}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knnforestedexampleknn10-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{How do we perform in terms of classification?}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{knn10} \hlkwb{<-} \hlkwd{knn}\hlstd{(DF[train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{test} \hlstd{= DF[}\hlopt{-}\hlstd{train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],}
+             \hlkwc{cl} \hlstd{= DF[train]}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{=} \hlnum{10}\hlstd{,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{attr}\hlstd{(knn10,} \hlstr{"prob"}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(knn10}\hlopt{==}\hlnum{TRUE}\hlstd{, prob,} \hlnum{1}\hlopt{-}\hlstd{prob)}
+\hlkwd{table}\hlstd{(prob}\hlopt{>}\hlnum{0.5}\hlstd{,DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{Forested)}
+\end{alltt}
+\begin{verbatim}
+##        
+##         FALSE TRUE
+##   FALSE    52   10
+##   TRUE     15  123
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Overall error rate is quite low: 25/200 = 12.5\%. 
+
+\begin{itemize}
+
+\item Pixels are wrongly classified as forested (type 1 error) 10/200
+
+\item Pixels are wrongly classified as non forested 15/200
+
+\item Suppose you are sending an enforcement agent to fine people who have illegally deforested land (predicted value = FALSE), i.e. for 62 pixels.
+
+\item It costs a lot of money to send police out there, but in 16\% (10/(52+10)) of the cases you find the forest is actually standing... 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Changing $\bar{c}$...}
+
+Make it less likely, that we have pixels wrongly classified as being forested...reduce the threshold $\bar{c}$.
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{table}\hlstd{(prob}\hlopt{>}\hlnum{0.4}\hlstd{,DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{Forested)}
+\end{alltt}
+\begin{verbatim}
+##        
+##         FALSE TRUE
+##   FALSE    51    5
+##   TRUE     16  128
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\begin{itemize}
+
+\item Now, we will send enforcement teams out 56 times, but only in 8\% of the cases, will the forest still be standing...
+
+\item While the threshold $\bar{c}=0.5$, theoretically minimizes overall prediction error, you may still prefer different $\bar{c}$, in case there are different costs associated with type 1 or type 2 errors.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Exercise: Plot an ROC Curve...}
+
+Can you try to compute ROC curves and plot them out?
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How to Choose $K$?}
+
+\begin{itemize}
+
+\item As you will have guessed, it turns out that $K$ is a tuning parameter that we need to select.
+
+\item In binary (two class) classification problems, it is helpful to choose $K$ to be an odd number -- why?
+
+\item Cross validation is our preferred method, i.e. for each different value of $K$, we perform cross validation and plot out the overall average error rates.
+
+\item Why does the choice of $K$ matter?
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=15}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1151}\hlstd{)}
+\hlstd{train}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{1000}\hlstd{,} \hlnum{800}\hlstd{)}
+\hlcom{# get the contour map}
+\hlstd{px1} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B3)}
+\hlstd{px1}\hlkwb{<-}\hlkwd{seq}\hlstd{(px1[}\hlnum{1}\hlstd{], px1[}\hlnum{2}\hlstd{],} \hlnum{0.05}\hlstd{)}
+\hlstd{px2} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B4)}
+\hlstd{px2}\hlkwb{<-}\hlkwd{seq}\hlstd{(px2[}\hlnum{1}\hlstd{], px2[}\hlnum{2}\hlstd{],}\hlnum{0.05}\hlstd{)}
+\hlstd{xnew} \hlkwb{<-} \hlkwd{expand.grid}\hlstd{(}\hlkwc{x1} \hlstd{= px1,} \hlkwc{x2} \hlstd{= px2)}
+\hlstd{knn15} \hlkwb{<-} \hlkwd{knn}\hlstd{(DF[train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{test} \hlstd{= xnew,} \hlkwc{cl} \hlstd{= DF[train]}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{=} \hlnum{15}\hlstd{,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{attr}\hlstd{(knn15,} \hlstr{"prob"}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(knn15}\hlopt{==}\hlnum{TRUE}\hlstd{, prob,} \hlnum{1}\hlopt{-}\hlstd{prob)}
+\hlstd{prob15} \hlkwb{<-} \hlkwd{matrix}\hlstd{(prob,} \hlkwc{nrow} \hlstd{=} \hlkwd{length}\hlstd{(px1),} \hlkwc{ncol} \hlstd{=} \hlkwd{length}\hlstd{(px2))}
+\hlkwd{par}\hlstd{(}\hlkwc{mar} \hlstd{=} \hlkwd{rep}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{4}\hlstd{))}
+\hlkwd{contour}\hlstd{(px1, px2, prob15,} \hlkwc{levels}\hlstd{=}\hlnum{.5}\hlstd{,} \hlkwc{labels}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{main}\hlstd{=} \hlstr{"15-nearest neighbour"}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{points}\hlstd{(DF[train,}\hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(DF[train]}\hlopt{$}\hlstd{Forested}\hlopt{==}\hlnum{TRUE}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{points}\hlstd{(xnew,} \hlkwc{pch}\hlstd{=}\hlstr{"."}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{3.5}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(prob15}\hlopt{>}\hlnum{.5}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{box}\hlstd{()}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knnforestedexampleknn15-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=1}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1151}\hlstd{)}
+\hlstd{train}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{1000}\hlstd{,} \hlnum{800}\hlstd{)}
+\hlcom{# get the contour map}
+\hlstd{px1} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B3)}
+\hlstd{px1}\hlkwb{<-}\hlkwd{seq}\hlstd{(px1[}\hlnum{1}\hlstd{], px1[}\hlnum{2}\hlstd{],} \hlnum{0.05}\hlstd{)}
+\hlstd{px2} \hlkwb{<-} \hlkwd{range}\hlstd{(DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{B4)}
+\hlstd{px2}\hlkwb{<-}\hlkwd{seq}\hlstd{(px2[}\hlnum{1}\hlstd{], px2[}\hlnum{2}\hlstd{],}\hlnum{0.05}\hlstd{)}
+\hlstd{xnew} \hlkwb{<-} \hlkwd{expand.grid}\hlstd{(}\hlkwc{x1} \hlstd{= px1,} \hlkwc{x2} \hlstd{= px2)}
+\hlstd{knn1} \hlkwb{<-} \hlkwd{knn}\hlstd{(DF[train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{test} \hlstd{= xnew,} \hlkwc{cl} \hlstd{= DF[train]}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{attr}\hlstd{(knn1,} \hlstr{"prob"}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(knn1}\hlopt{==}\hlnum{TRUE}\hlstd{, prob,} \hlnum{1}\hlopt{-}\hlstd{prob)}
+\hlstd{prob1} \hlkwb{<-} \hlkwd{matrix}\hlstd{(prob,} \hlkwc{nrow} \hlstd{=} \hlkwd{length}\hlstd{(px1),} \hlkwc{ncol} \hlstd{=} \hlkwd{length}\hlstd{(px2))}
+\hlkwd{par}\hlstd{(}\hlkwc{mar} \hlstd{=} \hlkwd{rep}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{4}\hlstd{))}
+\hlkwd{contour}\hlstd{(px1, px2, prob1,} \hlkwc{levels}\hlstd{=}\hlnum{.5}\hlstd{,} \hlkwc{labels}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{""}\hlstd{,} \hlkwc{main}\hlstd{=} \hlstr{"1-nearest neighbour"}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{points}\hlstd{(DF[train,}\hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(DF[train]}\hlopt{$}\hlstd{Forested}\hlopt{==}\hlnum{TRUE}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{points}\hlstd{(xnew,} \hlkwc{pch}\hlstd{=}\hlstr{"."}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{3.5}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{ifelse}\hlstd{(prob1}\hlopt{>}\hlnum{.5}\hlstd{,} \hlstr{"green"}\hlstd{,} \hlstr{"red"}\hlstd{))}
+\hlkwd{box}\hlstd{()}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knnforestedexampleknn1-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Cross Validation and choice of $K$}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{RES}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for}\hlstd{(K} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{50}\hlstd{) \{}
+\hlstd{knncv} \hlkwb{<-} \hlkwd{knn.cv}\hlstd{(DF[,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],}
+                \hlkwc{cl} \hlstd{= DF}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{= K,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{RES}\hlkwb{<-}\hlkwd{rbind}\hlstd{(RES,}\hlkwd{cbind}\hlstd{(K,}\hlnum{1}\hlopt{-}\hlstd{(}\hlkwd{table}\hlstd{(knncv,DF}\hlopt{$}\hlstd{Forested)[}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{]}\hlopt{+}\hlkwd{table}\hlstd{(knncv,DF}\hlopt{$}\hlstd{Forested)[}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{])}\hlopt{/}\hlnum{1000}\hlstd{))}
+\hlstd{\}}
+\hlkwd{plot}\hlstd{(RES)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knn10crossvalidation-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Logistic Regression Versus kNN Classification}
+
+\begin{itemize}
+
+\item Cross Validation suggested that we should use $k \approx 10$ for kNN classification.
+
+\item Lets compare the performance of logistic regression versus 10NN for this example.
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1151}\hlstd{)}
+\hlstd{train}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{1000}\hlstd{,} \hlnum{800}\hlstd{)}
+
+\hlstd{glm.fit}\hlkwb{<-}\hlkwd{glm}\hlstd{(Forested} \hlopt{~}  \hlstd{B3} \hlopt{+} \hlstd{B4,}             \hlkwc{data}\hlstd{=DF[train],} \hlkwc{family}\hlstd{=}\hlkwd{binomial}\hlstd{(}\hlkwc{link}\hlstd{=logit))}
+
+\hlstd{glm.predict} \hlkwb{<-} \hlkwd{predict.glm}\hlstd{(glm.fit, DF[}\hlopt{-}\hlstd{train],} \hlkwc{type}\hlstd{=}\hlstr{"response"}\hlstd{)}
+
+\hlstd{knn10} \hlkwb{<-} \hlkwd{knn}\hlstd{(DF[train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],} \hlkwc{test} \hlstd{= DF[}\hlopt{-}\hlstd{train,} \hlkwd{c}\hlstd{(}\hlstr{"B3"}\hlstd{,}\hlstr{"B4"}\hlstd{),} \hlkwc{with}\hlstd{=F],}
+             \hlkwc{cl} \hlstd{= DF[train]}\hlopt{$}\hlstd{Forested,} \hlkwc{k} \hlstd{=} \hlnum{10}\hlstd{,} \hlkwc{prob} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{attr}\hlstd{(knn10,} \hlstr{"prob"}\hlstd{)}
+\hlstd{prob} \hlkwb{<-} \hlkwd{ifelse}\hlstd{(knn10}\hlopt{==}\hlnum{TRUE}\hlstd{, prob,} \hlnum{1}\hlopt{-}\hlstd{prob)}
+\hlkwd{table}\hlstd{(prob}\hlopt{>}\hlnum{0.5}\hlstd{,DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{Forested)}
+\end{alltt}
+\begin{verbatim}
+##        
+##         FALSE TRUE
+##   FALSE    52   10
+##   TRUE     15  123
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(glm.predict}\hlopt{>}\hlnum{0.5}\hlstd{,DF[}\hlopt{-}\hlstd{train]}\hlopt{$}\hlstd{Forested)}
+\end{alltt}
+\begin{verbatim}
+##        
+##         FALSE TRUE
+##   FALSE    48    6
+##   TRUE     19  127
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Logistic Regression Versus kNN Classification}
+
+\begin{itemize}
+
+\item The result is not surprising. The data suggests a near linear decision boundary, both kNN as well as logistic regression estimate that linear boundary reasonably well.
+
+\item You may still decide that you prefer logistic regression, since it is much more interpretable and less of a black box.
+
+\item With logistic regression, you get interpretable coefficients; here we do not care much for inference, so it doesnt really matter. 
+
+\item But in general, a (reasonable) rule of thumb is that you should prefer a simple parametric interpretable method over a non parametric method in case they yield similar results.
+
+
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{When does kNN outperform?}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.15]<1>{figures/quadratic.png} 
+\includegraphics[scale=.7]<2>{figures/knn-outperform.png} 
+\end{array}$
+\caption{Example of Non-Linear Classification Problems}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{KNN for text classification}
+ 
+\begin{itemize}
+\item As you can see from the specification, KNN uses Euclidian distances, which may be problematic if you want to classify documents of different lengths
+
+\item In text classsification, KNN is also called 
+\item Its explicitly non-parametric (you dont estimate any coefficients)
+
+\item KNN is referred to as a lazy learning algorithm: the function is only approximated locally and all computation is deferred until classification. 
+
+\item So there is actually no explicit training step.
+
+\item Results from KNN are sensitive to the local structure of the data (example highly skewed, ``majority voting'' distorted, weights).
+
+\item Its (potentially) too slow, as it may be impossible to hold all the training data in memory.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{KNN for text classification}
+ 
+ \begin{center}
+ \includegraphics[scale=0.45]{figures/knitr-knntextksensitivity-1.pdf}
+ \end{center}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{KNN for text classification}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(RTextTools)}
+\hlcom{##knn function}
+\hlkwd{library}\hlstd{(class)}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{order}\hlstd{(sid)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{06022017}\hlstd{)}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TTIM),} \hlkwd{nrow}\hlstd{(TTIM))]}
+\hlstd{L1} \hlkwb{<-} \hlkwd{create_matrix}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)],}
+                    \hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+\hlstd{DTM}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(L1)}
+
+\hlkwd{dim}\hlstd{(DTM)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1397 2460
+\end{verbatim}
+\begin{alltt}
+\hlcom{#knn(train, test, labelsfortrainingset, k=1)}
+\hlstd{res}\hlkwb{<-}\hlkwd{knn}\hlstd{(DTM[}\hlnum{201}\hlopt{:}\hlnum{1200}\hlstd{,], DTM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{,],} \hlkwc{cl}\hlstd{=}\hlkwd{as.factor}\hlstd{(TTIM[}\hlnum{201}\hlopt{:}\hlnum{1200}\hlstd{]}\hlopt{$}\hlstd{label1))}
+
+\hlkwd{table}\hlstd{(res, TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1)}
+\end{alltt}
+\begin{verbatim}
+##            
+## res         civilian security terrorist
+##   civilian        40        5        17
+##   security         7       31         1
+##   terrorist        7        2        90
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{KNN for text classification}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ACC}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for}\hlstd{(k} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{30}\hlstd{) \{}
+\hlcom{#knn(train, test, labelsfortrainingset, k=1)}
+\hlstd{res}\hlkwb{<-}\hlkwd{knn}\hlstd{(DTM[}\hlnum{201}\hlopt{:}\hlnum{1200}\hlstd{,], DTM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{,],} \hlkwc{cl}\hlstd{=}\hlkwd{as.factor}\hlstd{(TTIM[}\hlnum{201}\hlopt{:}\hlnum{1200}\hlstd{]}\hlopt{$}\hlstd{label1),} \hlkwc{k}\hlstd{=k)}
+
+\hlstd{ACC}\hlkwb{<-}\hlkwd{rbind}\hlstd{(ACC,} \hlkwd{data.frame}\hlstd{(}\hlkwc{k}\hlstd{=k,} \hlkwc{accuracy}\hlstd{=}\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(res, TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{200}\hlstd{))}
+
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-knntextksensitivity2-1} 
+
+}
+
+
+
+\end{knitrout}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Accuracy for different values of $k$}
+ 
+\begin{center}
+\includegraphics[scale=0.4]{figures/knitr-knntextksensitivity2-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{KNN is a discriminative classifier [non examinable]}
+
+
+
+KNN is a discriminative algorithm since it models the conditional probability of a sample belonging to a given class. To see this just consider how one gets to the decision rule of kNNs.
+
+A class label corresponds to a set of points which belong to some region in the feature space R. If you draw sample points from the actual probability distribution, p(x), independently, then the probability of drawing a sample from that class is,
+ 
+ 
+$$P = \int_{R} p(x) dx$$
+
+What if you have N points? The probability that K points of those N points fall in the region R follows the binomial distribution,
+
+
+$$Prob(K) = {{N} \choose {K}}P^{K}(1-P)^{N-K}$$
+
+As $N\rightarrow \infty$ this distribution is sharply peaked, so that the probability can be approximated by its mean value KN. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{KNN is a discriminative classifier[non examinable]}
+An additional approximation is that the probability distribution over R remains approximately constant, so that one can approximate the integral by,
+
+$$P = \int_{R} p(x) dx \approx p(x)V$$
+
+where V is the total volume of the region. Under this approximations $p(x) \approx \frac{K}{NV}$  
+
+Now, if we had several classes, we could repeat the same analysis for each one, which would give us,
+$$p(x|C_{k}) = \frac{K_{k}}{N_{k}V}$$
+
+where $K_k$ is the amount of points from class k which falls within that region and Nk is the total number of points which fall in that region. Notice $\sum_{k}N_{k}=N$.
+
+Repeating the analysis with the binomial distribution, it is easy to see that we can estimate the prior $P(C_{k}) = \frac{N_{k}}{N}$
+
+Using Bayes rule,
+$$P(C_{k}|x)  = \frac{p(x|C_{k})p(C_{k})}{p(x)} = \frac{K_{k}}{K}$$
+which is the rule for kNNs.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}

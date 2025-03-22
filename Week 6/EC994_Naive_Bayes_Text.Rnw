@@ -1,0 +1,1424 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Naive Bayes Classifiers (II)} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("~/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 6")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+@
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sentiment Analysis as a use case}
+\begin{itemize}
+
+\item We illustrate this with a standard example for sentiment analysis; exit feedback surveys.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/exit-feedback.png}
+\includegraphics[scale=.4]<2>{figures/exit-feedback-2.png} \\
+\end{array}$
+\end{center}
+\end{figure}
+
+\item Often times, you want to target your attention to negative (but not profane) feedback, as the criticism is what contains information on how to improve.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some sample exit feedback}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.3]<1>{figures/positive-feedback.png}
+\includegraphics[scale=.3]<2>{figures/negative-feedback.png} \\
+\end{array}$
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\section{Text as Data}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Text as Data}
+\begin{itemize}
+
+\item Text is a huge and valuable data resource, that is currently still underexploited in the quantitative social sciences. \bigskip
+
+\item In this section, we will introduce some terminology around treating Text as Data and we will then apply our Naive Bayes classifier to text data. \bigskip
+
+\item This is where Naive Bayes can really shine.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Key feature of quantitative text analysis}
+\begin{enumerate}
+
+\item \emph{Selecting and conversion}: Defining a corpus, making it machine readable
+ and defining unit of analysis
+
+\item \emph{Defining and selecting features}: These can take a variety of forms, including tokens, equivalence classes of tokens (dictionaries), selected phrases, human-coded segments (of possibily variable length), linguistic features, and more.
+
+\item Conversion of textual features into a \emph{quantitative matrix}
+
+\item A quantitative or statistical procedure to extract information
+from the quantitative matrix
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A stochastic generative view of text data}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]{figures/stochastic-view-text.png}
+\end{array}$
+\end{center}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Two Different Generative Models Explored}
+
+We have talked about the Naive Bayes classifier in the context of a simple example, we now apply or adapt this framework to the context of text data. We will work with two different \emph{generative} models for textual data.
+
+\begin{enumerate}
+
+\item Bernoulli document model
+
+
+
+\item Multinomial document model
+
+\end{enumerate}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{From Text to a Quantitative Matrix}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/documents.png}
+\includegraphics[scale=.5]<2>{figures/wordcloud.png}
+\includegraphics[scale=.5]<3>{figures/term-document-incidence.png}
+\includegraphics[scale=.5]<4>{figures/term-document-count.png}
+
+\end{array}$
+\end{center}
+\end{figure}
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model}
+
+\begin{itemize}
+
+\item a document is represented by a feature vector with binary elements taking value 1 if the corresponding word is present in the document and 0 if the word is not present.
+
+\item Let $p$ be the number of words considered, an individual document $D_i$ can be represented as a binary vector $\mathbf{d}_{i} = (b_{i1},..., b_{ip})$.
+
+\item Then we can represent a collection of $n$ documents as a \textbf{term document incidence matrix}.
+
+$$ \mathbf{D} =  \begin{pmatrix}
+b_{11} & ... &  b_{1p} \\
+b_{21} & ... &  b_{2p} \\
+... \\
+b_{n1} & ... &  b_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+1 & 0 & 0 &... & 1 \\
+0 & 0 & 1 &... & 1 \\
+1 & 1 & 0 & ... & 0 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model}
+
+\begin{itemize}
+
+\item Let $P(w_j |Y=k)$ be the probability of word $w_j$ occurring in a document of class $k$; the probability of $w_j$ not occurring in a document of this class is given by $(1-P(w_j |Y=k))$. 
+
+\item We can write the document likelihood $P(D_i | k)$ in terms of the individual word likelihoods $P(w_j |Y=k)$:
+
+$$P(D_i|Y=k) = \prod_{j=1}^{p} P((b_{i1},...,b_{ip})|k)$$
+
+$$ \overbrace{=}^{\text{NB Assumption}} \prod_{j=1}^{p}{b_{ij} P(w_j|k) + (1-b_{ij}) (1-P(w_j|k))}$$
+
+
+\item  If word $w_j$  is present, then $b_{ij} = 1$  with probability $P(w_j|Y=k)$ 
+
+\item  We can imagine this as a model for generating document feature vectors of class $y$, where the document  feature vector is modelled as a collection of $p$ weighted coin tosses, the $j$-th having a probability of success equal to $P(w_j|k)$ 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Bernoulli Naive Bayes Classifier}
+
+\begin{itemize}
+
+\item The parameters of the likelihoods are the probabilities of each word given the document class $P(w_j |Y=k)$; the model is also parameterised by the prior probabilities, $P(Y=ks)$. 
+
+\item Using a labeled training set of documents we can estimate these parameters. Let $n_k$ be the number of documents of class $Y=k$ in which $w_j$ is observed
+
+\item Let $N$ be the total number of documents, $N_k$ be the total number of documents of class $k$. Then we can estimate the parameters of the word likelihoods as, for all $j = 1,...,p$ and all $k \in \mathcal{C}$.
+
+$$\hat{P}(w_j|k) = \frac{n_k}{N_k}$$
+
+$$\hat{P}(k) = \frac{N_k}{N} $$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Bernoulli Naive Bayes Classifier}
+
+\begin{algorithm}[Training a Bernoulli Naive Bayes Classifier]
+
+\begin{enumerate}
+\item  Define the vocabulary $V$, where $p$ is the number of words in the vocabulary, i.e. the number of columns.
+
+\item Count the following in the training set:
+\begin{itemize}
+\item $N$ the total number of documents
+\item $N_k$ the number of documents labelled with class $k$,for $k=1,...,|\mathcal{C}|$
+
+\item $n_k(w_j)$  the number of documents of class $Y = k$ containing word $w_j$ for every class and for each word in the vocabulary.
+\end{itemize}
+\item Estimate the likelihoods $P(w_j | Y = k)$ using 
+
+$$\hat{P}(w_j |Y=k)= \frac{n_k(w_j)}{N_k}$$ 
+
+\item Estimate the priors $P(Y = k)$ using 
+
+$$ \hat{P}(Y=k) = \frac{N_k}{N} $$
+\end{enumerate}
+\end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Class Assignment using a Bernoulli Naive Bayes Classifier}
+
+Once you have trained the Bernoulli Naive Bayes Classifier, you can compute posterior probabilites for a document $D_i = (b_{i1},... b_{ip})$ using
+
+$$P(Y=k|D_i) =P(Y=k|(b_{i1},...,b_{ip}))  \propto \prod_{j=1}^{p} P((b_{i1},...,b_{ip})|k) P(k)$$
+ 
+$$ \overbrace{=}^{\text{NB Assumption}}  P(k) [\prod_{j=1}^{p}{b_{ij} P(w_j|k) + (1-b_{ij}) (1-P(w_j|k))}]$$
+
+for each class $k=1,...,|\mathcal{C}|$ and assign the document to class $k$ that yields the largest posterior probability.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model Use}
+
+\begin{itemize}
+
+\item Document model: a document can be thought of as being generated from a multidimensional Bernoulli distribution: the probability of a word being present can be thought of as a (weighted) coin flip with probability $P(w_j |k)$.
+
+\item Document representation: binary vector, elements indicating presence or absence of a word.
+
+\item Multiple occurrences of words: ignored.
+
+\item Behaviour with document length:  best for short documents.
+
+\item Behaviour with very common stopwords (such as "the", "a", "here"):  since stopwords are present in almost every document, $P("the" | k) = 1.0$.
+
+\item Behavior with irrelevant features?
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multi-Nomial Distribution}
+
+\begin{itemize}
+
+\item We now introduce another document model, which explicitly takes into account the number of words, so documents are represented as a collection of word counts.
+
+\item The most common distribution to assume is a multinomial distribution, which is a generalization of a Bernoulli distribution.
+
+\item Using all the letters, how many distinct sequences can you make from the word ``Mississippi''? There are 11 letters to permute, but ``i'' and ``s'' occur four times and ``p'' twice.
+
+\item If each letter was distinct, you would have 11 choices for first, 10 for second, 9 for third, ... so a total of 11!.
+
+\item However, 4! permutations are identical as the letter ``i'' is repeated four times; similarly, 4! for ``s'' and 2! for ``p'' and 1! for ``m''.
+
+\item So the total number of distinct arrangements of the letters that form the word ``Mississippi" is:
+
+$$\frac{11!}{4! 4! 2! 1!} = 34650$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Multi-Nomial Distribution}
+
+\begin{itemize}
+
+\item Generally if we have $n$ items of $p$ types (letters or words), with $n_1$ of type 1, $n_2$ of type 2 and $n_p$ of type $p$ 
+
+$$n_1 + ... + n_p = n $$
+
+\item then the number of distinct permutations is given by:
+
+$$\frac{n!}{n_1! n_2 ! ... n_p!}$$
+
+\item  Now suppose a population contains items of $p \geq 2$ different types and that the proportion of items that are of type $j$ is $p_j$ for $(j=1,...,p)$, with
+
+$$\sum_{j=1}^p p_j = 1$$
+
+\item  Suppose $n$ items are drawn at random (with replacement) and let $x_j$ denote the number of items of type $j$.
+
+\item The vector $\mathbf{x}=(x_1,...,x_p)$ has a multinomial distribution with parameters $n$ and $p_1,...,p_p$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item In the multi nomial language model, you model documents as being collections of word counts.
+
+\item Let $p$ be the number of words considered, an individual document $D_i$ can be represented as a vector $\mathbf{x}_{i} = (x_{i1},..., x_{ip})$.
+
+\item $n_i = \sum_{j=1}^p x_{ij}$ is the total number of words of document $D_i$. 
+\item Then we can represent a collection of $n$ documents as a \textbf{term document count matrix}.
+
+$$ \mathbf{X} =  \begin{pmatrix}
+x_{11} & ... &  x_{1p} \\
+x_{21} & ... &  x_{2p} \\
+... \\
+x_{n1} & ... &  x_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+3 & 0 & 0 &... & 1 \\
+0 & 0 & 5 &... & 1 \\
+7 & 2 & 1 & ... & 3 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item In the Multi Nomial language model, we assume that word counts $x_{ij}$ are generated following a multi nomial distribution.
+
+\item Multi-nomial distribution is a generalization of the Binomial distribution.
+
+\item Let $x_i$ indicate the number of times outcome number $i$ is observed over the $n$ trials, the vector $x_i = (x_{i1}, ..., x_{ip})$ follows a multinomial distribution with parameters $n$ and $p$, where $p = (p_1, ..., p_p)$
+
+\begin{align*}
+P(X_{1} = x_{i1}\cap...\cap X_p = x_{ip})  =  \displaystyle {n! \over x_{i1}!\cdots x_{ip}!}p_1^{x_{i1}}\cdots p_p^{x_{ip}}
+\end{align*}
+
+For example:
+$$ \mathbf{X} =  \begin{pmatrix}
+x_{11} & ... &  x_{1p} \\
+x_{21} & ... &  x_{2p} \\
+... \\
+x_{n1} & ... &  x_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+3 & 0 & 0 &... & 1 \\
+0 & 0 & 5 &... & 1 \\
+7 & 2 & 1 & ... & 3 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item We can now write the joint probability of observing a document $D_i = (x_{i1},...,x_{ip})$ of class $k$ as:
+
+$$P(D_i | Y=k) = P((x_{i1},...,x_{ip}) | k) = \frac{n_i!}{\prod_{j=1}^{p}{x_{ij}!}} \prod_{j=1}^p{P(w_j|k)^{x_{ij}}} $$
+
+$$ \propto  \prod_{j=1}^p{P(w_j|k)^{x_{ij}}}$$
+
+\item $n_i = \sum_{j=1}^{p} x_{ij}$ is the total number of words of document $i$.
+\item So we need to estimate $P(w_j|k)$ from our training data.
+
+\item We generally ignore the scaling factor $\frac{n_i!}{\prod_{j=1}^{p}{x_{ij}!}}$, because it is not a function of the class $k$! So we can savely ignore it, as it will not affect the optimal class assignment.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multinomial Model and Estimation of Likelihoods}
+\begin{itemize}
+
+\item For the Multinomial distribution we need to estimates of the vector of $P(w_j|k)$ for all $j=1,...,p$ and all $k \in \mathcal{C}$. 
+
+\item I.e. there is a different vector $\mathbf{p} = (p_1, ..., p_p)$ for every possible class $k$.
+
+\item The maximum likelihood estimator turns out to be slightly more tricky:
+
+$$P(w_j |k) = \frac{\text{No. of times word } w_j \text{ appears in all documents of class }  k}{\text{Total No. of words in all documents of class } k}$$
+
+\item A more formal notation is
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+where $z_{ik}$ is a dummy variable that is 1, in case document $i$ has class $k$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Multinomial Naive Bayes Classifier}
+
+\begin{algorithm}[Training a Multinomial Naive Bayes Classifier]
+
+\begin{enumerate}
+\item  Define the vocabulary $V$, where $p$ is the number of words in the vocabulary, i.e. the number of columns.
+
+\item Count the following in the training set:
+\begin{itemize}
+\item $N$ the total number of documents
+\item $N_k$ the number of documents labelled with class $k$,for $k=1,...,|\mathcal{C}|$
+
+\item $x_{ij}$ the frequency of word $w_j$ in document $D_i$, computed for every word $w_j$ in $V$.
+
+\end{itemize}
+\item Estimate the likelihoods $P(w_j | Y = k)$ using 
+
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+\item Estimate the priors $P(Y = k)$ using 
+
+$$ \hat{P}(Y=k) = \frac{N_k}{N} $$
+\end{enumerate}
+\end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Class Assignment using a Multinomial Naive Bayes Classifier}
+
+We compute the posterior probability of a document $D_i$, represented as a word count vector $\mathbf{x_i}$, belonging to some class $k$ as:
+
+$$P(Y=k | D_i) = P(Y=k | \mathbf{x_i})  \overbrace{\propto}^{\text{Bayes Law}} P((x_{i1},...,x_{ip})|k) P(k)$$ 
+$$ \overbrace{\propto}^{\text{NB Assumption}} P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$ 
+
+Note that, unlike the Bernoulli model, words that do not occur in a document (i.e., for which $x_{ij} = 0$) do not affect the probability  (since $p^0 = 1$). 
+
+Thus we can write the posterior probability in terms of the set of words $U$ that appear in document $i$, i.e. the set of words $U$ defined by $ x_{ij}>0$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+Suppose you want to build a sentiment classifier for feedbacks received on a website. You have the following training data. \bigskip
+
+
+[+] "very good site"
+
+[+] "nothing very happy so far" 
+
+[+] "nothing site is excellent"
+
+[-] "free postage throughout" 
+
+[-] "lower the price" 
+
+[-] "lower price not enough gift deals"
+
+[-] "dont bring this box up"
+
+[-] "dont have a pop up box"
+
+\smallskip
+
+So we observe 8 feedbacks, 3 are positive while 5 are negative. Lets represent these documents as a term document matrix.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<naivebayesexample, echo=FALSE, message=FALSE>>=
+textmat <-
+function (vec=A) {
+        dummy <- mapply(wordfreq, vec, 1:length(vec), SIMPLIFY=F)
+        names(dummy) <- NULL
+        dtm <- t(xtabs(Freq ~ ., data = do.call("rbind", dummy)))
+        dtm
+}
+
+
+
+wordfreq <-
+function(txt, EF=1, stem=FALSE) {
+  txt <- unlist(strsplit(txt, " ", fixed = TRUE))
+  
+  if(stem==TRUE) {
+  txt <- wordStem(txt)
+  
+  }
+  #if (!is.null(stopwords)) 
+  #       txt = txt[!txt %in% stopwords]
+  tab <- sort(table(txt), decreasing = TRUE)
+  return(data.frame(docs=EF, terms = names(tab), Freq = as.numeric(tab), row.names = NULL))
+}
+
+
+DF<-data.table(data.frame(feedback=c("very good site","nothing very happy so far","nothing site is excellent","free postage throughout" ,"lower the price","lower price not enough gift deals","dont bring this box up", "dont have a pop up box"), category=c("positive","positive","positive","negative","negative","negative","negative","negative")))
+DF$docid<-1:nrow(DF)
+
+DF$feedback<-as.character(DF$feedback)
+
+POS<-wordfreq(DF[category=="positive"]$feedback)[, 2:3]
+setnames(POS, "Freq", "CountPositive")
+
+NEG<-wordfreq(DF[category=="negative"]$feedback)[, 2:3]
+setnames(NEG, "Freq", "CountNegative")
+WF<-wordfreq(DF$feedback)[, 2:3]
+WF<-join(join(WF, NEG),POS)
+WF<-data.table(WF)
+WF[is.na(CountNegative)]$CountNegative<-0
+WF[is.na(CountPositive)]$CountPositive<-0
+
+TDM<-textmat(DF$feedback)
+@
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+<<naivebayestdm, size="tiny">>=
+TDM
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+Given the training data, we can easily get the priors:
+
+$$\hat{P}(+) = 3/8$$
+$$\hat{P}(-) = 5/8$$
+
+In total, we have 27 different words. We now need to compute a total of 27 x 2 class conditional probabilities $P(w_j|k)$.
+
+$$P(w_j |k) = \frac{\text{No. of times word } w_j \text{ appears in all documents of class }  k}{\text{Total No. of words in all documents of class } k}$$
+
+In order to compute these class conditional likelihoods, we need a tabulation of words.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+<<naivebayeswf, size="tiny">>=
+WF
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Laplace Smoothing}
+When we estimate the class conditional likelihoods, we may run into the problem that for some class $k$ and some word feature $w_j$, $\hat{P}(w_j|k)=0$. This is problematic, since we compute:
+
+$$P(Y=k | D_i)  \propto P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$
+
+In case in the training data, some estimate $\hat{P}(w_j|k)=0$, but a word appears in the prediction document $D_i$, you would end up with a probability of $P(Y=k | D_i) = 0$.  
+
+Our estimate
+
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+underestimates the likelihoods of words that do not occur in the training data. Even if word $w$ is not observed for class $Y=k$ in the training set, we would still like $P(w | Y=k) > 0$. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Laplace Smoothing}
+
+Since all the $\sum_{j=1}^p P(w_j|k) = 1$, if unobserved words have underestimated probabilities, then those words that are observed must have overestimated probabilities. \smallskip
+Therefore, one way to alleviate the problem is to remove a small amount of probability allocated to observed events and distribute this across the unobserved events. \smallskip 
+A simple way to do this, sometimes called Laplace’s law of succession or add one smoothing, adds a count of one to each word type. 
+
+$$\hat{P}(w_j |Y=k)= \frac{1 + \sum_{i=1}^{N} x_{ij} z_{ik}}{p + \sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+A word $\tilde{j}$ that does not appear in some class $k$ now gets an estimate of
+
+$$\hat{P}(w_{\tilde{j}} |k) = \frac{1}{p + \sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{A Worked Example}
+
+<<naivebayeswfshare, size="tiny">>=
+WF$CountNegative<-WF$CountNegative+1
+WF$CountPositive<-WF$CountPositive+1
+
+WF$wjneg <- WF$CountNegative/sum(WF$CountNegative)
+WF$wjpos <- WF$CountPositive/sum(WF$CountPositive)
+
+WF
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Scoring a document}
+Compute
+
+$$P(Y=k | D_i)  \propto  P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$ 
+
+for document "you dont have good deals".
+
+<<naivebayesscore, size="tiny">>=
+doc<-"you dont have good deals"
+docwords<-wordfreq(doc)
+setnames(docwords, "Freq", "xij")
+
+WF.score<-join(WF,docwords)[!is.na(xij)]
+
+WF.score
+
+WF.score[, list(neg=wjneg^xij, pos= wjpos^xij)][, list(neg=prod(neg), pos=prod(neg))] * c(5/8,3/8)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Typically transform to logs}
+
+As with other likelihood methods, we generally transform everything into log space.
+
+I.e. we compute posterior probabilites as a weighted sum of the logs of individual word scores: 
+
+$$log(P(Y=k | D_i))  \propto  P(k) +  \sum_{j=1}^{p} x_{ij} logP(w_j| k) $$ 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pre defined vocabularies}
+\begin{itemize}
+
+\item In some situations, building an own vocabulary to be used for classification tasks based on text data may be impossible due to a lack of training data or simply unncesscary.  
+
+\item Often tmimes its possible to work with \emph{sentiment lexicons}, lists of words that are pre- annotated with positive or negative sentiment. 
+
+\item Four popular lexicons are the General Inquirer (Stone et al., 1966), LIWC (Pennebaker et al., 2007), the opinion lexicon LIWC of Hu and Liu (2004) and the MPQA Subjectivity Lexicon (Wilson et al., 2005).
+
+\item For example the MPQA subjectivity lexicon has 6885 words, 2718 positive and 4912 negative, each marked for whether are strongly or weakly biased. 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{General Implications of the ``Naive'' Bayes Assumption}
+\begin{itemize}
+
+\item Word order does not matter: whether the word ``love'' appears at the beginning of a sentence or at the end is ignored.
+
+\item Words are independently drawn, so we ignore multi word fragments such as negations ``not good''. 
+
+\item Multinomial does not ignore fact that words appearing multiple times may be indicative.
+
+\item Typically, one would prefer Bernoulli language model for short documents, whereas Multinomial model is adequate for longer texts.
+
+\item Nevertheless, despite this stark assumption, Naive Bayes performs very well in a lot of cases.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\section{Naive Bayes illustration, validation, learning curve}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Using Machines to (help) Code Conflict Data}
+\begin{itemize}
+
+\item In my paper Social Insurance and Conflict: Evidence from India, I rely on several machine learning methods to automatically construct a conflict data set.
+
+\item \textbf{Problem}: Human coding is subject to subjectivity bias, not every person would code some piece of text in the same way. This is a problem due to reduced \emph{transparency}.
+
+\item \textbf{Solution}: Supervised Machine learning algorithms only require a single training set to be coded by humans, the training data - at some level - is the only input.
+
+\item My paper constructs a conflict dataset, using various \textbf{Natural Language Processing} methods, including Naive Bayes classifiers.
+
+\item The raw data consists of 50,000 newspaper clippings about events in South Asia, which needed to be converted into a dataset providing the number of conflict events per district.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leveraging the cloud to build a training data set}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.3]<1>{figures/crowdflower-crowdsourcing-site.jpg}
+\includegraphics[scale=.3]<2>{figures/crowdflower-jobs.png}
+\includegraphics[scale=.3]<3>{figures/crowdflower-task.png}
+\includegraphics[scale=.3]<4>{figures/crowdworker.png}
+
+\end{array}$
+\end{center}
+\end{figure}
+\url{http://www.crowdflower.com}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<naivebayesconflict, echo=FALSE, message=FALSE>>=
+library(RTextTools)
+library(data.table)
+library(plyr)
+library(lubridate)
+library(e1071)
+
+CLASSIFIER<-data.table(read.csv(file="/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/classification-tree.csv")) 
+
+
+load("/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/TTIM-lab2.rdata")
+
+TTIM<-join(TTIM,CLASSIFIER)
+ 
+ 
+TTIM<- TTIM[objectcleanpp!=""][label1 %in% c("civilian","security","terrorist",NA)]
+TTIM$label1<-as.character(TTIM$label1)
+TTIM$label1<-as.factor(TTIM$label1)
+
+TTIM<-TTIM[!is.na(label1)]
+
+@
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{What do we want to classify?}
+
+<<naivebayesconflictsparse, echo=TRUE, message=FALSE,size="tiny">>=
+TTIM[100:120]$objectclean
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with RTextTools and e1071 package}
+<<naivebayesconflictintermediatesparse, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+L1 <- create_matrix(c(TTIM[,paste(objectcleanpp,sep=" ")]),
+                    language="english",stemWords=FALSE)
+##CREATION OF NON SPARSE MATRIX
+DTM<-as.matrix(L1)
+
+dim(DTM)
+##changing column names
+colnames(DTM) <- paste("stem_", colnames(DTM),sep="")
+
+##turn this into a document-term-incidence matrix
+DTM<-apply(DTM, 2, function(x) as.factor(x>0))
+
+TTIM2<-cbind(TTIM,DTM)
+TTIM2$label1<-as.factor(TTIM2$label1)
+ 
+TRAINING<-TTIM2[!is.na(label1)]
+set.seed(2016)
+
+VALIDATION<-sample(1:nrow(TRAINING), 200)
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Obtaining a Naive Bayes Classifier}
+
+<<naivebayesfirstclassifier, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+
+model <- naiveBayes(label1 ~ stem_terrorist  , data = TRAINING[-VALIDATION])
+
+model
+
+@
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Interpreting Output}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/naive-bayes-output.png}
+\includegraphics[scale=.5]<2>{figures/naive-bayes-output-1.png}
+\includegraphics[scale=.5]<3>{figures/naive-bayes-output-2.png}
+\end{array}$
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with quanteda package}
+<<naivebayesquanteda, echo=TRUE, message=FALSE,size="tiny">>=
+##just look at one word feature
+library(quanteda)
+TTIM<-TTIM[order(sid)]
+set.seed(06022017)
+##make sure TTIM has (same) random order
+TTIM<-TTIM[sample(1:nrow(TTIM), nrow(TTIM))]  
+TTIM[, label1 := factor(label1)]
+L1 <- corpus(c(TTIM[,paste(objectcleanpp,sep=" ")]))
+L1.maindfm <- dfm(L1)
+
+##same dimensionality
+dim(L1.maindfm)
+
+trainingclass <- TTIM$label1
+#first 200 obs for validation set
+trainingclass[1:200]<-NA
+NB<- textmodel(L1.maindfm, trainingclass, model = "NB")
+
+##CREATION OF NON SPARSE MATRIX
+pred<-predict(NB, newdata = L1.maindfm[1:200, ])
+
+#confusion table
+table(pred$nb.predicted,TTIM[1:200]$label1 )
+sum(diag(3) * table(pred$nb.predicted,TTIM[1:200]$label1 ))/200
+##accuracy around 87%
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with quanteda package}
+<<naivebayesquantedainspect, echo=TRUE, message=FALSE,size="tiny">>=
+##class conditional posterior probabilities
+t(NB$PcGw)[1:15,]
+NB$Pc
+##current quanteda implementation has a bug 
+NB<- textmodel_NB(L1.maindfm, trainingclass,prior = "docfreq")
+NB$Pc
+prop.table(table(trainingclass))
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli vs Multinomial}
+<<naivebayesquantedadistribution, echo=TRUE, message=FALSE,size="tiny">>=
+NB<- textmodel_NB(L1.maindfm, trainingclass,distribution="Bernoulli",smooth=1)
+pred<-predict(NB, newdata = L1.maindfm[1:200, ])
+#confusion table
+table(pred$nb.predicted,TTIM[1:200]$label1 )
+sum(diag(3) * table(pred$nb.predicted,TTIM[1:200]$label1 ))/200
+
+NB<- textmodel_NB(L1.maindfm, trainingclass,distribution="multinomial",smooth=1)
+pred<-predict(NB, newdata = L1.maindfm[1:200, ])
+#confusion table
+table(pred$nb.predicted,TTIM[1:200]$label1 )
+sum(diag(3) * table(pred$nb.predicted,TTIM[1:200]$label1 ))/200
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias vs Variance Trade-Off}
+There are two aspects of the performance of a classifier trained on a finite sample size $n$:
+
+\begin{enumerate}
+
+\item \textbf{bias}, i.e. on average a classifier trained on a finite training sample is worse than the classifier trained with larger number of training cases
+
+\item \textbf{variance} different training sets may give quite different model performance. Even with few cases, you may be lucky and get good results. Or you have bad luck and get a really bad classifier.
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sensitivity of model fit to specific training vs validation data set used}
+<<naivebayesconflictshuffle, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+TTIM<-TTIM[order(sid)]
+set.seed(06022017)
+
+ACC<-NULL
+for(i in 1:50) {
+##randomly reorder
+TTIM<-TTIM[sample(1:nrow(TTIM), nrow(TTIM))]  
+  
+L1 <- corpus(c(TTIM[,paste(objectcleanpp,sep=" ")]))
+L1.dfm <- dfm(L1)
+
+trainingclass <- factor(TTIM$label1, ordered = TRUE)
+
+#first 200 obs for validation set
+trainingclass[1:200]<-NA
+
+NB<- textmodel(L1.dfm, trainingclass, model = "NB")
+##CREATION OF NON SPARSE MATRIX
+
+pred<-predict(NB, newdata = L1.dfm[1:200, ])
+
+#confusion table
+ACC<-c(ACC,sum(diag(3) * table(pred$nb.predicted,TTIM[1:200]$label1 ))/200)
+
+}   
+
+boxplot(ACC)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sensitivity of model fit to specific training vs validation data set used}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/knitr-naivebayesconflictshuffle-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building a training data set}
+
+\begin{itemize}
+
+\item Feature vocabularies often exist: profanity, sentiment lexicons, etc.
+
+\item Biggest impediment is often the lack of a training data set.
+
+\item For most our applications, it may involve you actually hand coding some observations.
+
+\item But how big should the training data set be?
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Larger Training data set? Learning curves}
+
+A model's "learning curve",  gives the (average) model performance as function of the training sample size. As you can guess, learning curves depend on a lot of things, e.g.
+
+
+\begin{itemize}
+
+\item  classification method
+
+\item complexity of the classifier
+
+\item how well the classes are separated.
+
+\end{itemize}
+
+How do things look in this particular context? We can evaluate the learning curve by simply plotting out the performance of the model as we expand the size of the training set.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{"Estimating" the Learning Curve}
+<<naivebayeslearningcurve, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+TTIM<-TTIM[order(sid)]
+set.seed(06022017)
+##make sure TTIM has random order
+TTIM<-TTIM[sample(1:nrow(TTIM), nrow(TTIM))]  
+
+LEARNING<-NULL
+for(i in seq(25,1200, 25)) {
+##randomly reorder
+
+TEMP<-TTIM[c(1:200,201:(200+i))]
+  
+L1 <- corpus(TEMP[,paste(objectcleanpp,sep=" ")])
+L1.dfm <- dfm(L1)
+
+trainingclass <- factor(TEMP$label1, ordered = TRUE)
+
+#first 200 obs for validation set
+trainingclass[1:200]<-NA
+
+NB<- textmodel(L1.dfm, trainingclass, model = "NB")
+##CREATION OF NON SPARSE MATRIX
+
+pred<-predict(NB, newdata = L1.dfm[1:200, ])
+
+#confusion table
+LEARNING<-rbind(LEARNING,data.frame(training=i, 
+                                    accuracy=sum(diag(3) * table(pred$nb.predicted,TTIM[1:200]$label1 ))/200))
+
+}   
+
+plot(LEARNING, type="l")
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{"Estimating" the Learning Curve}
+
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/knitr-naivebayeslearningcurve-1.pdf}
+\end{center}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Performance between Logistic Regression and Naive Bayes}
+
+\begin{itemize}
+
+\item In most cases, we obtain multiple different classifiers and study how the performance of either of them differs.
+
+\item Last week, we have applied Maximum Entropy (Logistic regression) to this data.
+
+\item Logistic regression may be more vulnerable to the inclusion of irrelevant features (higher variance)
+
+\item Do we see this play out in the actual data?
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MaxEnt and NaiveBayes produce similar results}
+<<maxentsample3, echo=TRUE, cache=FALSE, message=FALSE,size="tiny">>=
+library(tm)
+library(RTextTools)
+TTIM<-TTIM[order(sid)]
+set.seed(06022017)
+##make sure TTIM has (same) random order
+TTIM<-TTIM[sample(1:nrow(TTIM), nrow(TTIM))]  
+TTIM$validation<- 0
+TTIM[1:200]$validation<-1
+##we are not removing stopwords or doing anything to be comparable to NaiveBayes
+DOC<-create_matrix(TTIM[,paste(objectcleanpp,sep=" ")],language="english")
+dim(DOC)
+##create container does not like factors
+DOCCONT<-create_container(DOC,as.numeric(as.factor(TTIM$label1)), trainSize=201:1200,
+                          testSize=1:200, virgin=TRUE)
+MOD <- train_models(DOCCONT, algorithms=c("MAXENT"))
+RES <- classify_models(DOCCONT, MOD)
+analytics <- create_analytics(DOCCONT, RES)
+res<-data.table(analytics@document_summary)
+VALID<-cbind(TTIM[validation==1],res)
+#confusion matrix
+table(VALID$label1,factor(VALID$MAXENTROPY_LABEL, labels=levels(VALID$label1)))
+sum(diag(3) *table(VALID$MAXENTROPY_LABEL,VALID$label1))/200
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<brexitexample, echo=FALSE, cache=FALSE, message=FALSE,size="tiny", out.width='2in'>>=
+library(data.table)
+library(haven)
+DTA<-data.table(read_dta(file="/Users/thiemo/Dropbox/Research/Blog/immigration/data/bes_f2f_original_v3.0.dta"))
+DTA[, leaveeu := "remain"]
+DTA[p02==1, leaveeu := "leave"]
+DTA[p02<0 |p02>2, leaveeu := NA ]
+DTA[, leaveeu := as.factor(leaveeu)]
+DTA[, toomanyimmigrants := as.numeric(j05==1)]
+DTA[j05<0 |j05>2, toomanyimmigrants := NA ]
+DTA<-DTA[!is.na(leaveeu) & !is.na(toomanyimmigrants)]    
+#reshuffle
+DTA<-DTA[sample(1:nrow(DTA), nrow(DTA))]
+library(quanteda)
+C<-corpus(DTA$A1)
+##defining features that are informative about leaveeu decision using e.g. document scaling method
+docnames(C)<-DTA$finalserialno
+C.dfm<-dfm(C, tolower = TRUE, stem = TRUE, removeNumbers=TRUE,removePunct=TRUE, remove = stopwords("english"))
+
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/brexit-plot.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+<<brexitissue, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+table(DTA[ ,list(toomanyimmigrants, leaveeu)])
+@
+Did not achieve good results using logistic regression. How do we do with Naive Bayes?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+<<naivebayesbrexit0, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+docnames(C)<-DTA$finalserialno
+C.dfm<-dfm(C, tolower = TRUE, stem = TRUE, removeNumbers=TRUE,removePunct=TRUE, remove = stopwords("english"))
+
+validation <- factor(DTA$leaveeu, ordered = TRUE)
+
+#first 200 obs for validation set
+validation[1:200]<-NA
+
+NB<- textmodel(C.dfm, validation, model = "NB",distribution="Bernoulli")
+##CREATION OF NON SPARSE MATRIX
+
+pred<-predict(NB, newdata = C.dfm[1:200, ])
+
+##much better...
+table("prediction"=pred$nb.predicted,"data"=DTA[1:200]$leaveeu)
+
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+<<naivebayesbrexit1, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+docnames(C)<-DTA$finalserialno
+C.dfm<-dfm(C, tolower = TRUE, stem = TRUE, removeNumbers=TRUE,removePunct=TRUE, remove = stopwords("english"))
+
+validation <- factor(DTA$leaveeu, ordered = TRUE)
+
+#first 200 obs for validation set
+validation[1:200]<-NA
+
+NB<- textmodel(C.dfm, validation, model = "NB",distribution="Bernoulli")
+##CREATION OF NON SPARSE MATRIX
+
+pred<-predict(NB, newdata = C.dfm[1:200, ])
+
+##much better...
+table("prediction"=pred$nb.predicted,"data"=DTA[1:200]$leaveeu)
+
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looking at class posteriors $P(C|w)$}
+<<naivebayesbrexit2, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+
+
+t(NB$PcGw)[1:20,]
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looking at class posteriors $P(C|w)$}
+<<naivebayesbrexit3, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+
+
+t(NB$PcGw)[1:20,]
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Looking at class posteriors $P(C|w)$}
+<<naivebayesbrexit4, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+
+pred
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}
+

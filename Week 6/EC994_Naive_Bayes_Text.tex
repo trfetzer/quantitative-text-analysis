@@ -1,0 +1,1848 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Naive Bayes Classifiers (II)} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sentiment Analysis as a use case}
+\begin{itemize}
+
+\item We illustrate this with a standard example for sentiment analysis; exit feedback surveys.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/exit-feedback.png}
+\includegraphics[scale=.4]<2>{figures/exit-feedback-2.png} \\
+\end{array}$
+\end{center}
+\end{figure}
+
+\item Often times, you want to target your attention to negative (but not profane) feedback, as the criticism is what contains information on how to improve.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some sample exit feedback}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.3]<1>{figures/positive-feedback.png}
+\includegraphics[scale=.3]<2>{figures/negative-feedback.png} \\
+\end{array}$
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\section{Text as Data}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Text as Data}
+\begin{itemize}
+
+\item Text is a huge and valuable data resource, that is currently still underexploited in the quantitative social sciences. \bigskip
+
+\item In this section, we will introduce some terminology around treating Text as Data and we will then apply our Naive Bayes classifier to text data. \bigskip
+
+\item This is where Naive Bayes can really shine.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Key feature of quantitative text analysis}
+\begin{enumerate}
+
+\item \emph{Selecting and conversion}: Defining a corpus, making it machine readable
+ and defining unit of analysis
+
+\item \emph{Defining and selecting features}: These can take a variety of forms, including tokens, equivalence classes of tokens (dictionaries), selected phrases, human-coded segments (of possibily variable length), linguistic features, and more.
+
+\item Conversion of textual features into a \emph{quantitative matrix}
+
+\item A quantitative or statistical procedure to extract information
+from the quantitative matrix
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A stochastic generative view of text data}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]{figures/stochastic-view-text.png}
+\end{array}$
+\end{center}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Two Different Generative Models Explored}
+
+We have talked about the Naive Bayes classifier in the context of a simple example, we now apply or adapt this framework to the context of text data. We will work with two different \emph{generative} models for textual data.
+
+\begin{enumerate}
+
+\item Bernoulli document model
+
+
+
+\item Multinomial document model
+
+\end{enumerate}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{From Text to a Quantitative Matrix}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/documents.png}
+\includegraphics[scale=.5]<2>{figures/wordcloud.png}
+\includegraphics[scale=.5]<3>{figures/term-document-incidence.png}
+\includegraphics[scale=.5]<4>{figures/term-document-count.png}
+
+\end{array}$
+\end{center}
+\end{figure}
+
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model}
+
+\begin{itemize}
+
+\item a document is represented by a feature vector with binary elements taking value 1 if the corresponding word is present in the document and 0 if the word is not present.
+
+\item Let $p$ be the number of words considered, an individual document $D_i$ can be represented as a binary vector $\mathbf{d}_{i} = (b_{i1},..., b_{ip})$.
+
+\item Then we can represent a collection of $n$ documents as a \textbf{term document incidence matrix}.
+
+$$ \mathbf{D} =  \begin{pmatrix}
+b_{11} & ... &  b_{1p} \\
+b_{21} & ... &  b_{2p} \\
+... \\
+b_{n1} & ... &  b_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+1 & 0 & 0 &... & 1 \\
+0 & 0 & 1 &... & 1 \\
+1 & 1 & 0 & ... & 0 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model}
+
+\begin{itemize}
+
+\item Let $P(w_j |Y=k)$ be the probability of word $w_j$ occurring in a document of class $k$; the probability of $w_j$ not occurring in a document of this class is given by $(1-P(w_j |Y=k))$. 
+
+\item We can write the document likelihood $P(D_i | k)$ in terms of the individual word likelihoods $P(w_j |Y=k)$:
+
+$$P(D_i|Y=k) = \prod_{j=1}^{p} P((b_{i1},...,b_{ip})|k)$$
+
+$$ \overbrace{=}^{\text{NB Assumption}} \prod_{j=1}^{p}{b_{ij} P(w_j|k) + (1-b_{ij}) (1-P(w_j|k))}$$
+
+
+\item  If word $w_j$  is present, then $b_{ij} = 1$  with probability $P(w_j|Y=k)$ 
+
+\item  We can imagine this as a model for generating document feature vectors of class $y$, where the document  feature vector is modelled as a collection of $p$ weighted coin tosses, the $j$-th having a probability of success equal to $P(w_j|k)$ 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Bernoulli Naive Bayes Classifier}
+
+\begin{itemize}
+
+\item The parameters of the likelihoods are the probabilities of each word given the document class $P(w_j |Y=k)$; the model is also parameterised by the prior probabilities, $P(Y=ks)$. 
+
+\item Using a labeled training set of documents we can estimate these parameters. Let $n_k$ be the number of documents of class $Y=k$ in which $w_j$ is observed
+
+\item Let $N$ be the total number of documents, $N_k$ be the total number of documents of class $k$. Then we can estimate the parameters of the word likelihoods as, for all $j = 1,...,p$ and all $k \in \mathcal{C}$.
+
+$$\hat{P}(w_j|k) = \frac{n_k}{N_k}$$
+
+$$\hat{P}(k) = \frac{N_k}{N} $$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Bernoulli Naive Bayes Classifier}
+
+\begin{algorithm}[Training a Bernoulli Naive Bayes Classifier]
+
+\begin{enumerate}
+\item  Define the vocabulary $V$, where $p$ is the number of words in the vocabulary, i.e. the number of columns.
+
+\item Count the following in the training set:
+\begin{itemize}
+\item $N$ the total number of documents
+\item $N_k$ the number of documents labelled with class $k$,for $k=1,...,|\mathcal{C}|$
+
+\item $n_k(w_j)$  the number of documents of class $Y = k$ containing word $w_j$ for every class and for each word in the vocabulary.
+\end{itemize}
+\item Estimate the likelihoods $P(w_j | Y = k)$ using 
+
+$$\hat{P}(w_j |Y=k)= \frac{n_k(w_j)}{N_k}$$ 
+
+\item Estimate the priors $P(Y = k)$ using 
+
+$$ \hat{P}(Y=k) = \frac{N_k}{N} $$
+\end{enumerate}
+\end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Class Assignment using a Bernoulli Naive Bayes Classifier}
+
+Once you have trained the Bernoulli Naive Bayes Classifier, you can compute posterior probabilites for a document $D_i = (b_{i1},... b_{ip})$ using
+
+$$P(Y=k|D_i) =P(Y=k|(b_{i1},...,b_{ip}))  \propto \prod_{j=1}^{p} P((b_{i1},...,b_{ip})|k) P(k)$$
+ 
+$$ \overbrace{=}^{\text{NB Assumption}}  P(k) [\prod_{j=1}^{p}{b_{ij} P(w_j|k) + (1-b_{ij}) (1-P(w_j|k))}]$$
+
+for each class $k=1,...,|\mathcal{C}|$ and assign the document to class $k$ that yields the largest posterior probability.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli Language Model Use}
+
+\begin{itemize}
+
+\item Document model: a document can be thought of as being generated from a multidimensional Bernoulli distribution: the probability of a word being present can be thought of as a (weighted) coin flip with probability $P(w_j |k)$.
+
+\item Document representation: binary vector, elements indicating presence or absence of a word.
+
+\item Multiple occurrences of words: ignored.
+
+\item Behaviour with document length:  best for short documents.
+
+\item Behaviour with very common stopwords (such as "the", "a", "here"):  since stopwords are present in almost every document, $P("the" | k) = 1.0$.
+
+\item Behavior with irrelevant features?
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multi-Nomial Distribution}
+
+\begin{itemize}
+
+\item We now introduce another document model, which explicitly takes into account the number of words, so documents are represented as a collection of word counts.
+
+\item The most common distribution to assume is a multinomial distribution, which is a generalization of a Bernoulli distribution.
+
+\item Using all the letters, how many distinct sequences can you make from the word ``Mississippi''? There are 11 letters to permute, but ``i'' and ``s'' occur four times and ``p'' twice.
+
+\item If each letter was distinct, you would have 11 choices for first, 10 for second, 9 for third, ... so a total of 11!.
+
+\item However, 4! permutations are identical as the letter ``i'' is repeated four times; similarly, 4! for ``s'' and 2! for ``p'' and 1! for ``m''.
+
+\item So the total number of distinct arrangements of the letters that form the word ``Mississippi" is:
+
+$$\frac{11!}{4! 4! 2! 1!} = 34650$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Multi-Nomial Distribution}
+
+\begin{itemize}
+
+\item Generally if we have $n$ items of $p$ types (letters or words), with $n_1$ of type 1, $n_2$ of type 2 and $n_p$ of type $p$ 
+
+$$n_1 + ... + n_p = n $$
+
+\item then the number of distinct permutations is given by:
+
+$$\frac{n!}{n_1! n_2 ! ... n_p!}$$
+
+\item  Now suppose a population contains items of $p \geq 2$ different types and that the proportion of items that are of type $j$ is $p_j$ for $(j=1,...,p)$, with
+
+$$\sum_{j=1}^p p_j = 1$$
+
+\item  Suppose $n$ items are drawn at random (with replacement) and let $x_j$ denote the number of items of type $j$.
+
+\item The vector $\mathbf{x}=(x_1,...,x_p)$ has a multinomial distribution with parameters $n$ and $p_1,...,p_p$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item In the multi nomial language model, you model documents as being collections of word counts.
+
+\item Let $p$ be the number of words considered, an individual document $D_i$ can be represented as a vector $\mathbf{x}_{i} = (x_{i1},..., x_{ip})$.
+
+\item $n_i = \sum_{j=1}^p x_{ij}$ is the total number of words of document $D_i$. 
+\item Then we can represent a collection of $n$ documents as a \textbf{term document count matrix}.
+
+$$ \mathbf{X} =  \begin{pmatrix}
+x_{11} & ... &  x_{1p} \\
+x_{21} & ... &  x_{2p} \\
+... \\
+x_{n1} & ... &  x_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+3 & 0 & 0 &... & 1 \\
+0 & 0 & 5 &... & 1 \\
+7 & 2 & 1 & ... & 3 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item In the Multi Nomial language model, we assume that word counts $x_{ij}$ are generated following a multi nomial distribution.
+
+\item Multi-nomial distribution is a generalization of the Binomial distribution.
+
+\item Let $x_i$ indicate the number of times outcome number $i$ is observed over the $n$ trials, the vector $x_i = (x_{i1}, ..., x_{ip})$ follows a multinomial distribution with parameters $n$ and $p$, where $p = (p_1, ..., p_p)$
+
+\begin{align*}
+P(X_{1} = x_{i1}\cap...\cap X_p = x_{ip})  =  \displaystyle {n! \over x_{i1}!\cdots x_{ip}!}p_1^{x_{i1}}\cdots p_p^{x_{ip}}
+\end{align*}
+
+For example:
+$$ \mathbf{X} =  \begin{pmatrix}
+x_{11} & ... &  x_{1p} \\
+x_{21} & ... &  x_{2p} \\
+... \\
+x_{n1} & ... &  x_{np} 
+\end{pmatrix} =  \begin{pmatrix}
+3 & 0 & 0 &... & 1 \\
+0 & 0 & 5 &... & 1 \\
+7 & 2 & 1 & ... & 3 \\
+& ...
+\end{pmatrix} $$
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Multi Nomial Language Model}
+
+\begin{itemize}
+
+\item We can now write the joint probability of observing a document $D_i = (x_{i1},...,x_{ip})$ of class $k$ as:
+
+$$P(D_i | Y=k) = P((x_{i1},...,x_{ip}) | k) = \frac{n_i!}{\prod_{j=1}^{p}{x_{ij}!}} \prod_{j=1}^p{P(w_j|k)^{x_{ij}}} $$
+
+$$ \propto  \prod_{j=1}^p{P(w_j|k)^{x_{ij}}}$$
+
+\item $n_i = \sum_{j=1}^{p} x_{ij}$ is the total number of words of document $i$.
+\item So we need to estimate $P(w_j|k)$ from our training data.
+
+\item We generally ignore the scaling factor $\frac{n_i!}{\prod_{j=1}^{p}{x_{ij}!}}$, because it is not a function of the class $k$! So we can savely ignore it, as it will not affect the optimal class assignment.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multinomial Model and Estimation of Likelihoods}
+\begin{itemize}
+
+\item For the Multinomial distribution we need to estimates of the vector of $P(w_j|k)$ for all $j=1,...,p$ and all $k \in \mathcal{C}$. 
+
+\item I.e. there is a different vector $\mathbf{p} = (p_1, ..., p_p)$ for every possible class $k$.
+
+\item The maximum likelihood estimator turns out to be slightly more tricky:
+
+$$P(w_j |k) = \frac{\text{No. of times word } w_j \text{ appears in all documents of class }  k}{\text{Total No. of words in all documents of class } k}$$
+
+\item A more formal notation is
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+where $z_{ik}$ is a dummy variable that is 1, in case document $i$ has class $k$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Training a Multinomial Naive Bayes Classifier}
+
+\begin{algorithm}[Training a Multinomial Naive Bayes Classifier]
+
+\begin{enumerate}
+\item  Define the vocabulary $V$, where $p$ is the number of words in the vocabulary, i.e. the number of columns.
+
+\item Count the following in the training set:
+\begin{itemize}
+\item $N$ the total number of documents
+\item $N_k$ the number of documents labelled with class $k$,for $k=1,...,|\mathcal{C}|$
+
+\item $x_{ij}$ the frequency of word $w_j$ in document $D_i$, computed for every word $w_j$ in $V$.
+
+\end{itemize}
+\item Estimate the likelihoods $P(w_j | Y = k)$ using 
+
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+\item Estimate the priors $P(Y = k)$ using 
+
+$$ \hat{P}(Y=k) = \frac{N_k}{N} $$
+\end{enumerate}
+\end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Class Assignment using a Multinomial Naive Bayes Classifier}
+
+We compute the posterior probability of a document $D_i$, represented as a word count vector $\mathbf{x_i}$, belonging to some class $k$ as:
+
+$$P(Y=k | D_i) = P(Y=k | \mathbf{x_i})  \overbrace{\propto}^{\text{Bayes Law}} P((x_{i1},...,x_{ip})|k) P(k)$$ 
+$$ \overbrace{\propto}^{\text{NB Assumption}} P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$ 
+
+Note that, unlike the Bernoulli model, words that do not occur in a document (i.e., for which $x_{ij} = 0$) do not affect the probability  (since $p^0 = 1$). 
+
+Thus we can write the posterior probability in terms of the set of words $U$ that appear in document $i$, i.e. the set of words $U$ defined by $ x_{ij}>0$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+Suppose you want to build a sentiment classifier for feedbacks received on a website. You have the following training data. \bigskip
+
+
+[+] "very good site"
+
+[+] "nothing very happy so far" 
+
+[+] "nothing site is excellent"
+
+[-] "free postage throughout" 
+
+[-] "lower the price" 
+
+[-] "lower price not enough gift deals"
+
+[-] "dont bring this box up"
+
+[-] "dont have a pop up box"
+
+\smallskip
+
+So we observe 8 feedbacks, 3 are positive while 5 are negative. Lets represent these documents as a term document matrix.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{TDM}
+\end{alltt}
+\begin{verbatim}
+##             docs
+## terms        1 2 3 4 5 6 7 8
+##   a          0 0 0 0 0 0 0 1
+##   box        0 0 0 0 0 0 1 1
+##   bring      0 0 0 0 0 0 1 0
+##   deals      0 0 0 0 0 1 0 0
+##   dont       0 0 0 0 0 0 1 1
+##   enough     0 0 0 0 0 1 0 0
+##   excellent  0 0 1 0 0 0 0 0
+##   far        0 1 0 0 0 0 0 0
+##   free       0 0 0 1 0 0 0 0
+##   gift       0 0 0 0 0 1 0 0
+##   good       1 0 0 0 0 0 0 0
+##   happy      0 1 0 0 0 0 0 0
+##   have       0 0 0 0 0 0 0 1
+##   is         0 0 1 0 0 0 0 0
+##   lower      0 0 0 0 1 1 0 0
+##   not        0 0 0 0 0 1 0 0
+##   nothing    0 1 1 0 0 0 0 0
+##   pop        0 0 0 0 0 0 0 1
+##   postage    0 0 0 1 0 0 0 0
+##   price      0 0 0 0 1 1 0 0
+##   site       1 0 1 0 0 0 0 0
+##   so         0 1 0 0 0 0 0 0
+##   the        0 0 0 0 1 0 0 0
+##   this       0 0 0 0 0 0 1 0
+##   throughout 0 0 0 1 0 0 0 0
+##   up         0 0 0 0 0 0 1 1
+##   very       1 1 0 0 0 0 0 0
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+Given the training data, we can easily get the priors:
+
+$$\hat{P}(+) = 3/8$$
+$$\hat{P}(-) = 5/8$$
+
+In total, we have 27 different words. We now need to compute a total of 27 x 2 class conditional probabilities $P(w_j|k)$.
+
+$$P(w_j |k) = \frac{\text{No. of times word } w_j \text{ appears in all documents of class }  k}{\text{Total No. of words in all documents of class } k}$$
+
+In order to compute these class conditional likelihoods, we need a tabulation of words.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Worked Example}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{WF}
+\end{alltt}
+\begin{verbatim}
+##          terms Freq CountNegative CountPositive
+##  1:        box    2             2             0
+##  2:       dont    2             2             0
+##  3:      lower    2             2             0
+##  4:    nothing    2             0             2
+##  5:      price    2             2             0
+##  6:       site    2             0             2
+##  7:         up    2             2             0
+##  8:       very    2             0             2
+##  9:          a    1             1             0
+## 10:      bring    1             1             0
+## 11:      deals    1             1             0
+## 12:     enough    1             1             0
+## 13:  excellent    1             0             1
+## 14:        far    1             0             1
+## 15:       free    1             1             0
+## 16:       gift    1             1             0
+## 17:       good    1             0             1
+## 18:      happy    1             0             1
+## 19:       have    1             1             0
+## 20:         is    1             0             1
+## 21:        not    1             1             0
+## 22:        pop    1             1             0
+## 23:    postage    1             1             0
+## 24:         so    1             0             1
+## 25:        the    1             1             0
+## 26:       this    1             1             0
+## 27: throughout    1             1             0
+##          terms Freq CountNegative CountPositive
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Laplace Smoothing}
+When we estimate the class conditional likelihoods, we may run into the problem that for some class $k$ and some word feature $w_j$, $\hat{P}(w_j|k)=0$. This is problematic, since we compute:
+
+$$P(Y=k | D_i)  \propto P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$
+
+In case in the training data, some estimate $\hat{P}(w_j|k)=0$, but a word appears in the prediction document $D_i$, you would end up with a probability of $P(Y=k | D_i) = 0$.  
+
+Our estimate
+
+$$\hat{P}(w_j |Y=k)= \frac{\sum_{i=1}^{N} x_{ij} z_{ik}}{\sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+underestimates the likelihoods of words that do not occur in the training data. Even if word $w$ is not observed for class $Y=k$ in the training set, we would still like $P(w | Y=k) > 0$. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Laplace Smoothing}
+
+Since all the $\sum_{j=1}^p P(w_j|k) = 1$, if unobserved words have underestimated probabilities, then those words that are observed must have overestimated probabilities. \smallskip
+Therefore, one way to alleviate the problem is to remove a small amount of probability allocated to observed events and distribute this across the unobserved events. \smallskip 
+A simple way to do this, sometimes called Laplace’s law of succession or add one smoothing, adds a count of one to each word type. 
+
+$$\hat{P}(w_j |Y=k)= \frac{1 + \sum_{i=1}^{N} x_{ij} z_{ik}}{p + \sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$ 
+
+A word $\tilde{j}$ that does not appear in some class $k$ now gets an estimate of
+
+$$\hat{P}(w_{\tilde{j}} |k) = \frac{1}{p + \sum_{s=1}^{p} \sum_{i=1}^{N} x_{is} z_{ik} }$$
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{A Worked Example}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{WF}\hlopt{$}\hlstd{CountNegative}\hlkwb{<-}\hlstd{WF}\hlopt{$}\hlstd{CountNegative}\hlopt{+}\hlnum{1}
+\hlstd{WF}\hlopt{$}\hlstd{CountPositive}\hlkwb{<-}\hlstd{WF}\hlopt{$}\hlstd{CountPositive}\hlopt{+}\hlnum{1}
+
+\hlstd{WF}\hlopt{$}\hlstd{wjneg} \hlkwb{<-} \hlstd{WF}\hlopt{$}\hlstd{CountNegative}\hlopt{/}\hlkwd{sum}\hlstd{(WF}\hlopt{$}\hlstd{CountNegative)}
+\hlstd{WF}\hlopt{$}\hlstd{wjpos} \hlkwb{<-} \hlstd{WF}\hlopt{$}\hlstd{CountPositive}\hlopt{/}\hlkwd{sum}\hlstd{(WF}\hlopt{$}\hlstd{CountPositive)}
+
+\hlstd{WF}
+\end{alltt}
+\begin{verbatim}
+##          terms Freq CountNegative CountPositive wjneg  wjpos
+##  1:        box    2             3             1  0.06 0.0256
+##  2:       dont    2             3             1  0.06 0.0256
+##  3:      lower    2             3             1  0.06 0.0256
+##  4:    nothing    2             1             3  0.02 0.0769
+##  5:      price    2             3             1  0.06 0.0256
+##  6:       site    2             1             3  0.02 0.0769
+##  7:         up    2             3             1  0.06 0.0256
+##  8:       very    2             1             3  0.02 0.0769
+##  9:          a    1             2             1  0.04 0.0256
+## 10:      bring    1             2             1  0.04 0.0256
+## 11:      deals    1             2             1  0.04 0.0256
+## 12:     enough    1             2             1  0.04 0.0256
+## 13:  excellent    1             1             2  0.02 0.0513
+## 14:        far    1             1             2  0.02 0.0513
+## 15:       free    1             2             1  0.04 0.0256
+## 16:       gift    1             2             1  0.04 0.0256
+## 17:       good    1             1             2  0.02 0.0513
+## 18:      happy    1             1             2  0.02 0.0513
+## 19:       have    1             2             1  0.04 0.0256
+## 20:         is    1             1             2  0.02 0.0513
+## 21:        not    1             2             1  0.04 0.0256
+## 22:        pop    1             2             1  0.04 0.0256
+## 23:    postage    1             2             1  0.04 0.0256
+## 24:         so    1             1             2  0.02 0.0513
+## 25:        the    1             2             1  0.04 0.0256
+## 26:       this    1             2             1  0.04 0.0256
+## 27: throughout    1             2             1  0.04 0.0256
+##          terms Freq CountNegative CountPositive wjneg  wjpos
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Scoring a document}
+Compute
+
+$$P(Y=k | D_i)  \propto  P(k) \prod_{j=1}^{p}{P(w_j| k)^{x_{ij}} }$$ 
+
+for document "you dont have good deals".
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{doc}\hlkwb{<-}\hlstr{"you dont have good deals"}
+\hlstd{docwords}\hlkwb{<-}\hlkwd{wordfreq}\hlstd{(doc)}
+\hlkwd{setnames}\hlstd{(docwords,} \hlstr{"Freq"}\hlstd{,} \hlstr{"xij"}\hlstd{)}
+
+\hlstd{WF.score}\hlkwb{<-}\hlkwd{join}\hlstd{(WF,docwords)[}\hlopt{!}\hlkwd{is.na}\hlstd{(xij)]}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Joining by: terms}}\begin{alltt}
+\hlstd{WF.score}
+\end{alltt}
+\begin{verbatim}
+##    terms Freq CountNegative CountPositive wjneg  wjpos docs xij
+## 1:  dont    2             3             1  0.06 0.0256    1   1
+## 2: deals    1             2             1  0.04 0.0256    1   1
+## 3:  good    1             1             2  0.02 0.0513    1   1
+## 4:  have    1             2             1  0.04 0.0256    1   1
+\end{verbatim}
+\begin{alltt}
+\hlstd{WF.score[,} \hlkwd{list}\hlstd{(}\hlkwc{neg}\hlstd{=wjneg}\hlopt{^}\hlstd{xij,} \hlkwc{pos}\hlstd{= wjpos}\hlopt{^}\hlstd{xij)][,} \hlkwd{list}\hlstd{(}\hlkwc{neg}\hlstd{=}\hlkwd{prod}\hlstd{(neg),} \hlkwc{pos}\hlstd{=}\hlkwd{prod}\hlstd{(neg))]} \hlopt{*} \hlkwd{c}\hlstd{(}\hlnum{5}\hlopt{/}\hlnum{8}\hlstd{,}\hlnum{3}\hlopt{/}\hlnum{8}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##        neg     pos
+## 1: 1.2e-06 7.2e-07
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Typically transform to logs}
+
+As with other likelihood methods, we generally transform everything into log space.
+
+I.e. we compute posterior probabilites as a weighted sum of the logs of individual word scores: 
+
+$$log(P(Y=k | D_i))  \propto  P(k) +  \sum_{j=1}^{p} x_{ij} logP(w_j| k) $$ 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pre defined vocabularies}
+\begin{itemize}
+
+\item In some situations, building an own vocabulary to be used for classification tasks based on text data may be impossible due to a lack of training data or simply unncesscary.  
+
+\item Often tmimes its possible to work with \emph{sentiment lexicons}, lists of words that are pre- annotated with positive or negative sentiment. 
+
+\item Four popular lexicons are the General Inquirer (Stone et al., 1966), LIWC (Pennebaker et al., 2007), the opinion lexicon LIWC of Hu and Liu (2004) and the MPQA Subjectivity Lexicon (Wilson et al., 2005).
+
+\item For example the MPQA subjectivity lexicon has 6885 words, 2718 positive and 4912 negative, each marked for whether are strongly or weakly biased. 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{General Implications of the ``Naive'' Bayes Assumption}
+\begin{itemize}
+
+\item Word order does not matter: whether the word ``love'' appears at the beginning of a sentence or at the end is ignored.
+
+\item Words are independently drawn, so we ignore multi word fragments such as negations ``not good''. 
+
+\item Multinomial does not ignore fact that words appearing multiple times may be indicative.
+
+\item Typically, one would prefer Bernoulli language model for short documents, whereas Multinomial model is adequate for longer texts.
+
+\item Nevertheless, despite this stark assumption, Naive Bayes performs very well in a lot of cases.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\section{Naive Bayes illustration, validation, learning curve}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Using Machines to (help) Code Conflict Data}
+\begin{itemize}
+
+\item In my paper Social Insurance and Conflict: Evidence from India, I rely on several machine learning methods to automatically construct a conflict data set.
+
+\item \textbf{Problem}: Human coding is subject to subjectivity bias, not every person would code some piece of text in the same way. This is a problem due to reduced \emph{transparency}.
+
+\item \textbf{Solution}: Supervised Machine learning algorithms only require a single training set to be coded by humans, the training data - at some level - is the only input.
+
+\item My paper constructs a conflict dataset, using various \textbf{Natural Language Processing} methods, including Naive Bayes classifiers.
+
+\item The raw data consists of 50,000 newspaper clippings about events in South Asia, which needed to be converted into a dataset providing the number of conflict events per district.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leveraging the cloud to build a training data set}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.3]<1>{figures/crowdflower-crowdsourcing-site.jpg}
+\includegraphics[scale=.3]<2>{figures/crowdflower-jobs.png}
+\includegraphics[scale=.3]<3>{figures/crowdflower-task.png}
+\includegraphics[scale=.3]<4>{figures/crowdworker.png}
+
+\end{array}$
+\end{center}
+\end{figure}
+\url{http://www.crowdflower.com}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{What do we want to classify?}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{TTIM[}\hlnum{100}\hlopt{:}\hlnum{120}\hlstd{]}\hlopt{$}\hlstd{objectclean}
+\end{alltt}
+\begin{verbatim}
+##  [1] "women"                                                                                          
+##  [2] "security forces"                                                                                
+##  [3] "former terrorist Hizb - ul"                                                                     
+##  [4] "NLFT terrorist"                                                                                 
+##  [5] "tribal headmaster"                                                                              
+##  [6] "civilian"                                                                                       
+##  [7] "Special Police Officer ( SPO )"                                                                 
+##  [8] "civilian"                                                                                       
+##  [9] "ULFA deputy chief"                                                                              
+## [10] "political leader ruling National Conference"                                                    
+## [11] "suspected police informer"                                                                      
+## [12] ", founding member and perpetrators hijacking Indian Airlines plane to"                          
+## [13] "people attack army base city 's"                                                                
+## [14] "terrorist"                                                                                      
+## [15] "civilian , reported to be former local level politician"                                        
+## [16] "Border Security Force personnel"                                                                
+## [17] "terrorists Hizb - ul Mujhadeen ( HuM ) and security force personnel"                            
+## [18] "suspected ULFA terrorist"                                                                       
+## [19] "terrorist Lashkar - e ( LeT )"                                                                  
+## [20] ", deputy kilonser ( minister ) outfit corporals arms ammunition and large amount extortion cash"
+## [21] "terrorist belonging to Jaish - e residence political leader national party February"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with RTextTools and e1071 package}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlstd{L1} \hlkwb{<-} \hlkwd{create_matrix}\hlstd{(}\hlkwd{c}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]),}
+                    \hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+\hlstd{DTM}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(L1)}
+
+\hlkwd{dim}\hlstd{(DTM)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1397 2460
+\end{verbatim}
+\begin{alltt}
+\hlcom{##changing column names}
+\hlkwd{colnames}\hlstd{(DTM)} \hlkwb{<-} \hlkwd{paste}\hlstd{(}\hlstr{"stem_"}\hlstd{,} \hlkwd{colnames}\hlstd{(DTM),}\hlkwc{sep}\hlstd{=}\hlstr{""}\hlstd{)}
+
+\hlcom{##turn this into a document-term-incidence matrix}
+\hlstd{DTM}\hlkwb{<-}\hlkwd{apply}\hlstd{(DTM,} \hlnum{2}\hlstd{,} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{as.factor}\hlstd{(x}\hlopt{>}\hlnum{0}\hlstd{))}
+
+\hlstd{TTIM2}\hlkwb{<-}\hlkwd{cbind}\hlstd{(TTIM,DTM)}
+\hlstd{TTIM2}\hlopt{$}\hlstd{label1}\hlkwb{<-}\hlkwd{as.factor}\hlstd{(TTIM2}\hlopt{$}\hlstd{label1)}
+
+\hlstd{TRAINING}\hlkwb{<-}\hlstd{TTIM2[}\hlopt{!}\hlkwd{is.na}\hlstd{(label1)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{2016}\hlstd{)}
+
+\hlstd{VALIDATION}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TRAINING),} \hlnum{200}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Obtaining a Naive Bayes Classifier}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+\hlstd{model} \hlkwb{<-} \hlkwd{naiveBayes}\hlstd{(label1} \hlopt{~} \hlstd{stem_terrorist  ,} \hlkwc{data} \hlstd{= TRAINING[}\hlopt{-}\hlstd{VALIDATION])}
+
+\hlstd{model}
+\end{alltt}
+\begin{verbatim}
+## 
+## Naive Bayes Classifier for Discrete Predictors
+## 
+## Call:
+## naiveBayes.default(x = X, y = Y, laplace = laplace)
+## 
+## A-priori probabilities:
+## Y
+##  civilian  security terrorist 
+##     0.263     0.167     0.570 
+## 
+## Conditional probabilities:
+##            stem_terrorist
+## Y           FALSE  TRUE
+##   civilian  1.000 0.000
+##   security  0.970 0.030
+##   terrorist 0.894 0.106
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Interpreting Output}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/naive-bayes-output.png}
+\includegraphics[scale=.5]<2>{figures/naive-bayes-output-1.png}
+\includegraphics[scale=.5]<3>{figures/naive-bayes-output-2.png}
+\end{array}$
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with quanteda package}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{order}\hlstd{(sid)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{06022017}\hlstd{)}
+\hlcom{##make sure TTIM has (same) random order}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TTIM),} \hlkwd{nrow}\hlstd{(TTIM))]}
+\hlstd{TTIM[, label1} \hlkwb{:=} \hlkwd{factor}\hlstd{(label1)]}
+\hlstd{L1} \hlkwb{<-} \hlkwd{corpus}\hlstd{(}\hlkwd{c}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]))}
+\hlstd{L1.maindfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(L1)}
+
+\hlcom{##same dimensionality}
+\hlkwd{dim}\hlstd{(L1.maindfm)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1397 2546
+\end{verbatim}
+\begin{alltt}
+\hlstd{trainingclass} \hlkwb{<-} \hlstd{TTIM}\hlopt{$}\hlstd{label1}
+\hlcom{#first 200 obs for validation set}
+\hlstd{trainingclass[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlkwb{<-}\hlnum{NA}
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel}\hlstd{(L1.maindfm, trainingclass,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{)}
+
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= L1.maindfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+
+\hlcom{#confusion table}
+\hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 )}
+\end{alltt}
+\begin{verbatim}
+##            
+##             civilian security terrorist
+##   civilian        44        2         8
+##   security         4       36         6
+##   terrorist        6        0        94
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 ))}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.87
+\end{verbatim}
+\begin{alltt}
+\hlcom{##accuracy around 87%}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes Classifier with quanteda package}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##class conditional posterior probabilities}
+\hlkwd{t}\hlstd{(NB}\hlopt{$}\hlstd{PcGw)[}\hlnum{1}\hlopt{:}\hlnum{15}\hlstd{,]}
+\end{alltt}
+\begin{verbatim}
+## 15 x 3 Matrix of class "dgeMatrix"
+##             docs
+## features     terrorist civilian security
+##   slain          0.199    0.373   0.4278
+##   activist       0.122    0.825   0.0526
+##   brother        0.205    0.576   0.2199
+##   and            0.348    0.291   0.3607
+##   relative       0.199    0.373   0.4278
+##   landmine       0.199    0.373   0.4278
+##   blasts         0.205    0.576   0.2199
+##   rifleman       0.199    0.373   0.4278
+##   identified     0.692    0.240   0.0687
+##   mohmmud        0.199    0.373   0.4278
+##   slatur         0.199    0.373   0.4278
+##   rahman         0.114    0.641   0.2450
+##   lady           0.199    0.373   0.4278
+##   accomplice     0.253    0.475   0.2721
+##   ningombam      0.498    0.234   0.2679
+\end{verbatim}
+\begin{alltt}
+\hlstd{NB}\hlopt{$}\hlstd{Pc}
+\end{alltt}
+\begin{verbatim}
+## terrorist  civilian  security 
+##     0.333     0.333     0.333
+\end{verbatim}
+\begin{alltt}
+\hlcom{##current quanteda implementation has a bug }
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel_NB}\hlstd{(L1.maindfm, trainingclass,}\hlkwc{prior} \hlstd{=} \hlstr{"docfreq"}\hlstd{)}
+\hlstd{NB}\hlopt{$}\hlstd{Pc}
+\end{alltt}
+\begin{verbatim}
+## terrorist  civilian  security 
+##     0.566     0.267     0.166
+\end{verbatim}
+\begin{alltt}
+\hlkwd{prop.table}\hlstd{(}\hlkwd{table}\hlstd{(trainingclass))}
+\end{alltt}
+\begin{verbatim}
+## trainingclass
+##  civilian  security terrorist 
+##     0.267     0.166     0.566
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bernoulli vs Multinomial}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel_NB}\hlstd{(L1.maindfm, trainingclass,}\hlkwc{distribution}\hlstd{=}\hlstr{"Bernoulli"}\hlstd{,}\hlkwc{smooth}\hlstd{=}\hlnum{1}\hlstd{)}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= L1.maindfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+\hlcom{#confusion table}
+\hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 )}
+\end{alltt}
+\begin{verbatim}
+##            
+##             civilian security terrorist
+##   civilian        44        2         8
+##   security         4       36         6
+##   terrorist        6        0        94
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 ))}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.87
+\end{verbatim}
+\begin{alltt}
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel_NB}\hlstd{(L1.maindfm, trainingclass,}\hlkwc{distribution}\hlstd{=}\hlstr{"multinomial"}\hlstd{,}\hlkwc{smooth}\hlstd{=}\hlnum{1}\hlstd{)}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= L1.maindfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+\hlcom{#confusion table}
+\hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 )}
+\end{alltt}
+\begin{verbatim}
+##            
+##             civilian security terrorist
+##   civilian        44        2         8
+##   security         4       36         6
+##   terrorist        6        0        94
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 ))}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.87
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias vs Variance Trade-Off}
+There are two aspects of the performance of a classifier trained on a finite sample size $n$:
+
+\begin{enumerate}
+
+\item \textbf{bias}, i.e. on average a classifier trained on a finite training sample is worse than the classifier trained with larger number of training cases
+
+\item \textbf{variance} different training sets may give quite different model performance. Even with few cases, you may be lucky and get good results. Or you have bad luck and get a really bad classifier.
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sensitivity of model fit to specific training vs validation data set used}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{order}\hlstd{(sid)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{06022017}\hlstd{)}
+
+\hlstd{ACC}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for}\hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{50}\hlstd{) \{}
+\hlcom{##randomly reorder}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TTIM),} \hlkwd{nrow}\hlstd{(TTIM))]}
+
+\hlstd{L1} \hlkwb{<-} \hlkwd{corpus}\hlstd{(}\hlkwd{c}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]))}
+\hlstd{L1.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(L1)}
+
+\hlstd{trainingclass} \hlkwb{<-} \hlkwd{factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1,} \hlkwc{ordered} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+
+\hlcom{#first 200 obs for validation set}
+\hlstd{trainingclass[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlkwb{<-}\hlnum{NA}
+
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel}\hlstd{(L1.dfm, trainingclass,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= L1.dfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+
+\hlcom{#confusion table}
+\hlstd{ACC}\hlkwb{<-}\hlkwd{c}\hlstd{(ACC,}\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 ))}\hlopt{/}\hlnum{200}\hlstd{)}
+
+\hlstd{\}}
+
+\hlkwd{boxplot}\hlstd{(ACC)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-naivebayesconflictshuffle-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sensitivity of model fit to specific training vs validation data set used}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/knitr-naivebayesconflictshuffle-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building a training data set}
+
+\begin{itemize}
+
+\item Feature vocabularies often exist: profanity, sentiment lexicons, etc.
+
+\item Biggest impediment is often the lack of a training data set.
+
+\item For most our applications, it may involve you actually hand coding some observations.
+
+\item But how big should the training data set be?
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Larger Training data set? Learning curves}
+
+A model's "learning curve",  gives the (average) model performance as function of the training sample size. As you can guess, learning curves depend on a lot of things, e.g.
+
+
+\begin{itemize}
+
+\item  classification method
+
+\item complexity of the classifier
+
+\item how well the classes are separated.
+
+\end{itemize}
+
+How do things look in this particular context? We can evaluate the learning curve by simply plotting out the performance of the model as we expand the size of the training set.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{"Estimating" the Learning Curve}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{order}\hlstd{(sid)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{06022017}\hlstd{)}
+\hlcom{##make sure TTIM has random order}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TTIM),} \hlkwd{nrow}\hlstd{(TTIM))]}
+
+\hlstd{LEARNING}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for}\hlstd{(i} \hlkwa{in} \hlkwd{seq}\hlstd{(}\hlnum{25}\hlstd{,}\hlnum{1200}\hlstd{,} \hlnum{25}\hlstd{)) \{}
+\hlcom{##randomly reorder}
+
+\hlstd{TEMP}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{c}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{,}\hlnum{201}\hlopt{:}\hlstd{(}\hlnum{200}\hlopt{+}\hlstd{i))]}
+
+\hlstd{L1} \hlkwb{<-} \hlkwd{corpus}\hlstd{(TEMP[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)])}
+\hlstd{L1.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(L1)}
+
+\hlstd{trainingclass} \hlkwb{<-} \hlkwd{factor}\hlstd{(TEMP}\hlopt{$}\hlstd{label1,} \hlkwc{ordered} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+
+\hlcom{#first 200 obs for validation set}
+\hlstd{trainingclass[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlkwb{<-}\hlnum{NA}
+
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel}\hlstd{(L1.dfm, trainingclass,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= L1.dfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+
+\hlcom{#confusion table}
+\hlstd{LEARNING}\hlkwb{<-}\hlkwd{rbind}\hlstd{(LEARNING,}\hlkwd{data.frame}\hlstd{(}\hlkwc{training}\hlstd{=i,}
+                                    \hlkwc{accuracy}\hlstd{=}\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{nb.predicted,TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{label1 ))}\hlopt{/}\hlnum{200}\hlstd{))}
+
+\hlstd{\}}
+
+\hlkwd{plot}\hlstd{(LEARNING,} \hlkwc{type}\hlstd{=}\hlstr{"l"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-naivebayeslearningcurve-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{"Estimating" the Learning Curve}
+
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/knitr-naivebayeslearningcurve-1.pdf}
+\end{center}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Performance between Logistic Regression and Naive Bayes}
+
+\begin{itemize}
+
+\item In most cases, we obtain multiple different classifiers and study how the performance of either of them differs.
+
+\item Last week, we have applied Maximum Entropy (Logistic regression) to this data.
+
+\item Logistic regression may be more vulnerable to the inclusion of irrelevant features (higher variance)
+
+\item Do we see this play out in the actual data?
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MaxEnt and NaiveBayes produce similar results}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tm)}
+\hlkwd{library}\hlstd{(RTextTools)}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{order}\hlstd{(sid)]}
+\hlkwd{set.seed}\hlstd{(}\hlnum{06022017}\hlstd{)}
+\hlcom{##make sure TTIM has (same) random order}
+\hlstd{TTIM}\hlkwb{<-}\hlstd{TTIM[}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(TTIM),} \hlkwd{nrow}\hlstd{(TTIM))]}
+\hlstd{TTIM}\hlopt{$}\hlstd{validation}\hlkwb{<-} \hlnum{0}
+\hlstd{TTIM[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{validation}\hlkwb{<-}\hlnum{1}
+\hlcom{##we are not removing stopwords or doing anything to be comparable to NaiveBayes}
+\hlstd{DOC}\hlkwb{<-}\hlkwd{create_matrix}\hlstd{(TTIM[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)],}\hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{)}
+\hlkwd{dim}\hlstd{(DOC)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1397 2460
+\end{verbatim}
+\begin{alltt}
+\hlcom{##create container does not like factors}
+\hlstd{DOCCONT}\hlkwb{<-}\hlkwd{create_container}\hlstd{(DOC,}\hlkwd{as.numeric}\hlstd{(}\hlkwd{as.factor}\hlstd{(TTIM}\hlopt{$}\hlstd{label1)),} \hlkwc{trainSize}\hlstd{=}\hlnum{201}\hlopt{:}\hlnum{1200}\hlstd{,}
+                          \hlkwc{testSize}\hlstd{=}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{,} \hlkwc{virgin}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{MOD} \hlkwb{<-} \hlkwd{train_models}\hlstd{(DOCCONT,} \hlkwc{algorithms}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"MAXENT"}\hlstd{))}
+\hlstd{RES} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(DOCCONT, MOD)}
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(DOCCONT, RES)}
+\hlstd{res}\hlkwb{<-}\hlkwd{data.table}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+\hlstd{VALID}\hlkwb{<-}\hlkwd{cbind}\hlstd{(TTIM[validation}\hlopt{==}\hlnum{1}\hlstd{],res)}
+\hlcom{#confusion matrix}
+\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{label1,}\hlkwd{factor}\hlstd{(VALID}\hlopt{$}\hlstd{MAXENTROPY_LABEL,} \hlkwc{labels}\hlstd{=}\hlkwd{levels}\hlstd{(VALID}\hlopt{$}\hlstd{label1)))}
+\end{alltt}
+\begin{verbatim}
+##            
+##             civilian security terrorist
+##   civilian        44        1         9
+##   security         4       34         0
+##   terrorist        9        2        97
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{MAXENTROPY_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.875
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+
+\begin{itemize}
+
+\item The 2015 British Election study asked "what is the single most important issue that the UK is facing at the moment"? \smallskip
+
+\item Free text response of thousands of respondents \smallskip
+
+\item Can we use the responses given to capture meaningful variation in the stated voting intention in the question "how would you vote in a referendum on UK's EU membership"?\smallskip
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Single biggest issue facing the UK... unigram model}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/brexit-wordcloud.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Single biggest issue facing the UK... bigram model}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/brexit-wordcloud-bigram.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{table}\hlstd{(DTA[ ,}\hlkwd{list}\hlstd{(toomanyimmigrants, leaveeu)])}
+\end{alltt}
+\begin{verbatim}
+##                  leaveeu
+## toomanyimmigrants leave remain
+##                 0    60    478
+##                 1   872    777
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+Did not achieve good results using logistic regression. How do we do with Naive Bayes?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{docnames}\hlstd{(C)}\hlkwb{<-}\hlstd{DTA}\hlopt{$}\hlstd{finalserialno}
+\hlstd{C.dfm}\hlkwb{<-}\hlkwd{dfm}\hlstd{(C,} \hlkwc{tolower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removePunct}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{remove} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+
+\hlstd{validation} \hlkwb{<-} \hlkwd{factor}\hlstd{(DTA}\hlopt{$}\hlstd{leaveeu,} \hlkwc{ordered} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+
+\hlcom{#first 200 obs for validation set}
+\hlstd{validation[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlkwb{<-}\hlnum{NA}
+
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel}\hlstd{(C.dfm, validation,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{,}\hlkwc{distribution}\hlstd{=}\hlstr{"Bernoulli"}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= C.dfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+
+\hlcom{##much better...}
+\hlkwd{table}\hlstd{(}\hlstr{"prediction"}\hlstd{=pred}\hlopt{$}\hlstd{nb.predicted,}\hlstr{"data"}\hlstd{=DTA[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{leaveeu)}
+\end{alltt}
+\begin{verbatim}
+##           data
+## prediction leave remain
+##     leave     59     40
+##     remain    31     70
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{docnames}\hlstd{(C)}\hlkwb{<-}\hlstd{DTA}\hlopt{$}\hlstd{finalserialno}
+\hlstd{C.dfm}\hlkwb{<-}\hlkwd{dfm}\hlstd{(C,} \hlkwc{tolower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removePunct}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{remove} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+
+\hlstd{validation} \hlkwb{<-} \hlkwd{factor}\hlstd{(DTA}\hlopt{$}\hlstd{leaveeu,} \hlkwc{ordered} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+
+\hlcom{#first 200 obs for validation set}
+\hlstd{validation[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlkwb{<-}\hlnum{NA}
+
+\hlstd{NB}\hlkwb{<-} \hlkwd{textmodel}\hlstd{(C.dfm, validation,} \hlkwc{model} \hlstd{=} \hlstr{"NB"}\hlstd{,}\hlkwc{distribution}\hlstd{=}\hlstr{"Bernoulli"}\hlstd{)}
+\hlcom{##CREATION OF NON SPARSE MATRIX}
+
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(NB,} \hlkwc{newdata} \hlstd{= C.dfm[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{, ])}
+
+\hlcom{##much better...}
+\hlkwd{table}\hlstd{(}\hlstr{"prediction"}\hlstd{=pred}\hlopt{$}\hlstd{nb.predicted,}\hlstr{"data"}\hlstd{=DTA[}\hlnum{1}\hlopt{:}\hlnum{200}\hlstd{]}\hlopt{$}\hlstd{leaveeu)}
+\end{alltt}
+\begin{verbatim}
+##           data
+## prediction leave remain
+##     leave     59     40
+##     remain    31     70
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looking at class posteriors $P(C|w)$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+
+\hlkwd{t}\hlstd{(NB}\hlopt{$}\hlstd{PcGw)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{,]}
+\end{alltt}
+\begin{verbatim}
+## 20 x 2 Matrix of class "dgeMatrix"
+##           docs
+## features   leave remain
+##   stabilis 0.566  0.434
+##   economi  0.321  0.679
+##   nhs      0.455  0.545
+##   immigr   0.691  0.309
+##   popul    0.544  0.456
+##   control  0.514  0.486
+##   refuge   0.511  0.489
+##   go       0.434  0.566
+##   somewher 0.566  0.434
+##   illeg    0.624  0.376
+##   need     0.474  0.526
+##   job      0.395  0.605
+##   lack     0.409  0.591
+##   general  0.525  0.475
+##   islam    0.662  0.338
+##   extrem   0.566  0.434
+##   kill     0.395  0.605
+##   peopl    0.491  0.509
+##   take     0.587  0.413
+##   innoc    0.566  0.434
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looking at class posteriors $P(C|w)$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+
+\hlkwd{t}\hlstd{(NB}\hlopt{$}\hlstd{PcGw)[}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{,]}
+\end{alltt}
+\begin{verbatim}
+## 20 x 2 Matrix of class "dgeMatrix"
+##           docs
+## features   leave remain
+##   stabilis 0.566  0.434
+##   economi  0.321  0.679
+##   nhs      0.455  0.545
+##   immigr   0.691  0.309
+##   popul    0.544  0.456
+##   control  0.514  0.486
+##   refuge   0.511  0.489
+##   go       0.434  0.566
+##   somewher 0.566  0.434
+##   illeg    0.624  0.376
+##   need     0.474  0.526
+##   job      0.395  0.605
+##   lack     0.409  0.591
+##   general  0.525  0.475
+##   islam    0.662  0.338
+##   extrem   0.566  0.434
+##   kill     0.395  0.605
+##   peopl    0.491  0.509
+##   take     0.587  0.413
+##   innoc    0.566  0.434
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Looking at class posteriors $P(C|w)$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+
+\hlstd{pred}
+\end{alltt}
+\begin{verbatim}
+## Predicted textmodel of type: Naive Bayes
+## (showing 30 of documents)
+## 
+##       lp(leave) lp(remain)    Pr(leave) Pr(remain) Predicted
+## 47208  -14.1739   -13.6892       0.3811     0.6189    remain
+## 60906   -5.0304    -4.8511       0.4553     0.5447    remain
+## 32707   -3.3715    -4.1752       0.6908     0.3092     leave
+## 34906  -53.9277   -55.4627       0.8227     0.1773     leave
+## 59104  -21.7903   -20.6644       0.2449     0.7551    remain
+## 11802   -3.3715    -4.1752       0.6908     0.3092     leave
+## 19905  -47.9658   -48.7015       0.6761     0.3239     leave
+## 30701   -6.0520    -5.8521       0.4502     0.5498    remain
+## 44503 -173.1907  -171.6101       0.1707     0.8293    remain
+## 31703  -34.6634   -34.9078       0.5608     0.4392     leave
+## 63609  -68.5721   -66.4294       0.1050     0.8950    remain
+## 47504   -3.3715    -4.1752       0.6908     0.3092     leave
+## 51306 -113.7691  -117.3244       0.9722     0.0278     leave
+## 63306   -6.7829    -8.0038       0.7722     0.2278     leave
+## 62506  -14.7539   -15.8054       0.7411     0.2589     leave
+## 29908   -6.0520    -5.8521       0.4502     0.5498    remain
+## 24408  -20.5260   -18.3752       0.1043     0.8957    remain
+## 38205   -0.6931    -0.6931       0.5000     0.5000     leave
+## 43206  -15.3635   -16.1355       0.6840     0.3160     leave
+## 27601  -38.0005   -41.1666       0.9595     0.0405     leave
+## 63606  -72.3237   -76.8300       0.9891     0.0109     leave
+## 29401   -3.3715    -4.1752       0.6908     0.3092     leave
+## 45508  -44.9853   -45.2988       0.5777     0.4223     leave
+## 42209  -25.9966   -27.0479       0.7410     0.2590     leave
+## 65501  -13.1197   -11.8588       0.2208     0.7792    remain
+## 12702  -91.3996   -88.3762       0.0464     0.9536    remain
+## 64610   -3.3715    -4.1752       0.6908     0.3092     leave
+## 45803  -53.7236   -56.8970       0.9598     0.0402     leave
+## 10808  -32.7714   -35.5885       0.9436     0.0564     leave
+## 37309  -66.8873   -68.3987       0.8193     0.1807     leave
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}
+

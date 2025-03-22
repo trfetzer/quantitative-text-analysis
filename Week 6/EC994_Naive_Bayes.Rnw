@@ -1,0 +1,412 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: Naive Bayes Classifiers} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("/Users/thiemo/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 6")
+options(stringsAsFactors = FALSE)
+library(glmnet)
+library(ggplot2)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Generative versus Discriminative Models}
+
+We need to obtain estimates of $\hat{P}(Y=y|X)$ for each value that $y$ can take and then, following the Maximum A Posteriori Decision rule, which minimizes overall test error, assign a label such that
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} \hat{P}(Y=y|X) $$
+
+ Bayes Rule says, that you can write $P(Y|X) = \frac{P(Y \cap X)}{P(X)} = \frac{P(X|Y)  P(Y)}{P(X)}$
+
+\begin{enumerate}
+
+\item Logistic Regression and KNN are \textbf{discriminative model}, which directly computes $P(Y|X)$ $\checkmark$
+
+\item Naive Bayes is a \textbf{generative model}, which computes $P(Y|X)$ indirectly, exploiting the factorization due to Bayes Theorem, i.e. $P(X|Y) P(Y)$
+
+\end{enumerate}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes}
+\begin{itemize}
+
+\item[] We introduce the Naive Bayes classifier in the context of classification, our applications will focus on  text features.
+
+\item[] This is a setting where it is most powerful, since were there are many features (i.e. X has many columns, many words to consider), but any given feature only has a small effect on $P(Y|X)$.
+
+\item[] We begin with a simple motivating example to illustrate Bayes rule.
+
+\end{itemize}
+
+Bayes Law allows us to rewrite the classification problem as:
+
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} \hat{P}(Y=y|X) = argmax_{y \in \mathcal{C}} \frac{\hat{P}(X|y)  \hat{P}(y)}{\hat{P}(X)} 
+ $$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Naive Bayes Classifier}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{The Classification Problem and Bayes Rule}
+\begin{itemize}
+
+\item The classification problem is still the same, i.e. 
+ 
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} \hat{P}(Y=y|X) = argmax_{y \in \mathcal{C}} \frac{\hat{P}(X|y)  \hat{P}(y)}{\hat{P}(X)} 
+ $$
+
+\item Note that the denominator does not change for different classes $\hat{P}(X)$ is constant for each value in $\mathcal{C}$, so we can just drop the denominator.
+
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} \hat{P}(Y=y|X) = argmax_{y \in \mathcal{C}} \hat{P}(X|y)  \hat{P}(y) $$
+
+\item In reality, we have many features in $X$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{The ``Naive'' Bayes Classifier}
+\begin{itemize}
+
+\item Typically you have many features $X$, i.e. $X$ has many columns
+
+ \item Suppose you can write $X=(x_1,....,x_p)$, then we can write:
+
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} P(x_1,...,x_p|y)  P(y) $$
+
+\item Very difficult to estimate joint probability $\hat{P}(x_1,...,x_p|y)$, so we assume
+
+\begin{assumption}[Naive Bayes Assumption]
+The distribution of features $x_i$, $x_j$ within a class $Y$ is independent from one another. 
+\end{assumption}
+
+\item The simplifying assumption allows us to write
+
+$$  P(x_1,...,x_p|Y=y) = \prod_{i=1}^{p} P(x_i|y)$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{The ``Naive'' Bayes Classifier}
+\begin{itemize}
+
+\item The Naive Bayes Classifier assigns lables such that 
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} P(y) \prod_{i=1}^{p} P(x_i|y)  $$
+
+\item This is equivalent to
+
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} log(P(y)) +  \sum_{i=1}^{p} log(P(x_i|y))  $$
+
+\item This is still a linear classifier: it uses a linear combination of the inputs to make a classification decision.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An Example ``Naive'' Bayes Classifier}
+\begin{itemize}
+
+\item You are asked to build a predictive model, based on a set of features, whether a car is likely to be stolen. 
+
+\item You intend to use this information to target resources towards policing.
+
+\item What are our features here? $X$ has dimensions $9 \times 3$
+
+\item Note that all features are binary - so the \emph{presence (or absence)} of a feature may tell you something about the underlying probability.
+
+\end{itemize}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]{figures/naive-bayes-car-theft-classifier-example-neq.png}
+\end{array}$
+\end{center}
+\end{figure}
+
+
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An Example ``Naive'' Bayes Classifier}
+\begin{itemize}
+
+
+\item How would we classifiy a new observation $\mathbf{x_i}$ of a Red Domestic SUV?
+
+$$\mathbf{x_i} = (Red,SUV,Domestic)$$
+
+\item The Naive Bayes assumption allows us to factorize the joint distribution as:
+
+$$  P(x_1,...,x_p|y) = \prod_{i=1}^{p} P(x_i|y)$$
+
+\item I.e. we need to estimate for $y_i = Yes$:  
+$$ P(Yes), P(Red|Yes), P(SUV|Yes), P(Domestic|Yes)$$
+
+\item Similarly, we need to estimate for $y_i = No$:
+
+$$P(No), P(Red|No) , P(SUV|No), and P(Domestic|No)$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Estimating Parameters Using Training Data}
+\begin{itemize}
+
+\item[] Prior probability $P(Yes) = \frac{4}{9}$  \bigskip
+\item[] Since all features are binary, the class conditional probabilities are easy to compute given the training data \bigskip
+
+
+\begin{tabular}{l|ccc}
+Stolen?  & Color & Type & Origin \\ \hline
+Yes & $\hat{P}(Red|Yes)$ & $\hat{P}(Sports|Yes)$ & $\hat{P}(Domestic|Yes)$ \\
+No & $\hat{P}(Red|No)$ & $\hat{P}(Sports|No)$ & $\hat{P}(Domestic|No)$ 
+\end{tabular} \bigskip
+
+\item[] We estimate these looking at the training data as simple ratios $\hat{P}(Red|Yes) = \frac{\text{Number of stolen red cars}}{\text{Number of stolen cars}} = \frac{2}{4}$.
+
+
+\item[] You can fill out this table as \bigskip
+
+\begin{tabular}{l|ccc}
+Stolen?  & Color & Type & Origin \\ \hline
+Yes & $\frac{2}{4}$ & $\frac{3}{4}$ & $\frac{2}{4}$  \\
+No & $\frac{2}{5}$  & $\frac{2}{5}$ & $\frac{3}{5} $ 
+\end{tabular}
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Computing the Naive Bayes Scores}
+
+For our new data point  $\mathbf{x_i} = (Red,SUV,Domestic)$, we need to compute
+
+$$ \hat{Y}  = argmax_{y \in \mathcal{C}} P(Y) \prod_{i=1}^{p} P(x_i|y)  $$
+
+For $y_i  = Yes$:
+ $$\hat{P}(Yes) \hat{P}(Red|Yes) \hat{P}(SUV|Yes) \hat{P}(Domestic|Yes) = \frac{4}{9}  \frac{2}{4} (1-\frac{3}{4}) \frac{2}{4} = 0.027 $$
+
+For $y_i  = No$:
+ $$\hat{P}(No) \hat{P}(Red|No) \hat{P}(SUV|No) \hat{P}(Domestic|No) = \frac{5}{9}  \frac{2}{5} (1-\frac{2}{5}) \frac{3}{5} = 0.08$$
+
+So we would classify this instance $\mathbf{x_i}$ as \emph{not stolen}.
+
+Why dont the probabilities add up to 1?  
+ 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Evaluating the Naive Bayes assumption}
+\begin{itemize}
+
+\item In general, we can not directly \emph{test}  the Naive Bayes assumption of class conditional independence of individual features. 
+
+\item However, we can look for evidence in the population data on whether features appear as independent.
+
+\item How do we do that? The Naive Bayes assumption states that 
+
+$$P(Red, SUV  | Yes) = P(Red|Yes) P(SUV|Yes)$$
+
+
+\item We can see whether this holds approximately in the training data.
+
+\item[] $P(Red, SUV | Yes) = \frac{\text{No. of Stolen Red SUVs}}{\text{{No. of stolen}}} = \frac{0}{4} = 0$
+
+\item Versus $P(Red|Yes) P(SUV|Yes) = \frac{2}{4} \times (1-\frac{3}{4}) \neq 0$
+
+\item This is \textbf{NOT} a statistical test, but suggests that the Naive Bayes assumption does not hold.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some implicit assumptions made}
+\begin{itemize}
+
+\item We treated the individual features $x_{j}$ as a sequence of \emph{Bernoulli distributed} random variables. 
+
+\item This highlights why Naive Bayes is called a \textbf{generative} model, since we model the underlying probability distributions of the individual features contained in the data matrix $\mathbf{X}$.
+
+\item We estimate $P(Red|Yes)$ using $\frac{\text{No. of Stolen Red}}{\text{No of stolen}}$, this is actually a \emph{maximum likelihood estimator} for the population probability $P(Red|Yes)$ of a sequence of bernoulli distributed random varibales.
+
+\item Why? Suppose you have a sequence of iid coin tosses, the joint likelihood of observing such a sequence of length $n$, $\mathbf{x}= (x_1,...,x_n)$, where $x_j = 1$ if head occures, can be written as:
+
+$$\mathcal{L}(p) = \prod_{j=1}^n p^{x_j} (1-p)^{1-x_j}$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some implicit assumptions made}
+\begin{itemize}
+\item Taking logs, 
+
+$$\log{\mathcal{L}(p)} = \sum_{j=1}^n x_j log(p) + (1-x_j) log((1-p))$$
+
+\item a maximum likelihood estimate of $\hat{p}$ is satisfies a FOC
+$$\sum_{j} { \frac{x_j}{p} - \frac{1-x_j}{1-p}}  = 0$$
+
+\item This is solved by $\hat{p} = \frac{\sum x_j}{n}$.
+
+\item So our intuitive choice for the estimator of the class conditional probabilities etc is actually theoretically well founded, but \emph{only} if our features follow a bernoulli distribution. 
+
+\item In reality, the $p$ features in our data matrix $\mathbf{X}$ could come from different generating functions (i.e. some may be Bernoulli, Multinomial, Poisson, Normal, ...etc)
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Naive Bayes is very powerful...}
+\begin{itemize}
+
+\item Naive Bayes is a classification method that tends to be used for discretely distributed data, and mainly, for text - we present the Bernoulli and Multinomial language models in the next section.
+
+\item The next section introduces the idea of representing text as data for economists and political scientist to work with, and presents an example of a Naive Bayes classifier applied to text data.
+
+\item Most often Naive Bayes classifiers are used to work with text, such as spam filters, sentiment categorization, ... and many other use cases.
+
+\item ...
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+

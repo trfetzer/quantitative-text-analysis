@@ -1,0 +1,672 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{EC999: K-Nearest Neighbours (KNN)} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("~/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 6")
+library(glmnet)
+library(ggplot2)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+\begin{itemize}
+
+\item The first classification algorithm we present is called \textbf{K nearest neighbors} or KNN.
+
+\item KNN assigns a label to a new observation $y_i$ based on ``what is the most common class around the vector $x_i$''?
+
+\item The idea is that, if you have similar $X's$ values, then also the label $y$ should be similar.
+
+\item One dimensional space [draw example]
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/Data3classes-star-0.png} 
+\includegraphics[scale=.375]<2>{figures/Data3classes-star-00.png} 
+\includegraphics[scale=.5]<3>{figures/Data3classes-star-1.png} 
+\includegraphics[scale=.5]<4>{figures/Data3classes-star-2.png} 
+\includegraphics[scale=.5]<5>{figures/Data3classes-star-3.png} 
+\includegraphics[scale=.4]<6>{figures/Data3classes-star-4.png} 
+\end{array}$
+\caption{A three class nearest neighbours visual example with two features $X_1, X_2$}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours}
+
+ 
+ \begin{algorithm}[K Nearest Neighbours]
+   \begin{enumerate}
+   
+   \item Store all the training data $(y_i, x_{i1},...,x_{ip})$
+   
+   \item For each new point $x_q = (x_{q1},...x_{qp})$, find the $K$ \textbf{nearest} neighbours in the training set, indexed by $\mathcal{N}_0$.
+   
+   \item For each possible value  $j \in \mathcal{C}$, compute 
+   $$\hat{P}(Y=j|X=x_q) = \frac{1}{K} \sum_{i \in \mathcal{N}_0} I(y_j=j)$$
+   
+   \item Assign the class $j$ for which $\hat{P}(Y=j|X=x_q)$ is maximal.
+   
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{K Nearest Neighbours Estimates Complicated Functions}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/Map1NN.png} 
+\end{array}$
+\caption{A three class nearest neighbours visual example with two features $X_1, X_2$}
+\end{center}
+\end{figure}
+  
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Some thoughts on KNN}
+ 
+\begin{itemize}
+\item KNN is among the simplest of all machine learning algorithms.
+
+\item Its explicitly non-parametric (you dont estimate any coefficients)
+
+\item KNN is referred to as a lazy learning algorithm: the function is only approximated locally and all computation is deferred until classification. 
+
+\item So there is actually no explicit training step.
+
+\item Results from KNN are sensitive to the local structure of the data (example highly skewed, ``majority voting'' distorted, weights).
+
+\item Its (potentially) too slow, as it may be impossible to hold all the training data in memory.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Applications in Research: Fetzer and Marden, 2014}
+ 
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/landuse-knn1.png} 
+\includegraphics[scale=.4]<2>{figures/landuse-knn2.png} 
+\includegraphics[scale=.4]<3>{figures/landuse-knn3.png} 
+\includegraphics[scale=.4]<4>{figures/landuse-knn4.png} 
+\end{array}$
+\caption{Classifiying historical landsat imagery into Forest or Non Forest Status.}
+\end{center}
+\end{figure}
+
+[See forested.R]
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Plotting Out Band Values for Red, Near Infrared}
+ 
+<<knnforestedexample, echo=TRUE, message=FALSE, warning=FALSE,results="hide", size="tiny",strip.white=TRUE>>=
+options(stringsAsFactors=FALSE)
+library(data.table)
+library(plyr)
+library(class)
+FORESTED <- data.table(read.csv("R/forested.csv"))
+COMPOSITE <- data.table(read.csv("R/composite.csv"))
+MODIS <- data.table(read.csv("R/modis.csv"))
+setnames(MODIS, "mean", "landcover")
+setnames(FORESTED, "mean", "forestcover")
+DF<- join(join(FORESTED[, c("system.index", "forestcover"), with=F],
+               MODIS[, c("system.index", "landcover"), with=F]), COMPOSITE)
+DF[, Forested := forestcover>.8]
+DF[, MODISforested := (landcover>0 & landcover<=5)]
+DF[, B3:=scale(B3)]
+DF[, B4:=scale(B4)]
+df.xlim <- range(DF$B3)
+df.ylim<- range(DF$B4)
+plot(DF[Forested==TRUE][1:120, c("B3", "B4"), with=F], col="green", xlim=df.xlim, ylim=df.ylim)
+points(DF[Forested==FALSE][1:80, c("B3", "B4"), with=F], col="red", xlim=df.xlim, ylim=df.ylim)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=10}
+<<knnforestedexampleknn10, echo=TRUE, message=FALSE, warning=FALSE,results="hide", size="tiny">>=
+set.seed(1151)
+train<-sample(1:1000, 800)
+# get the contour map
+px1 <- range(DF[-train]$B3)
+px1<-seq(px1[1], px1[2], 0.05)
+px2 <- range(DF[-train]$B4)
+px2<-seq(px2[1], px2[2],0.05)
+xnew <- expand.grid(x1 = px1, x2 = px2)
+knn10 <- knn(DF[train, c("B3","B4"), with=F], test = xnew, cl = DF[train]$Forested, k = 10, prob = TRUE)
+prob <- attr(knn10, "prob")
+prob <- ifelse(knn10==TRUE, prob, 1-prob)
+prob10 <- matrix(prob, nrow = length(px1), ncol = length(px2))
+par(mar = rep(2,4))
+contour(px1, px2, prob10, levels=.5, labels="", xlab="", ylab="", main= "10-nearest neighbour", axes=FALSE)
+points(DF[train,c("B3","B4"), with=F], col=ifelse(DF[train]$Forested==TRUE, "green", "red"))
+points(xnew, pch=".", cex=3.5, col=ifelse(prob10>.5, "green", "red"))
+box()
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{How do we perform in terms of classification?}
+
+<<knn10confusionmatrix, size="tiny">>=
+knn10 <- knn(DF[train, c("B3","B4"), with=F], test = DF[-train, c("B3","B4"), with=F], 
+             cl = DF[train]$Forested, k = 10, prob = TRUE)
+prob <- attr(knn10, "prob")
+prob <- ifelse(knn10==TRUE, prob, 1-prob)
+table(prob>0.5,DF[-train]$Forested)               
+@
+
+Overall error rate is quite low: 25/200 = 12.5\%. 
+
+\begin{itemize}
+
+\item Pixels are wrongly classified as forested (type 1 error) 10/200
+
+\item Pixels are wrongly classified as non forested 15/200
+
+\item Suppose you are sending an enforcement agent to fine people who have illegally deforested land (predicted value = FALSE), i.e. for 62 pixels.
+
+\item It costs a lot of money to send police out there, but in 16\% (10/(52+10)) of the cases you find the forest is actually standing... 
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Changing $\bar{c}$...}
+
+Make it less likely, that we have pixels wrongly classified as being forested...reduce the threshold $\bar{c}$.
+
+<<knn30confusionmatrix2, size="tiny">>=
+table(prob>0.4,DF[-train]$Forested)               
+@
+\begin{itemize}
+
+\item Now, we will send enforcement teams out 56 times, but only in 8\% of the cases, will the forest still be standing...
+
+\item While the threshold $\bar{c}=0.5$, theoretically minimizes overall prediction error, you may still prefer different $\bar{c}$, in case there are different costs associated with type 1 or type 2 errors.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Exercise: Plot an ROC Curve...}
+
+Can you try to compute ROC curves and plot them out?
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How to Choose $K$?}
+
+\begin{itemize}
+
+\item As you will have guessed, it turns out that $K$ is a tuning parameter that we need to select.
+
+\item In binary (two class) classification problems, it is helpful to choose $K$ to be an odd number -- why?
+
+\item Cross validation is our preferred method, i.e. for each different value of $K$, we perform cross validation and plot out the overall average error rates.
+
+\item Why does the choice of $K$ matter?
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=15}
+<<knnforestedexampleknn15, echo=TRUE, message=FALSE, warning=FALSE,results="hide", size="tiny">>=
+set.seed(1151)
+train<-sample(1:1000, 800)
+# get the contour map
+px1 <- range(DF[-train]$B3)
+px1<-seq(px1[1], px1[2], 0.05)
+px2 <- range(DF[-train]$B4)
+px2<-seq(px2[1], px2[2],0.05)
+xnew <- expand.grid(x1 = px1, x2 = px2)
+knn15 <- knn(DF[train, c("B3","B4"), with=F], test = xnew, cl = DF[train]$Forested, k = 15, prob = TRUE)
+prob <- attr(knn15, "prob")
+prob <- ifelse(knn15==TRUE, prob, 1-prob)
+prob15 <- matrix(prob, nrow = length(px1), ncol = length(px2))
+par(mar = rep(2,4))
+contour(px1, px2, prob15, levels=.5, labels="", xlab="", ylab="", main= "15-nearest neighbour", axes=FALSE)
+points(DF[train,c("B3","B4"), with=F], col=ifelse(DF[train]$Forested==TRUE, "green", "red"))
+points(xnew, pch=".", cex=3.5, col=ifelse(prob15>.5, "green", "red"))
+box()
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Results for KNN with K=1}
+<<knnforestedexampleknn1, echo=TRUE, message=FALSE, warning=FALSE,results="hide", size="tiny">>=
+set.seed(1151)
+train<-sample(1:1000, 800)
+# get the contour map
+px1 <- range(DF[-train]$B3)
+px1<-seq(px1[1], px1[2], 0.05)
+px2 <- range(DF[-train]$B4)
+px2<-seq(px2[1], px2[2],0.05)
+xnew <- expand.grid(x1 = px1, x2 = px2)
+knn1 <- knn(DF[train, c("B3","B4"), with=F], test = xnew, cl = DF[train]$Forested, k = 1, prob = TRUE)
+prob <- attr(knn1, "prob")
+prob <- ifelse(knn1==TRUE, prob, 1-prob)
+prob1 <- matrix(prob, nrow = length(px1), ncol = length(px2))
+par(mar = rep(2,4))
+contour(px1, px2, prob1, levels=.5, labels="", xlab="", ylab="", main= "1-nearest neighbour", axes=FALSE)
+points(DF[train,c("B3","B4"), with=F], col=ifelse(DF[train]$Forested==TRUE, "green", "red"))
+points(xnew, pch=".", cex=3.5, col=ifelse(prob1>.5, "green", "red"))
+box()
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Cross Validation and choice of $K$}
+
+<<knn10crossvalidation, size="tiny">>=
+RES<-NULL
+for(K in 1:50) {
+knncv <- knn.cv(DF[, c("B3","B4"), with=F], 
+                cl = DF$Forested, k = K, prob = TRUE)
+RES<-rbind(RES,cbind(K,1-(table(knncv,DF$Forested)[1,1]+table(knncv,DF$Forested)[2,2])/1000))
+}  
+plot(RES)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Logistic Regression Versus kNN Classification}
+
+\begin{itemize}
+
+\item Cross Validation suggested that we should use $k \approx 10$ for kNN classification.
+
+\item Lets compare the performance of logistic regression versus 10NN for this example.
+
+<<compareknnlogistic, size="tiny">>=
+
+set.seed(1151)
+train<-sample(1:1000, 800)
+
+glm.fit<-glm(Forested ~  B3 + B4,             data=DF[train], family=binomial(link=logit))
+
+glm.predict <- predict.glm(glm.fit, DF[-train], type="response")
+
+knn10 <- knn(DF[train, c("B3","B4"), with=F], test = DF[-train, c("B3","B4"), with=F], 
+             cl = DF[train]$Forested, k = 10, prob = TRUE)
+prob <- attr(knn10, "prob")
+prob <- ifelse(knn10==TRUE, prob, 1-prob)
+table(prob>0.5,DF[-train]$Forested)    
+table(glm.predict>0.5,DF[-train]$Forested)  
+@
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing Logistic Regression Versus kNN Classification}
+
+\begin{itemize}
+
+\item The result is not surprising. The data suggests a near linear decision boundary, both kNN as well as logistic regression estimate that linear boundary reasonably well.
+
+\item You may still decide that you prefer logistic regression, since it is much more interpretable and less of a black box.
+
+\item With logistic regression, you get interpretable coefficients; here we do not care much for inference, so it doesnt really matter. 
+
+\item But in general, a (reasonable) rule of thumb is that you should prefer a simple parametric interpretable method over a non parametric method in case they yield similar results.
+
+
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{When does kNN outperform?}
+
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.15]<1>{figures/quadratic.png} 
+\includegraphics[scale=.7]<2>{figures/knn-outperform.png} 
+\end{array}$
+\caption{Example of Non-Linear Classification Problems}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{KNN for text classification}
+ 
+\begin{itemize}
+\item As you can see from the specification, KNN uses Euclidian distances, which may be problematic if you want to classify documents of different lengths
+
+\item In text classsification, KNN is also called 
+\item Its explicitly non-parametric (you dont estimate any coefficients)
+
+\item KNN is referred to as a lazy learning algorithm: the function is only approximated locally and all computation is deferred until classification. 
+
+\item So there is actually no explicit training step.
+
+\item Results from KNN are sensitive to the local structure of the data (example highly skewed, ``majority voting'' distorted, weights).
+
+\item Its (potentially) too slow, as it may be impossible to hold all the training data in memory.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<knnttim,eval=TRUE,cache=TRUE,echo=FALSE, message=FALSE>>=
+library(RTextTools)
+library(data.table)
+library(plyr)
+library(lubridate)
+library(e1071)
+
+CLASSIFIER<-data.table(read.csv(file="/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/classification-tree.csv")) 
+
+
+load("/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/TTIM-lab2.rdata")
+
+TTIM<-join(TTIM,CLASSIFIER)
+ 
+ 
+TTIM<- TTIM[objectcleanpp!=""][label1 %in% c("civilian","security","terrorist",NA)]
+TTIM$label1<-as.character(TTIM$label1)
+TTIM$label1<-as.factor(TTIM$label1)
+
+
+TTIM<-TTIM[!is.na(label1)]
+
+@
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{KNN for text classification}
+ 
+ \begin{center}
+ \includegraphics[scale=0.45]{figures/knitr-knntextksensitivity-1.pdf}
+ \end{center}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{KNN for text classification}
+
+<<knntextexample, echo=TRUE, message=FALSE, warning=FALSE, size="tiny">>=
+library(RTextTools)
+##knn function
+library(class)
+TTIM<-TTIM[order(sid)]
+set.seed(06022017)
+TTIM<-TTIM[sample(1:nrow(TTIM), nrow(TTIM))]
+L1 <- create_matrix(TTIM[,paste(objectcleanpp,sep=" ")],
+                    language="english",stemWords=FALSE)
+##CREATION OF NON SPARSE MATRIX
+DTM<-as.matrix(L1)
+
+dim(DTM)
+
+#knn(train, test, labelsfortrainingset, k=1)
+res<-knn(DTM[201:1200,], DTM[1:200,], cl=as.factor(TTIM[201:1200]$label1))
+
+table(res, TTIM[1:200]$label1)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{KNN for text classification}
+<<knntextksensitivity, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+ACC<-NULL
+for(k in 1:30) { 
+#knn(train, test, labelsfortrainingset, k=1)
+res<-knn(DTM[201:1200,], DTM[1:200,], cl=as.factor(TTIM[201:1200]$label1), k=k)
+
+ACC<-rbind(ACC, data.frame(k=k, accuracy=sum(diag(3) * table(res, TTIM[1:200]$label1))/200))
+
+}
+@
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<knntextksensitivity2,eval=TRUE, echo=FALSE,results="hide", message=FALSE,size="tiny", fig.show=FALSE>>=
+ plot(ACC, type="l")
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Accuracy for different values of $k$}
+ 
+\begin{center}
+\includegraphics[scale=0.4]{figures/knitr-knntextksensitivity2-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{KNN is a discriminative classifier [non examinable]}
+
+
+
+KNN is a discriminative algorithm since it models the conditional probability of a sample belonging to a given class. To see this just consider how one gets to the decision rule of kNNs.
+
+A class label corresponds to a set of points which belong to some region in the feature space R. If you draw sample points from the actual probability distribution, p(x), independently, then the probability of drawing a sample from that class is,
+ 
+ 
+$$P = \int_{R} p(x) dx$$
+
+What if you have N points? The probability that K points of those N points fall in the region R follows the binomial distribution,
+
+
+$$Prob(K) = {{N} \choose {K}}P^{K}(1-P)^{N-K}$$
+
+As $N\rightarrow \infty$ this distribution is sharply peaked, so that the probability can be approximated by its mean value KN. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{KNN is a discriminative classifier[non examinable]}
+An additional approximation is that the probability distribution over R remains approximately constant, so that one can approximate the integral by,
+
+$$P = \int_{R} p(x) dx \approx p(x)V$$
+
+where V is the total volume of the region. Under this approximations $p(x) \approx \frac{K}{NV}$  
+
+Now, if we had several classes, we could repeat the same analysis for each one, which would give us,
+$$p(x|C_{k}) = \frac{K_{k}}{N_{k}V}$$
+
+where $K_k$ is the amount of points from class k which falls within that region and Nk is the total number of points which fall in that region. Notice $\sum_{k}N_{k}=N$.
+
+Repeating the analysis with the binomial distribution, it is easy to see that we can estimate the prior $P(C_{k}) = \frac{N_{k}}{N}$
+
+Using Bayes rule,
+$$P(C_{k}|x)  = \frac{p(x|C_{k})p(C_{k})}{p(x)} = \frac{K_{k}}{K}$$
+which is the rule for kNNs.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\end{document}
