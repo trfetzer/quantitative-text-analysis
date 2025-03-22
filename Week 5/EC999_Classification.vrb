@@ -1,0 +1,40 @@
+\frametitle{An Example on how to do simple MaxEnt Classification}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tm)}
+\hlkwd{library}\hlstd{(RTextTools)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{30012017}\hlstd{)}
+\hlcom{#a validation set}
+\hlstd{valid}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(PERSON),} \hlnum{500}\hlstd{)}
+\hlstd{PERSON}\hlopt{$}\hlstd{validation}\hlkwb{<-} \hlnum{0}
+\hlstd{PERSON[valid]}\hlopt{$}\hlstd{validation}\hlkwb{<-}\hlnum{1}
+\hlstd{PERSON}\hlkwb{<-}\hlstd{PERSON[}\hlkwd{order}\hlstd{(validation)]}
+\hlstd{DOC}\hlkwb{<-}\hlkwd{create_matrix}\hlstd{(}\hlkwd{c}\hlstd{(PERSON[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]),}\hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}
+                   \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removePunctuation}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removeSparseTerms}\hlstd{=}\hlnum{0.9999}\hlstd{)}
+\hlstd{DOCCONT}\hlkwb{<-}\hlkwd{create_container}\hlstd{(DOC,PERSON}\hlopt{$}\hlstd{label1num,} \hlkwc{trainSize}\hlstd{=}\hlnum{1}\hlopt{:}\hlnum{1200}\hlstd{,}
+                          \hlkwc{testSize}\hlstd{=}\hlnum{1201}\hlopt{:}\hlkwd{nrow}\hlstd{(PERSON),} \hlkwc{virgin}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{MOD} \hlkwb{<-} \hlkwd{train_models}\hlstd{(DOCCONT,} \hlkwc{algorithms}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"MAXENT"}\hlstd{))}
+\hlstd{RES} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(DOCCONT, MOD)}
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(DOCCONT, RES)}
+\hlstd{res}\hlkwb{<-}\hlkwd{data.table}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+\hlstd{VALID}\hlkwb{<-}\hlkwd{cbind}\hlstd{(PERSON[validation}\hlopt{==}\hlnum{1}\hlstd{],res)}
+
+\hlcom{#confusion matrix}
+\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{label1,}\hlkwd{factor}\hlstd{(VALID}\hlopt{$}\hlstd{MAXENTROPY_LABEL,} \hlkwc{labels}\hlstd{=}\hlkwd{levels}\hlstd{(VALID}\hlopt{$}\hlstd{label1)))}
+\end{alltt}
+\begin{verbatim}
+##
+##             civilian security terrorist
+##   civilian        96        7        13
+##   security         5       93         6
+##   terrorist       14        5       261
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{MAXENTROPY_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.9
+\end{verbatim}
+\end{kframe}
+\end{knitrout}

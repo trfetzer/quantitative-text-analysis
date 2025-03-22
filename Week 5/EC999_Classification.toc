@@ -1,0 +1,6 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Bayes Rule Reminder}{8}{0}{1}
+\beamer@sectionintoc {2}{Bayesian Decision Theory}{13}{0}{2}
+\beamer@sectionintoc {3}{Classification Error}{21}{0}{3}
+\beamer@sectionintoc {4}{Logistic Regression}{38}{0}{4}
+\beamer@sectionintoc {5}{Working with Text features}{71}{0}{5}
