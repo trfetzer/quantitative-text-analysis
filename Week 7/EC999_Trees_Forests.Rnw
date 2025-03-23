@@ -1,0 +1,1034 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Trees and Forests} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+\newcommand{\code}{\texttt}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+library(operator.tools)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("/Users/thiemo/Dropbox/Teaching/QTA/Lectures/Week 7")
+
+load("R/MORTGAGE.rdata")
+load("R/HOUSES.rdata")
+
+HOUSES$NAMENUM<-as.numeric(as.factor(HOUSES$NAME))
+library(glmnet)
+library(ggplot2)
+HOUSES<-data.table(HOUSES)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees}
+
+\begin{itemize}
+
+\item Linear regression is a global model, where there is a single predictive formula
+holding over the entire data-space. Very difficult to capture or adequately model non-linearities, e.g. interactions.  
+
+\item The idea of Regression Trees is to sub-divide, or partition, the
+feature space into smaller regions, where the interactions are explicit.  
+
+\item Divide the feature space, that is the $\mathbf{X}$ into  $J$ distinct regions that do not overlap, call them $R_1,...,R_J$. 
+\item For every test observation $x_j$ that falls into a region $R_i$, the prediction $\hat{f}(x_j)$ is simply the mean of the training observations $y_i$ that fall into the region $R_i$
+
+$$\hat{y}_{R_j} = 1/n_j \sum_{i \in R_j}{y_i}$$
+
+\item[] where $n_j$ is number of training observations that fall into $R_j$.
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Regression Trees: Hedonic Pricing Example}
+
+ <<treehouses, size="tiny",echo=TRUE>>=
+library(tree)
+set.seed(1312)
+SAMPLE<-sample(1:nrow(HOUSES),18000)
+TRAINING<-HOUSES[SAMPLE]
+res<-tree(soldprice~builtyryr+baths, data=TRAINING)
+plot(res)
+text(res)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Top Down Greedy Binary Recursive Splitting}
+
+Define two half planes as $R_1(j,s) = \{X | X_j < s \}$ and $R_2(j,s) = \{ X| X_j \geq s\}$.
+ \begin{algorithm}[Binary Recursive Splitting]
+   \begin{enumerate}
+   \item Initialize with empty tree $\mathcal{T}$
+   
+   \item For each  $j=1,...,k$, find the $s$ that minimizes
+      $$\min_s RSS_j = \sum_{i: x_i \in R_1(j,s)}{(y_i - \hat{y}_{R_1})^2} + \sum_{i \in R_2(j,s)}{(y_i - \hat{y}_{R_2})^2}$$
+    
+    \item Choose the $j$ and corresponding optimal $\tilde{s}$  at which the value of $RSS_j$ is lowest and split the data at this point into two half planes $R_1,R_2$.
+
+    \item For each new half plane, repeat (2)-(4) so long as cutting criterion is not reached.
+
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Non-Linearities}
+
+ <<treehousesnonlinear, size="tiny",echo=TRUE>>=
+library(tree)
+set.seed(1312)
+SAMPLE<-sample(1:nrow(HOUSES),18000)
+TRAINING<-HOUSES[SAMPLE]
+res<-tree(soldprice~builtyryr+baths, data=TRAINING)
+plot(res)
+text(res)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees can generate non-linear models}
+
+\begin{itemize}
+
+\item In the above example, its easy to show that we have interactive effects.
+
+\item We can, in fact, write the tree as a sequence of and interaction between different indicator functions. We have $X_1$ = Bathrooms, $X_2$ = Built Year
+\begin{itemize}
+\item[] $I_1 = \mathbf{I}(X_1 \leq 2.375)$
+\item[] $I_2 = \mathbf{I}(X_1 \leq 1.375)$
+\item[] $I_3 = \mathbf{I}(X_2 \leq 1939.5)$
+\item[] $I_4 = \mathbf{I}(X_2 \leq 1957.5)$
+\end{itemize}
+ \item Our regression tree is a model of the form:
+\begin{eqnarray*}
+ Y &=&  \beta_0 \times \mathbf{I}(X_1 \leq 2.375) \times  \mathbf{I}(X_2 \leq 1939.5)  \\
+  & + & \beta_1 \times  \mathbf{I}(X_1 \leq 2.375) \times \mathbf{I}(X_2 > 1939.5) \times \mathbf{I}(X_1 \leq 1.375) \\ 
+  & + & \beta_2 \times  \mathbf{I}(X_1 \leq 2.375) \times \mathbf{I}(X_2 > 1939.5) \times \mathbf{I}(X_1 > 1.375) \\
+  & + & \beta_3 \times  \mathbf{I}(X_1 > 2.375) \times \mathbf{I}(X_2 < 1957.5) \\
+  & + & \beta_4 \times  \mathbf{I}(X_1 > 2.375) \times \mathbf{I}(X_2 < 1957.5) 
+\end{eqnarray*}
+
+ \end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Regression Trees: Hedonic Pricing Example}
+<<partitionhouses, size="tiny",echo=TRUE>>=
+partition.tree(res)
+points(TRAINING[, c("baths","builtyryr"),with=F], cex=.4)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How to build a tree? Binary Recursive Splitting}
+
+\begin{itemize}
+
+\item As before, we want to minimize prediction error RSS, computed as
+
+$$RSS = \sum_{j=1}^J \sum_{i \in R_j}(y_i - \hat{y}_{R_j})^2$$
+
+\item There is an uncountably large ways that you could split the predictor space into    $R_1,...,R_J$ boxes.
+
+\item We follow an algorithmic approach known as \emph{greedy recursive binary splitting}.
+
+\item At each step, identify the variable $j$ and the split point $s$ such that the resulting reduction in training RSS is the largest.
+
+\item Perform this step iteratively on the sub trees until you are left with a mininum number of observations in each subtree (there are alternative stopping criteria)
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Bias vs Variance for Large Trees}
+
+\begin{itemize}
+
+\item In the extreme case, each terminal node will contain only a single observation.
+
+\item This obviously results in bad prediction performance on the test set due to high variance, as we are overfitting the data.
+
+\item So we could do two things:
+
+\begin{itemize}
+
+\item Require each cut to result in a significant reduction in RSS. Why is that not a good idea?
+
+\item Build a very large tree, and then remove (or combine) regions - \textbf{tree pruning}
+
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Pruning of Trees}
+
+\begin{itemize}
+
+\item Starting out from a large tree $\mathcal{T}$, we could ``prune'' the tree, i.e. remove and combine regions from the bottom and creating subtrees.
+
+\item We want to select a subtree that has lowest test error. For any subtree, we could estimate test error using cross-validation, but this is (often) not feasible due to large number of trees (like best subset selection)
+
+\item \emph{Cost complexity pruning} considers a sequence of trees that are a function of a tuning parameter $\alpha$.
+
+$$\sum_{m=1}^{|T|} \sum_{x_i \in R_m} (y_i - \hat{y}_{R_m})^2 + \alpha |T|$$
+
+\item[] $|T|$ is the number of terminal nodes in a tree, i.e. the number of boxes, $R_m$ is rectangle pertaining to terminal node $m$ and $\hat{y}_{R_m}$ is mean of training observations in $R_m$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Complex "Bushy" Tree}
+<<bushytree,size="tiny">>=
+res<-tree(soldprice/1000~ sqft+baths+builtyryr+distgas2009+distgas2010+lat+lon+factor(NAME)+factor(year), data=TRAINING, 
+          control=tree.control(nrow(TRAINING),mincut=2,minsize=5,mindev=0.0005))
+plot(res)
+text(res, cex=.5)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+ 
+ 
+<<bushytreepruned,echo=FALSE, fig.keep ='all', include=FALSE>>=
+testMSE<-NULL
+trainMSE<-NULL
+alpha<-seq(0,5000000,25000)
+
+
+for(k in 1:length(alpha)) {
+#ONLY PLOT SOME AND NOT AH
+prune.k<-prune.tree(res, k=alpha[k])
+if(k %in% c(1,20,40,80,140,200)) {
+plot(prune.k)
+text(prune.k,cex=.5)
+axis(1,1, paste("Cost Complexity",alpha[k],sep=" "))
+}
+testMSE<- rbind(testMSE,cbind(alpha=alpha[k], size=summary(prune.k)$size, MSE=mean((predict(prune.k, HOUSES[-SAMPLE])-HOUSES[-SAMPLE]$soldprice/1000)^2)))
+trainMSE<-rbind(trainMSE,cbind(alpha=alpha[k], size=summary(prune.k)$size, MSE=mean((predict(prune.k, TRAINING)-TRAINING$soldprice/1000)^2)))
+}
+
+linearmodel<-lm(soldprice/1000 ~sqft+baths+builtyryr+distgas2009+distgas2010+lat+lon+factor(NAME)+factor(year), data=TRAINING)
+
+lm.MSE<-mean((predict(linearmodel, HOUSES[-SAMPLE])-HOUSES[-SAMPLE]$soldprice/1000)^2)
+
+
+@
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Pruning a "Bushy" Tree}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/knitr-bushytreepruned-1.pdf} 
+\includegraphics[scale=.5]<2>{figures/knitr-bushytreepruned-3.pdf} 
+\includegraphics[scale=.5]<3>{figures/knitr-bushytreepruned-5.pdf} 
+\includegraphics[scale=.5]<4>{figures/knitr-bushytreepruned-6.pdf} 
+\end{array}$
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Cross Validation Error, Test Error and Training Error}
+
+\begin{itemize}
+
+\item Hence the idea is to vary $\alpha$ and have the computer compute different subtrees, one for each value of $\alpha$.
+
+\item As $\alpha \rightarrow 0$, we obtain the unpruned tree.
+
+\item As $\alpha \rightarrow \infty$, we obtain a tree with a single terminal node.
+
+\item How to decide on optimal $\alpha$? Two approaches...
+
+
+\begin{itemize}
+
+\item We can perform a \emph{validation set} approach to compute test and training error and based on the minimum point of test error, choose 
+
+\item Alternatively, we can obtain a sequence of subtrees and then compute the K-fold cross validation error.
+
+\end{itemize}
+
+\item Present each in turn for our example
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Validation Set Approach: Training and Test MSE}
+
+<<treevalidationset,echo=FALSE,size="tiny">>=
+testMSE<-data.table(testMSE)
+trainMSE<-data.table(trainMSE)
+plot(trainMSE[,c("size","MSE"),with=F])
+points(trainMSE[,c("size","MSE"),with=F], type="l", col="blue")
+points(testMSE[,c("size","MSE"),with=F])
+points(testMSE[,c("size","MSE"),with=F], type="l")
+abline(h=lm.MSE, col="green")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{10 Fold Cross Validation}
+
+<<treecrossvalidationset,echo=FALSE,size="tiny">>=
+cv.pruned<-cv.tree(res, K=10)
+plot(cv.pruned$size,cv.pruned$dev)
+points(cv.pruned$size,cv.pruned$dev, type="l")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{More Common Pattern: CV, Validation Set and Training Error}
+ \begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/common-cv-training-testerror.png} 
+\end{array}$
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Building Regression Trees}
+ \begin{algorithm}[Building Regression Trees]
+
+  \begin{enumerate}
+
+\item Use recursive binary splitting to grow a large tree on the training data, stopping only when each terminal node has fewer than some minimum number of observations.
+\item Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees, as a function of $\alpha$
+\item Use K-fold cross-validation to choose  $\alpha$. That is, divide the training observations into K folds. For each k = 1, . . . , K:
+\begin{enumerate}
+\item Repeat Steps 1 and 2 on all but the kth fold of the training data. 
+\item Evaluate the mean squared prediction error on the data in the left-out kth fold, as a function of  $\alpha$
+\end{enumerate}
+
+\item Average the results for each value of  $\alpha$, and pick α to minimize the average error.
+\item Return the subtree from Step 2 that corresponds to the chosen value of  $\alpha$.
+
+ \end{enumerate}
+ \end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees versus Linear Models}
+
+\begin{itemize}
+
+\item We can write a Regression Tree predictive model as
+
+$$ f(X) = \sum_{i=1}^M{c_m \mathbf{I}(X \in R_m)}$$ 
+
+\item The basis functions are indicator functions and $c_m$ is the estimated average of the response variable. 
+
+\item It becomes clear from the previous examples, that regression trees are highly non-linear as they allow interactive effects between variables. How?
+
+\item Rectangular partitioning of predictor space may be adequate, but in some cases, the partition may be non-linear.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame} {Regression Trees Pros and Cons}
+
+\begin{itemize}
+\item Trees are very easy to explain to people. In fact, they are even easier to explain than linear regression!
+\item Some people believe that decision trees more closely mirror human decision-making than do the regression approaches seen so far.
+
+\item Trees can easily handle qualitative predictors without the need to create dummy variables.
+
+\item Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression methods.
+
+\item Additionally, trees can be very non-robust. In other words, a small change in the data can cause a large change in the final estimated tree.
+
+\end{itemize}
+
+Next, we explore Bagging and Boosting as an approach to aggregate many regression trees into Forests.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\section{Classification Trees}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Classification Trees}
+
+\begin{itemize}
+
+\item The only fundamental difference between regression trees and classification trees is that our response varibale is not numeric, but categorical.
+
+
+\item As such, our objective function is not to minimize RSS, but rather to minimize classification error rate or a measure of \emph{node purity}.
+
+\item Our \emph{decision rule} on labelling a new observation will require us to label a test observation $\mathbf{x}_j$ falling into region $R_i$ as having the label $k$ if label $k$ is the most commonly occuring among the training observations falling into region $R_i$.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Objective Function}
+
+\begin{itemize}
+
+\item That is, we assign to a new observation the \textbf{modal} class of our training data that falls in region $R_i$
+
+\item What is our expected "misclassification error rate" (our alternative to RSS)?
+
+$$ E = 1 - \max_{k}( \hat{p}_{jk})$$
+
+\item[] where $\hat{p}_{jk}$ represents the proportion of training observations in the $j$-th region that are from the $k$th class.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Alternative Objective Function}
+
+\begin{itemize}
+
+\item It turns out that misclassification error rate is often not preferred as it produces splits with high node impurity.
+
+\item Rather than using misclassification error as a measure of quality of a particular split, there are two alternatives, in particular the \emph{Gini Index}
+
+$$ G  = \sum_{k=1}^{K} \hat{p}_{jk} (1-\hat{p}_{jk})$$
+
+\item as a measure for total variance of a split region $j$, the \emph{Gini index} takes on a small value if all of the $\hat{p}_{jk}$'s are close to zero or one. [see if there is a single class, this is a bell shaped curve]
+
+\item Its clear that this captures a notion of \emph{node purity} - a small value of $G$ indicates that a node $j$ contains predominantly observations from a single class.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Alternative Objective Function (2)}
+
+\begin{itemize}
+
+\item An alternative to the Gini index is \emph{cross-entropy}, given by
+
+$$ D  = - \sum_{k=1}^{K} \hat{p}_{jk} \log{\hat{p}_{jk}}$$
+
+\item Using L'Hospital rule, one can show that $\lim_{p \rightarrow 0} D \rightarrow 0$ and  $\lim_{p \rightarrow 1} D \rightarrow 0$ 
+
+\item Therefore, like the Gini index, the cross-entropy will take on a small value if the $j$-th node is pure. In fact, it turns out that the Gini index and the cross-entropy are quite similar numerically.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Spam Classification Example}
+<<decisiontree,echo=TRUE,size="tiny">>=
+library(tree)
+ email <- read.csv("R/spam.csv")
+email$spam <- factor(email$spam,levels=c(0,1),labels=c("important","spam"))
+validation<-sample(1:nrow(email), 500)
+res<-tree(spam~., data=email[-validation])
+
+plot(res)
+text(res, cex=0.6)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Test Error}
+<<decisiontreetesterror,echo=TRUE,size="tiny">>=
+pred<-predict(res, email[validation,], type="class")
+
+table(pred, email[validation,]$spam)
+
+sum(diag(2) * table(pred, email[validation,]$spam))/500
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Controlling the Size of the Tree}
+<<decisiontreebushy,echo=TRUE,size="tiny", out.width='3in'>>=
+res<-tree(spam~., data=email[-validation],mincut=2,minsize=5,mindev=0.0005)
+
+plot(res)
+text(res, cex=0.5)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Controlling the Size of the Tree}
+
+The size of the tree can be chosen by a range of arguments
+
+\code{tree.control( mincut = 5, minsize = 10, mindev = 0.01)}
+
+\begin{Description}
+
+\item[mincut]	 The minimum number of observations to include in either child node. This is a weighted quantity; the observational weights are used to compute the ‘number’. The default is 5.
+
+\item[minsize] The smallest allowed node size: a weighted quantity. The default is 10.
+
+\item[mindev]	 The within-node deviance must be at least this times that of the root node for the node to be split.
+\end{Description}
+
+To produce a tree that fits the (training) data perfectly, set \code{mindev = 0} and \code{minsize = 1}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias- vs Variance Trade-Off}
+<<decisiontreeprune,echo=TRUE,size="tiny",fig.show=FALSE>>=
+#superbushy
+res<-tree(spam~., data=email[-validation],minsize=2,mindev=0.0001)
+testerror<-NULL
+trainerror<-NULL
+for(a in seq(0,20,0.25)) {
+#ONLY PLOT SOME AND NOT AH
+prune.k<-prune.tree(res, newdata=email[-validation,], method="misclass", k=a)
+
+pred<-predict(prune.k, email[validation,], type="class")
+
+testerror<-c(testerror,1-sum(diag(2) * table(pred, email[validation,]$spam))/500)
+pred<-predict(prune.k, email[-validation,], type="class")
+
+trainerror<-c(trainerror,1-sum(diag(2) * table(pred, email[-validation,]$spam))/4101)
+
+}
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias- vs Variance Trade-Off}
+<<decisiontreeprunebiasvarplot,echo=TRUE,eval=FALSE,size="tiny",out.width="3in">>=
+plot(seq(0,20,0.25),testerror, type="l")
+lines(seq(0,20,0.25),trainerror, col="red")    
+@
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/traintesterror.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+    
+
+  
+ 
+\section{Bagging and Random Forests}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Aggregation for Variance Reduction}
+
+\begin{itemize}
+
+\item General result: for some observations $Z_1,...,Z_n$ that are drawn \emph{independently} and identically from a distribution with the same variance, you know that 
+$$Var(1/n \sum_{i=1}^{n} Z_i) = \frac{\sigma^2}{n}$$
+
+\item Note this only holds for $Z_i, Z_j$ being independent draws.
+
+\item Regression Trees/ Classification Trees tend to have high variance and low bias.
+
+\item We can reduce the variance of statistical learning methods, by taking many (independently drawn) training sets from the population, build separate classification model and then average the results.
+
+\item This is the core idea of bootstrapping, which is particularly useful for  trees and we study it in this context.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{Bagged Trees}
+
+\begin{itemize}
+
+\item Suppose you calculate $\hat{f}^1(x),...,\hat{f}^B(x)$ from $B$ different randomly selected training sets, your prediction is given as
+
+$$\hat{f}_{avg}(x) = \frac{1}{B} \sum_{b=1}^B \hat{f}^b(x)$$
+
+\item We sample from our set of observatins $n$ with replacement, so some observations may randomly appear multiple times.
+
+\item We compute $B$ regression trees using $B$ bootstrapped training sets, and average the resulting predictions.
+
+\item \emph{No need to prune} these trees. An individual tree has high variance, but low bias.
+
+\item Averaging across these $B$ trees \emph{reduces the variance}.
+
+\item Intuition: Variance in prediction due to individual trees fitting (non existing) patterns in the error term $\epsilon$. Each individual bootstrapped tree fits a different pattern, which washes out as we average.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Bagged Trees and Bias Variance Tradeoff}
+
+$$E(f(x_0) - \hat{f(x_0)})^2 = Var(\hat{f}(x_0)) + [Bias(\hat{f}(x_0))]^2 + Var(\epsilon)$$
+
+\begin{itemize}
+
+\item Variance in prediction due to individual trees fitting (non existing) patterns in the error term $\epsilon$, that is  $Var(\hat{f}(x_0))$ captures $ Var(\epsilon)$
+
+\item  Each individual bootstrapped tree fits a different pattern in the noise, which washes out as we average.
+
+\item There is a second source of variance in $ Var(\hat{f}(x_0))$, coming from the fact that, mechanically, the predictions across bootstrapped samples are correlated.
+
+\item Random forests deals with this issue in a clever way by \emph{decorrelate} individual $\hat{f}^b$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Random Forests}
+
+\begin{itemize}
+
+\item The problem: our different bootstrapped $\hat{f}^b$'s are correlated mechanically, since they are obtained using the same set of observations. This increases the variance of our prediction.
+
+\item Correlation arises from using the same set of $X$'s in the construction of each bootstrapped tree.
+
+\item One way to avoid this is to try to \emph{decorrelate} individual $\hat{f}^b$'s
+
+
+\item To avoid this, when building these trees, each time a split in a tree is considered, a random sample of $m$ predictors is chosen as split candidates from the full set of $p$ predictors.
+
+\item Usually $m \approx \sqrt{p}$ is chosen.
+
+\item This mechanically decorrelates the fitted values. 
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Random Forests}
+
+\begin{itemize}
+
+\item The problem: our different bootstrapped $\hat{f}^b$'s are correlated mechanically, since they are obtained using the same set of observations. This increases the variance of our prediction.
+
+\item Correlation arises from using the same set of $X$'s in the construction of each bootstrapped tree.
+
+\item One way to avoid this is to try to \emph{decorrelate} individual $\hat{f}^b$'s
+
+
+\item To avoid this, when building these trees, each time a split in a tree is considered, a random sample of $m$ predictors is chosen as split candidates from the full set of $p$ predictors.
+
+\item Usually $m \approx \sqrt{p}$ is chosen.
+
+\item This mechanically decorrelates the fitted values. 
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Illustration}
+<<randomforest,echo=TRUE,size="tiny", warning=FALSE, out.width="3in">>=
+library(randomForest)
+set.seed(12022017)
+dim(email)
+fit <- randomForest(as.factor(spam) ~ .,
+                      data=email[-validation,], 
+                      importance=TRUE, 
+                      ntree=500)
+fit
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Variable Importance}
+<<randomforestvarimp,echo=TRUE,size="tiny", warning=FALSE,out.width="3in">>=
+##five most important variables
+varImpPlot(fit, sort=TRUE, n.var=10, type=1)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Variable Importance (2)}
+<<randomforestvarimp2,echo=TRUE,size="tiny", warning=FALSE,out.width="3in">>=
+##five most important variables
+varImpPlot(fit, sort=TRUE, n.var=10, type=2)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Confusion Matrix}
+<<randomforestconfusion,echo=TRUE,size="tiny", warning=FALSE, out.width="3in">>=
+pred<-predict(fit, newdata = email[validation,], type="class")
+table(email[validation,]$spam,pred)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest / Bagging Example (2)}
+<<randomforestrtextttols,echo=TRUE,size="tiny",warning=FALSE,message=FALSE,out.width="3in">>=
+TRAINING<-data.table(read.csv(file="/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/classification-tree.csv"))
+PERSON<-TRAINING[objecttype=="person" & label1!=""]
+PERSON$label1 <- factor(PERSON$label1)
+PERSON$label1num <- as.numeric(factor(PERSON$label1))
+library(tm)
+library(RTextTools)
+set.seed(30012017)
+#a validation set
+valid<-sample(1:nrow(PERSON), 500)
+PERSON$validation<- 0
+PERSON[valid]$validation<-1
+PERSON<-PERSON[order(validation)]
+DOC<-create_matrix(c(PERSON[,paste(objectcleanpp,sep=" ")]),language="english",
+                   removeNumbers=TRUE,stemWords=TRUE,removePunctuation=TRUE,removeSparseTerms=0.999)
+DOCCONT<-create_container(DOC,PERSON$label1num, trainSize=1:1200,
+                          testSize=1201:nrow(PERSON), virgin=TRUE)
+MOD <- train_models(DOCCONT, algorithms=c("MAXENT","TREE","BOOSTING","BAGGING","RF"))
+RES <- classify_models(DOCCONT, MOD)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest / Bagging Example (2)}
+<<randomforestrtextttolsconfusiontable,echo=TRUE,size="tiny",message=FALSE,warning=FALSE,out.width="3in">>=
+analytics <- create_analytics(DOCCONT, RES)
+res<-data.table(analytics@document_summary)
+VALID<-cbind(PERSON[validation==1],res)
+   
+#confusion matrix
+sum(diag(3) *table(VALID$MAXENTROPY_LABEL,VALID$label1))/500
+
+sum(diag(3) *table(VALID$TREE_LABEL,VALID$label1))/500
+
+sum(diag(3) *table(VALID$BAGGING_LABEL,VALID$label1))/500
+
+sum(diag(3) *table(VALID$FORESTS_LABEL,VALID$label1))/500
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Tree's applications for Classification}
+
+\begin{itemize}
+
+\item We see that trees by themselves may yield relatively poor performance.
+
+\item Extensions such as Bagging or Random Forests, produce superior classification performance.
+
+\item Yet, many perceive the models as too "black boxy" and generally, tree based methods are said to have high variance.
+
+\item Sometimes, simpler models may be preferred to more complex ones. 
+
+\item In case you can fit multiple models to a training data, it is worth exploring the extent to which they yield similar results.
+
+\item For word features, the fact that Trees explicitly model interactions is very useful as even for unigram word features, we can explicitly model negations etc.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<brexitexample, echo=FALSE, cache=FALSE, message=FALSE,size="tiny", out.width='2in'>>=
+library(data.table)
+library(haven)
+DTA<-data.table(read_dta(file="/Users/thiemo/Dropbox/Research/Blog/immigration/data/bes_f2f_original_v3.0.dta"))
+DTA[, leaveeu := "remain"]
+DTA[p02==1, leaveeu := "leave"]
+DTA[p02<0 |p02>2, leaveeu := NA ]
+DTA[, leaveeu := as.factor(leaveeu)]
+DTA[, toomanyimmigrants := as.numeric(j05==1)]
+DTA[j05<0 |j05>2, toomanyimmigrants := NA ]
+DTA<-DTA[!is.na(leaveeu) & !is.na(toomanyimmigrants)]    
+#reshuffle
+DTA<-DTA[sample(1:nrow(DTA), nrow(DTA))]
+DTA<-DTA[nchar(A1)>5]
+
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/brexit-plot.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+<<naivebayesbrexit0, echo=TRUE, message=FALSE,size="tiny", fig.show=FALSE>>=
+##just look at one word feature
+library(tm)
+library(RTextTools)
+set.seed(17052017)
+#a validation set
+DOC<-create_matrix(DTA$A1,language="english",
+                   removeNumbers=TRUE,stemWords=TRUE,removePunctuation=TRUE, removeSparseTerms = 0.999)
+DOCCONT<-create_container(DOC,as.numeric(DTA$leaveeu), trainSize=1:1869,
+                          testSize=1870:nrow(DTA), virgin=TRUE)
+MOD <- train_models(DOCCONT, algorithms=c("TREE","BOOSTING","BAGGING","RF"))
+RES <- classify_models(DOCCONT, MOD)
+
+analytics <- create_analytics(DOCCONT, RES)
+res<-data.table(analytics@document_summary)
+VALID<-cbind(DTA[1870:nrow(DTA)],res)
+   
+#confusion matrix 
+table(VALID$TREE_LABEL,VALID$leaveeu)/200
+
+table(VALID$BAGGING_LABEL,VALID$leaveeu)/200
+
+table(VALID$FORESTS_LABEL,VALID$leaveeu)/200
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+\begin{itemize}
+
+\item In total, I received 14 submissions covering 29 students out of a class of 31
+
+\item Group size so average group size is 2
+
+\item I will aim to combine a couple groups due to similar coverage.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+
+
+<<courseproject, echo=TRUE, message=FALSE,size="tiny", warning=FALSE, fig.show=FALSE>>=
+##just look at one word feature
+library(quanteda)
+library(readtext)
+CORP<-readtext("/Users/thiemo/Dropbox/Teaching/QTA/Homeworks/Projects/txt")
+CORP<-corpus(CORP)
+
+summary(CORP)
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+<<courseproject2, echo=FALSE, message=FALSE,size="tiny",warning=FALSE, fig.show=TRUE>>=
+##just look at one word feature
+
+DFM<-dfm(CORP,tolower = TRUE,remove = stopwords("english"), stem = TRUE, remove_punct = TRUE)
+plot(DFM)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}

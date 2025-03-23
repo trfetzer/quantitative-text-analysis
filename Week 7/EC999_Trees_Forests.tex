@@ -1,0 +1,1261 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Trees and Forests} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+\newcommand{\code}{\texttt}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees}
+
+\begin{itemize}
+
+\item Linear regression is a global model, where there is a single predictive formula
+holding over the entire data-space. Very difficult to capture or adequately model non-linearities, e.g. interactions.  
+
+\item The idea of Regression Trees is to sub-divide, or partition, the
+feature space into smaller regions, where the interactions are explicit.  
+
+\item Divide the feature space, that is the $\mathbf{X}$ into  $J$ distinct regions that do not overlap, call them $R_1,...,R_J$. 
+\item For every test observation $x_j$ that falls into a region $R_i$, the prediction $\hat{f}(x_j)$ is simply the mean of the training observations $y_i$ that fall into the region $R_i$
+
+$$\hat{y}_{R_j} = 1/n_j \sum_{i \in R_j}{y_i}$$
+
+\item[] where $n_j$ is number of training observations that fall into $R_j$.
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Regression Trees: Hedonic Pricing Example}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tree)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1312}\hlstd{)}
+\hlstd{SAMPLE}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(HOUSES),}\hlnum{18000}\hlstd{)}
+\hlstd{TRAINING}\hlkwb{<-}\hlstd{HOUSES[SAMPLE]}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(soldprice}\hlopt{~}\hlstd{builtyryr}\hlopt{+}\hlstd{baths,} \hlkwc{data}\hlstd{=TRAINING)}
+\hlkwd{plot}\hlstd{(res)}
+\hlkwd{text}\hlstd{(res)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-treehouses-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Top Down Greedy Binary Recursive Splitting}
+
+Define two half planes as $R_1(j,s) = \{X | X_j < s \}$ and $R_2(j,s) = \{ X| X_j \geq s\}$.
+ \begin{algorithm}[Binary Recursive Splitting]
+   \begin{enumerate}
+   \item Initialize with empty tree $\mathcal{T}$
+   
+   \item For each  $j=1,...,k$, find the $s$ that minimizes
+      $$\min_s RSS_j = \sum_{i: x_i \in R_1(j,s)}{(y_i - \hat{y}_{R_1})^2} + \sum_{i \in R_2(j,s)}{(y_i - \hat{y}_{R_2})^2}$$
+    
+    \item Choose the $j$ and corresponding optimal $\tilde{s}$  at which the value of $RSS_j$ is lowest and split the data at this point into two half planes $R_1,R_2$.
+
+    \item For each new half plane, repeat (2)-(4) so long as cutting criterion is not reached.
+
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Non-Linearities}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tree)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{1312}\hlstd{)}
+\hlstd{SAMPLE}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(HOUSES),}\hlnum{18000}\hlstd{)}
+\hlstd{TRAINING}\hlkwb{<-}\hlstd{HOUSES[SAMPLE]}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(soldprice}\hlopt{~}\hlstd{builtyryr}\hlopt{+}\hlstd{baths,} \hlkwc{data}\hlstd{=TRAINING)}
+\hlkwd{plot}\hlstd{(res)}
+\hlkwd{text}\hlstd{(res)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-treehousesnonlinear-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees can generate non-linear models}
+
+\begin{itemize}
+
+\item In the above example, its easy to show that we have interactive effects.
+
+\item We can, in fact, write the tree as a sequence of and interaction between different indicator functions. We have $X_1$ = Bathrooms, $X_2$ = Built Year
+\begin{itemize}
+\item[] $I_1 = \mathbf{I}(X_1 \leq 2.375)$
+\item[] $I_2 = \mathbf{I}(X_1 \leq 1.375)$
+\item[] $I_3 = \mathbf{I}(X_2 \leq 1939.5)$
+\item[] $I_4 = \mathbf{I}(X_2 \leq 1957.5)$
+\end{itemize}
+ \item Our regression tree is a model of the form:
+\begin{eqnarray*}
+ Y &=&  \beta_0 \times \mathbf{I}(X_1 \leq 2.375) \times  \mathbf{I}(X_2 \leq 1939.5)  \\
+  & + & \beta_1 \times  \mathbf{I}(X_1 \leq 2.375) \times \mathbf{I}(X_2 > 1939.5) \times \mathbf{I}(X_1 \leq 1.375) \\ 
+  & + & \beta_2 \times  \mathbf{I}(X_1 \leq 2.375) \times \mathbf{I}(X_2 > 1939.5) \times \mathbf{I}(X_1 > 1.375) \\
+  & + & \beta_3 \times  \mathbf{I}(X_1 > 2.375) \times \mathbf{I}(X_2 < 1957.5) \\
+  & + & \beta_4 \times  \mathbf{I}(X_1 > 2.375) \times \mathbf{I}(X_2 < 1957.5) 
+\end{eqnarray*}
+
+ \end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Regression Trees: Hedonic Pricing Example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{partition.tree}\hlstd{(res)}
+\hlkwd{points}\hlstd{(TRAINING[,} \hlkwd{c}\hlstd{(}\hlstr{"baths"}\hlstd{,}\hlstr{"builtyryr"}\hlstd{),}\hlkwc{with}\hlstd{=F],} \hlkwc{cex}\hlstd{=}\hlnum{.4}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-partitionhouses-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How to build a tree? Binary Recursive Splitting}
+
+\begin{itemize}
+
+\item As before, we want to minimize prediction error RSS, computed as
+
+$$RSS = \sum_{j=1}^J \sum_{i \in R_j}(y_i - \hat{y}_{R_j})^2$$
+
+\item There is an uncountably large ways that you could split the predictor space into    $R_1,...,R_J$ boxes.
+
+\item We follow an algorithmic approach known as \emph{greedy recursive binary splitting}.
+
+\item At each step, identify the variable $j$ and the split point $s$ such that the resulting reduction in training RSS is the largest.
+
+\item Perform this step iteratively on the sub trees until you are left with a mininum number of observations in each subtree (there are alternative stopping criteria)
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Bias vs Variance for Large Trees}
+
+\begin{itemize}
+
+\item In the extreme case, each terminal node will contain only a single observation.
+
+\item This obviously results in bad prediction performance on the test set due to high variance, as we are overfitting the data.
+
+\item So we could do two things:
+
+\begin{itemize}
+
+\item Require each cut to result in a significant reduction in RSS. Why is that not a good idea?
+
+\item Build a very large tree, and then remove (or combine) regions - \textbf{tree pruning}
+
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Pruning of Trees}
+
+\begin{itemize}
+
+\item Starting out from a large tree $\mathcal{T}$, we could ``prune'' the tree, i.e. remove and combine regions from the bottom and creating subtrees.
+
+\item We want to select a subtree that has lowest test error. For any subtree, we could estimate test error using cross-validation, but this is (often) not feasible due to large number of trees (like best subset selection)
+
+\item \emph{Cost complexity pruning} considers a sequence of trees that are a function of a tuning parameter $\alpha$.
+
+$$\sum_{m=1}^{|T|} \sum_{x_i \in R_m} (y_i - \hat{y}_{R_m})^2 + \alpha |T|$$
+
+\item[] $|T|$ is the number of terminal nodes in a tree, i.e. the number of boxes, $R_m$ is rectangle pertaining to terminal node $m$ and $\hat{y}_{R_m}$ is mean of training observations in $R_m$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Complex "Bushy" Tree}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(soldprice}\hlopt{/}\hlnum{1000}\hlopt{~} \hlstd{sqft}\hlopt{+}\hlstd{baths}\hlopt{+}\hlstd{builtyryr}\hlopt{+}\hlstd{distgas2009}\hlopt{+}\hlstd{distgas2010}\hlopt{+}\hlstd{lat}\hlopt{+}\hlstd{lon}\hlopt{+}\hlkwd{factor}\hlstd{(NAME)}\hlopt{+}\hlkwd{factor}\hlstd{(year),} \hlkwc{data}\hlstd{=TRAINING,}
+          \hlkwc{control}\hlstd{=}\hlkwd{tree.control}\hlstd{(}\hlkwd{nrow}\hlstd{(TRAINING),}\hlkwc{mincut}\hlstd{=}\hlnum{2}\hlstd{,}\hlkwc{minsize}\hlstd{=}\hlnum{5}\hlstd{,}\hlkwc{mindev}\hlstd{=}\hlnum{0.0005}\hlstd{))}
+\hlkwd{plot}\hlstd{(res)}
+\hlkwd{text}\hlstd{(res,} \hlkwc{cex}\hlstd{=}\hlnum{.5}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-bushytree-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+ 
+ 
+
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Pruning a "Bushy" Tree}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/knitr-bushytreepruned-1.pdf} 
+\includegraphics[scale=.5]<2>{figures/knitr-bushytreepruned-3.pdf} 
+\includegraphics[scale=.5]<3>{figures/knitr-bushytreepruned-5.pdf} 
+\includegraphics[scale=.5]<4>{figures/knitr-bushytreepruned-6.pdf} 
+\end{array}$
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Cross Validation Error, Test Error and Training Error}
+
+\begin{itemize}
+
+\item Hence the idea is to vary $\alpha$ and have the computer compute different subtrees, one for each value of $\alpha$.
+
+\item As $\alpha \rightarrow 0$, we obtain the unpruned tree.
+
+\item As $\alpha \rightarrow \infty$, we obtain a tree with a single terminal node.
+
+\item How to decide on optimal $\alpha$? Two approaches...
+
+
+\begin{itemize}
+
+\item We can perform a \emph{validation set} approach to compute test and training error and based on the minimum point of test error, choose 
+
+\item Alternatively, we can obtain a sequence of subtrees and then compute the K-fold cross validation error.
+
+\end{itemize}
+
+\item Present each in turn for our example
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Validation Set Approach: Training and Test MSE}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-treevalidationset-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{10 Fold Cross Validation}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-treecrossvalidationset-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{More Common Pattern: CV, Validation Set and Training Error}
+ \begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/common-cv-training-testerror.png} 
+\end{array}$
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Building Regression Trees}
+ \begin{algorithm}[Building Regression Trees]
+
+  \begin{enumerate}
+
+\item Use recursive binary splitting to grow a large tree on the training data, stopping only when each terminal node has fewer than some minimum number of observations.
+\item Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees, as a function of $\alpha$
+\item Use K-fold cross-validation to choose  $\alpha$. That is, divide the training observations into K folds. For each k = 1, . . . , K:
+\begin{enumerate}
+\item Repeat Steps 1 and 2 on all but the kth fold of the training data. 
+\item Evaluate the mean squared prediction error on the data in the left-out kth fold, as a function of  $\alpha$
+\end{enumerate}
+
+\item Average the results for each value of  $\alpha$, and pick α to minimize the average error.
+\item Return the subtree from Step 2 that corresponds to the chosen value of  $\alpha$.
+
+ \end{enumerate}
+ \end{algorithm}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Regression Trees versus Linear Models}
+
+\begin{itemize}
+
+\item We can write a Regression Tree predictive model as
+
+$$ f(X) = \sum_{i=1}^M{c_m \mathbf{I}(X \in R_m)}$$ 
+
+\item The basis functions are indicator functions and $c_m$ is the estimated average of the response variable. 
+
+\item It becomes clear from the previous examples, that regression trees are highly non-linear as they allow interactive effects between variables. How?
+
+\item Rectangular partitioning of predictor space may be adequate, but in some cases, the partition may be non-linear.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame} {Regression Trees Pros and Cons}
+
+\begin{itemize}
+\item Trees are very easy to explain to people. In fact, they are even easier to explain than linear regression!
+\item Some people believe that decision trees more closely mirror human decision-making than do the regression approaches seen so far.
+
+\item Trees can easily handle qualitative predictors without the need to create dummy variables.
+
+\item Unfortunately, trees generally do not have the same level of predictive accuracy as some of the other regression methods.
+
+\item Additionally, trees can be very non-robust. In other words, a small change in the data can cause a large change in the final estimated tree.
+
+\end{itemize}
+
+Next, we explore Bagging and Boosting as an approach to aggregate many regression trees into Forests.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\section{Classification Trees}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Classification Trees}
+
+\begin{itemize}
+
+\item The only fundamental difference between regression trees and classification trees is that our response varibale is not numeric, but categorical.
+
+
+\item As such, our objective function is not to minimize RSS, but rather to minimize classification error rate or a measure of \emph{node purity}.
+
+\item Our \emph{decision rule} on labelling a new observation will require us to label a test observation $\mathbf{x}_j$ falling into region $R_i$ as having the label $k$ if label $k$ is the most commonly occuring among the training observations falling into region $R_i$.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Objective Function}
+
+\begin{itemize}
+
+\item That is, we assign to a new observation the \textbf{modal} class of our training data that falls in region $R_i$
+
+\item What is our expected "misclassification error rate" (our alternative to RSS)?
+
+$$ E = 1 - \max_{k}( \hat{p}_{jk})$$
+
+\item[] where $\hat{p}_{jk}$ represents the proportion of training observations in the $j$-th region that are from the $k$th class.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Alternative Objective Function}
+
+\begin{itemize}
+
+\item It turns out that misclassification error rate is often not preferred as it produces splits with high node impurity.
+
+\item Rather than using misclassification error as a measure of quality of a particular split, there are two alternatives, in particular the \emph{Gini Index}
+
+$$ G  = \sum_{k=1}^{K} \hat{p}_{jk} (1-\hat{p}_{jk})$$
+
+\item as a measure for total variance of a split region $j$, the \emph{Gini index} takes on a small value if all of the $\hat{p}_{jk}$'s are close to zero or one. [see if there is a single class, this is a bell shaped curve]
+
+\item Its clear that this captures a notion of \emph{node purity} - a small value of $G$ indicates that a node $j$ contains predominantly observations from a single class.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Alternative Objective Function (2)}
+
+\begin{itemize}
+
+\item An alternative to the Gini index is \emph{cross-entropy}, given by
+
+$$ D  = - \sum_{k=1}^{K} \hat{p}_{jk} \log{\hat{p}_{jk}}$$
+
+\item Using L'Hospital rule, one can show that $\lim_{p \rightarrow 0} D \rightarrow 0$ and  $\lim_{p \rightarrow 1} D \rightarrow 0$ 
+
+\item Therefore, like the Gini index, the cross-entropy will take on a small value if the $j$-th node is pure. In fact, it turns out that the Gini index and the cross-entropy are quite similar numerically.
+
+\end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Spam Classification Example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tree)}
+ \hlstd{email} \hlkwb{<-} \hlkwd{read.csv}\hlstd{(}\hlstr{"R/spam.csv"}\hlstd{)}
+\hlstd{email}\hlopt{$}\hlstd{spam} \hlkwb{<-} \hlkwd{factor}\hlstd{(email}\hlopt{$}\hlstd{spam,}\hlkwc{levels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),}\hlkwc{labels}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"important"}\hlstd{,}\hlstr{"spam"}\hlstd{))}
+\hlstd{validation}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(email),} \hlnum{500}\hlstd{)}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(spam}\hlopt{~}\hlstd{.,} \hlkwc{data}\hlstd{=email[}\hlopt{-}\hlstd{validation])}
+
+\hlkwd{plot}\hlstd{(res)}
+\hlkwd{text}\hlstd{(res,} \hlkwc{cex}\hlstd{=}\hlnum{0.6}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-decisiontree-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Test Error}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(res, email[validation,],} \hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{)}
+
+\hlkwd{table}\hlstd{(pred, email[validation,]}\hlopt{$}\hlstd{spam)}
+\end{alltt}
+\begin{verbatim}
+##            
+## pred        important spam
+##   important       282   26
+##   spam             20  172
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{2}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred, email[validation,]}\hlopt{$}\hlstd{spam))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.908
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Controlling the Size of the Tree}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(spam}\hlopt{~}\hlstd{.,} \hlkwc{data}\hlstd{=email[}\hlopt{-}\hlstd{validation],}\hlkwc{mincut}\hlstd{=}\hlnum{2}\hlstd{,}\hlkwc{minsize}\hlstd{=}\hlnum{5}\hlstd{,}\hlkwc{mindev}\hlstd{=}\hlnum{0.0005}\hlstd{)}
+
+\hlkwd{plot}\hlstd{(res)}
+\hlkwd{text}\hlstd{(res,} \hlkwc{cex}\hlstd{=}\hlnum{0.5}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-decisiontreebushy-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Controlling the Size of the Tree}
+
+The size of the tree can be chosen by a range of arguments
+
+\code{tree.control( mincut = 5, minsize = 10, mindev = 0.01)}
+
+\begin{Description}
+
+\item[mincut]	 The minimum number of observations to include in either child node. This is a weighted quantity; the observational weights are used to compute the ‘number’. The default is 5.
+
+\item[minsize] The smallest allowed node size: a weighted quantity. The default is 10.
+
+\item[mindev]	 The within-node deviance must be at least this times that of the root node for the node to be split.
+\end{Description}
+
+To produce a tree that fits the (training) data perfectly, set \code{mindev = 0} and \code{minsize = 1}.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias- vs Variance Trade-Off}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#superbushy}
+\hlstd{res}\hlkwb{<-}\hlkwd{tree}\hlstd{(spam}\hlopt{~}\hlstd{.,} \hlkwc{data}\hlstd{=email[}\hlopt{-}\hlstd{validation],}\hlkwc{minsize}\hlstd{=}\hlnum{2}\hlstd{,}\hlkwc{mindev}\hlstd{=}\hlnum{0.0001}\hlstd{)}
+\hlstd{testerror}\hlkwb{<-}\hlkwa{NULL}
+\hlstd{trainerror}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for}\hlstd{(a} \hlkwa{in} \hlkwd{seq}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{20}\hlstd{,}\hlnum{0.25}\hlstd{)) \{}
+\hlcom{#ONLY PLOT SOME AND NOT AH}
+\hlstd{prune.k}\hlkwb{<-}\hlkwd{prune.tree}\hlstd{(res,} \hlkwc{newdata}\hlstd{=email[}\hlopt{-}\hlstd{validation,],} \hlkwc{method}\hlstd{=}\hlstr{"misclass"}\hlstd{,} \hlkwc{k}\hlstd{=a)}
+
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(prune.k, email[validation,],} \hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{)}
+
+\hlstd{testerror}\hlkwb{<-}\hlkwd{c}\hlstd{(testerror,}\hlnum{1}\hlopt{-}\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{2}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred, email[validation,]}\hlopt{$}\hlstd{spam))}\hlopt{/}\hlnum{500}\hlstd{)}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(prune.k, email[}\hlopt{-}\hlstd{validation,],} \hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{)}
+
+\hlstd{trainerror}\hlkwb{<-}\hlkwd{c}\hlstd{(trainerror,}\hlnum{1}\hlopt{-}\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{2}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(pred, email[}\hlopt{-}\hlstd{validation,]}\hlopt{$}\hlstd{spam))}\hlopt{/}\hlnum{4101}\hlstd{)}
+
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bias- vs Variance Trade-Off}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{20}\hlstd{,}\hlnum{0.25}\hlstd{),testerror,} \hlkwc{type}\hlstd{=}\hlstr{"l"}\hlstd{)}
+\hlkwd{lines}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{20}\hlstd{,}\hlnum{0.25}\hlstd{),trainerror,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/traintesterror.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+    
+
+  
+ 
+\section{Bagging and Random Forests}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Aggregation for Variance Reduction}
+
+\begin{itemize}
+
+\item General result: for some observations $Z_1,...,Z_n$ that are drawn \emph{independently} and identically from a distribution with the same variance, you know that 
+$$Var(1/n \sum_{i=1}^{n} Z_i) = \frac{\sigma^2}{n}$$
+
+\item Note this only holds for $Z_i, Z_j$ being independent draws.
+
+\item Regression Trees/ Classification Trees tend to have high variance and low bias.
+
+\item We can reduce the variance of statistical learning methods, by taking many (independently drawn) training sets from the population, build separate classification model and then average the results.
+
+\item This is the core idea of bootstrapping, which is particularly useful for  trees and we study it in this context.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{Bagged Trees}
+
+\begin{itemize}
+
+\item Suppose you calculate $\hat{f}^1(x),...,\hat{f}^B(x)$ from $B$ different randomly selected training sets, your prediction is given as
+
+$$\hat{f}_{avg}(x) = \frac{1}{B} \sum_{b=1}^B \hat{f}^b(x)$$
+
+\item We sample from our set of observatins $n$ with replacement, so some observations may randomly appear multiple times.
+
+\item We compute $B$ regression trees using $B$ bootstrapped training sets, and average the resulting predictions.
+
+\item \emph{No need to prune} these trees. An individual tree has high variance, but low bias.
+
+\item Averaging across these $B$ trees \emph{reduces the variance}.
+
+\item Intuition: Variance in prediction due to individual trees fitting (non existing) patterns in the error term $\epsilon$. Each individual bootstrapped tree fits a different pattern, which washes out as we average.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Bagged Trees and Bias Variance Tradeoff}
+
+$$E(f(x_0) - \hat{f(x_0)})^2 = Var(\hat{f}(x_0)) + [Bias(\hat{f}(x_0))]^2 + Var(\epsilon)$$
+
+\begin{itemize}
+
+\item Variance in prediction due to individual trees fitting (non existing) patterns in the error term $\epsilon$, that is  $Var(\hat{f}(x_0))$ captures $ Var(\epsilon)$
+
+\item  Each individual bootstrapped tree fits a different pattern in the noise, which washes out as we average.
+
+\item There is a second source of variance in $ Var(\hat{f}(x_0))$, coming from the fact that, mechanically, the predictions across bootstrapped samples are correlated.
+
+\item Random forests deals with this issue in a clever way by \emph{decorrelate} individual $\hat{f}^b$.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Random Forests}
+
+\begin{itemize}
+
+\item The problem: our different bootstrapped $\hat{f}^b$'s are correlated mechanically, since they are obtained using the same set of observations. This increases the variance of our prediction.
+
+\item Correlation arises from using the same set of $X$'s in the construction of each bootstrapped tree.
+
+\item One way to avoid this is to try to \emph{decorrelate} individual $\hat{f}^b$'s
+
+
+\item To avoid this, when building these trees, each time a split in a tree is considered, a random sample of $m$ predictors is chosen as split candidates from the full set of $p$ predictors.
+
+\item Usually $m \approx \sqrt{p}$ is chosen.
+
+\item This mechanically decorrelates the fitted values. 
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Random Forests}
+
+\begin{itemize}
+
+\item The problem: our different bootstrapped $\hat{f}^b$'s are correlated mechanically, since they are obtained using the same set of observations. This increases the variance of our prediction.
+
+\item Correlation arises from using the same set of $X$'s in the construction of each bootstrapped tree.
+
+\item One way to avoid this is to try to \emph{decorrelate} individual $\hat{f}^b$'s
+
+
+\item To avoid this, when building these trees, each time a split in a tree is considered, a random sample of $m$ predictors is chosen as split candidates from the full set of $p$ predictors.
+
+\item Usually $m \approx \sqrt{p}$ is chosen.
+
+\item This mechanically decorrelates the fitted values. 
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Illustration}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(randomForest)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# randomForest 4.6-12}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Type rfNews() to see new features/changes/bug fixes.}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'randomForest'}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:ggplot2':\\\#\# \\\#\#\ \ \ \  margin}}\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{12022017}\hlstd{)}
+\hlkwd{dim}\hlstd{(email)}
+\end{alltt}
+\begin{verbatim}
+## [1] 4601   58
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit} \hlkwb{<-} \hlkwd{randomForest}\hlstd{(}\hlkwd{as.factor}\hlstd{(spam)} \hlopt{~} \hlstd{.,}
+                      \hlkwc{data}\hlstd{=email[}\hlopt{-}\hlstd{validation,],}
+                      \hlkwc{importance}\hlstd{=}\hlnum{TRUE}\hlstd{,}
+                      \hlkwc{ntree}\hlstd{=}\hlnum{500}\hlstd{)}
+\hlstd{fit}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+##  randomForest(formula = as.factor(spam) ~ ., data = email[-validation,      ], importance = TRUE, ntree = 500) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 4.58%
+## Confusion matrix:
+##           important spam class.error
+## important      2416   70      0.0282
+## spam            118 1497      0.0731
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Variable Importance}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##five most important variables}
+\hlkwd{varImpPlot}\hlstd{(fit,} \hlkwc{sort}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{n.var}\hlstd{=}\hlnum{10}\hlstd{,} \hlkwc{type}\hlstd{=}\hlnum{1}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-randomforestvarimp-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Variable Importance (2)}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##five most important variables}
+\hlkwd{varImpPlot}\hlstd{(fit,} \hlkwc{sort}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{n.var}\hlstd{=}\hlnum{10}\hlstd{,} \hlkwc{type}\hlstd{=}\hlnum{2}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-randomforestvarimp2-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest Confusion Matrix}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pred}\hlkwb{<-}\hlkwd{predict}\hlstd{(fit,} \hlkwc{newdata} \hlstd{= email[validation,],} \hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{)}
+\hlkwd{table}\hlstd{(email[validation,]}\hlopt{$}\hlstd{spam,pred)}
+\end{alltt}
+\begin{verbatim}
+##            pred
+##             important spam
+##   important       292   10
+##   spam             12  186
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest / Bagging Example (2)}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{TRAINING}\hlkwb{<-}\hlkwd{data.table}\hlstd{(}\hlkwd{read.csv}\hlstd{(}\hlkwc{file}\hlstd{=}\hlstr{"/Users/thiemo/Dropbox/Research/Matteo and Thiemo/senna/classification-tree.csv"}\hlstd{))}
+\hlstd{PERSON}\hlkwb{<-}\hlstd{TRAINING[objecttype}\hlopt{==}\hlstr{"person"} \hlopt{&} \hlstd{label1}\hlopt{!=}\hlstr{""}\hlstd{]}
+\hlstd{PERSON}\hlopt{$}\hlstd{label1} \hlkwb{<-} \hlkwd{factor}\hlstd{(PERSON}\hlopt{$}\hlstd{label1)}
+\hlstd{PERSON}\hlopt{$}\hlstd{label1num} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{factor}\hlstd{(PERSON}\hlopt{$}\hlstd{label1))}
+\hlkwd{library}\hlstd{(tm)}
+\hlkwd{library}\hlstd{(RTextTools)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{30012017}\hlstd{)}
+\hlcom{#a validation set}
+\hlstd{valid}\hlkwb{<-}\hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(PERSON),} \hlnum{500}\hlstd{)}
+\hlstd{PERSON}\hlopt{$}\hlstd{validation}\hlkwb{<-} \hlnum{0}
+\hlstd{PERSON[valid]}\hlopt{$}\hlstd{validation}\hlkwb{<-}\hlnum{1}
+\hlstd{PERSON}\hlkwb{<-}\hlstd{PERSON[}\hlkwd{order}\hlstd{(validation)]}
+\hlstd{DOC}\hlkwb{<-}\hlkwd{create_matrix}\hlstd{(}\hlkwd{c}\hlstd{(PERSON[,}\hlkwd{paste}\hlstd{(objectcleanpp,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]),}\hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}
+                   \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removePunctuation}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removeSparseTerms}\hlstd{=}\hlnum{0.999}\hlstd{)}
+\hlstd{DOCCONT}\hlkwb{<-}\hlkwd{create_container}\hlstd{(DOC,PERSON}\hlopt{$}\hlstd{label1num,} \hlkwc{trainSize}\hlstd{=}\hlnum{1}\hlopt{:}\hlnum{1200}\hlstd{,}
+                          \hlkwc{testSize}\hlstd{=}\hlnum{1201}\hlopt{:}\hlkwd{nrow}\hlstd{(PERSON),} \hlkwc{virgin}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{MOD} \hlkwb{<-} \hlkwd{train_models}\hlstd{(DOCCONT,} \hlkwc{algorithms}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"MAXENT"}\hlstd{,}\hlstr{"TREE"}\hlstd{,}\hlstr{"BOOSTING"}\hlstd{,}\hlstr{"BAGGING"}\hlstd{,}\hlstr{"RF"}\hlstd{))}
+\hlstd{RES} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(DOCCONT, MOD)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Random Forest / Bagging Example (2)}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(DOCCONT, RES)}
+\hlstd{res}\hlkwb{<-}\hlkwd{data.table}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+\hlstd{VALID}\hlkwb{<-}\hlkwd{cbind}\hlstd{(PERSON[validation}\hlopt{==}\hlnum{1}\hlstd{],res)}
+
+\hlcom{#confusion matrix}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{MAXENTROPY_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.896
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{TREE_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.876
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{BAGGING_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.904
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*}\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{FORESTS_LABEL,VALID}\hlopt{$}\hlstd{label1))}\hlopt{/}\hlnum{500}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.912
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Tree's applications for Classification}
+
+\begin{itemize}
+
+\item We see that trees by themselves may yield relatively poor performance.
+
+\item Extensions such as Bagging or Random Forests, produce superior classification performance.
+
+\item Yet, many perceive the models as too "black boxy" and generally, tree based methods are said to have high variance.
+
+\item Sometimes, simpler models may be preferred to more complex ones. 
+
+\item In case you can fit multiple models to a training data, it is worth exploring the extent to which they yield similar results.
+
+\item For word features, the fact that Trees explicitly model interactions is very useful as even for unigram word features, we can explicitly model negations etc.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/brexit-plot.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Going back to the Brexit example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{library}\hlstd{(tm)}
+\hlkwd{library}\hlstd{(RTextTools)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{17052017}\hlstd{)}
+\hlcom{#a validation set}
+\hlstd{DOC}\hlkwb{<-}\hlkwd{create_matrix}\hlstd{(DTA}\hlopt{$}\hlstd{A1,}\hlkwc{language}\hlstd{=}\hlstr{"english"}\hlstd{,}
+                   \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removePunctuation}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{removeSparseTerms} \hlstd{=} \hlnum{0.999}\hlstd{)}
+\hlstd{DOCCONT}\hlkwb{<-}\hlkwd{create_container}\hlstd{(DOC,}\hlkwd{as.numeric}\hlstd{(DTA}\hlopt{$}\hlstd{leaveeu),} \hlkwc{trainSize}\hlstd{=}\hlnum{1}\hlopt{:}\hlnum{1869}\hlstd{,}
+                          \hlkwc{testSize}\hlstd{=}\hlnum{1870}\hlopt{:}\hlkwd{nrow}\hlstd{(DTA),} \hlkwc{virgin}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{MOD} \hlkwb{<-} \hlkwd{train_models}\hlstd{(DOCCONT,} \hlkwc{algorithms}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"TREE"}\hlstd{,}\hlstr{"BOOSTING"}\hlstd{,}\hlstr{"BAGGING"}\hlstd{,}\hlstr{"RF"}\hlstd{))}
+\hlstd{RES} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(DOCCONT, MOD)}
+
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(DOCCONT, RES)}
+\hlstd{res}\hlkwb{<-}\hlkwd{data.table}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+\hlstd{VALID}\hlkwb{<-}\hlkwd{cbind}\hlstd{(DTA[}\hlnum{1870}\hlopt{:}\hlkwd{nrow}\hlstd{(DTA)],res)}
+
+\hlcom{#confusion matrix }
+\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{TREE_LABEL,VALID}\hlopt{$}\hlstd{leaveeu)}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+##    
+##     leave remain
+##   1 0.225  0.125
+##   2 0.240  0.410
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{BAGGING_LABEL,VALID}\hlopt{$}\hlstd{leaveeu)}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+##    
+##     leave remain
+##   1 0.205  0.130
+##   2 0.260  0.405
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{FORESTS_LABEL,VALID}\hlopt{$}\hlstd{leaveeu)}\hlopt{/}\hlnum{200}
+\end{alltt}
+\begin{verbatim}
+##    
+##     leave remain
+##   1 0.250  0.170
+##   2 0.215  0.365
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+\begin{itemize}
+
+\item In total, I received 14 submissions covering 29 students out of a class of 31
+
+\item Group size so average group size is 2
+
+\item I will aim to combine a couple groups due to similar coverage.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{##just look at one word feature}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{library}\hlstd{(readtext)}
+\hlstd{CORP}\hlkwb{<-}\hlkwd{readtext}\hlstd{(}\hlstr{"/Users/thiemo/Dropbox/Teaching/QTA/Homeworks/Projects/txt"}\hlstd{)}
+\hlstd{CORP}\hlkwb{<-}\hlkwd{corpus}\hlstd{(CORP)}
+
+\hlkwd{summary}\hlstd{(CORP)}
+\end{alltt}
+\begin{verbatim}
+## Corpus consisting of 14 documents.
+## 
+##        Text Types Tokens Sentences
+##   Team1.txt   289    707        27
+##  Team10.txt   329    750        34
+##  Team11.txt   415   1143        79
+##  Team12.txt   208    474        27
+##  Team13.txt   293    802        36
+##  Team14.txt   142    286        16
+##   Team2.txt   329    733        33
+##   Team3.txt   251    637        18
+##   Team4.txt   202    367        25
+##   Team5.txt   275    571        21
+##   Team6.txt   220    392        27
+##   Team7.txt   205    395        15
+##   Team8.txt   355    693        24
+##   Team9.txt   358    883        32
+## 
+## Source:  /Users/thiemo/Dropbox/Teaching/QTA/Lectures/Week 7/* on x86_64 by thiemo
+## Created: Thu May 18 15:38:51 2017
+## Notes:
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Course Projects}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-courseproject2-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\end{document}
