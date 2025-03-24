@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Building your own classifier}{2}{0}{1}
+\beamer@sectionintoc {2}{Helping you code data}{11}{0}{2}
+\beamer@sectionintoc {3}{Sentiment Analysis}{20}{0}{3}

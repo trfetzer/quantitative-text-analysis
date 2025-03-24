@@ -1,0 +1,583 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC994: Applications of Data Science]{EC994: Hierarchical Clustering} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("~/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 8")
+library(glmnet)
+library(ggplot2)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering}
+ 
+\begin{itemize}
+
+\item k-Means clustering is a very powerful tool to detect patterns some data matrix $X$. However, it has some drawbacks.
+
+\item \textbf{Numeric features}: In the construction, we compute Euclidian distances between observations and their distinct means - we implicitly assume that the data are \emph{numeric} $\rightarrow$ k-medoids can fix this!
+
+\item \textbf{Choice of K}: We are required to make a choice over the number of clusters in the data.
+
+\item Hierarchical clustering is a powerful approach that can build clusters based on data dissimilarity matrices and does not require a choice of clusters $K$.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering Idea}
+ 
+ We will discuss one form of hierarchical clustering in this course: Agglomerative hierarchical clustering.
+
+\begin{itemize}
+
+\item Start with each point in its own cluster.
+\item Identify the \emph{closest} two clusters and merge them.
+\item Repeat.
+\item Ends when all points are in a single cluster.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering Illustration}
+ 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.6]<1>{figures/hierarchical-clustering-illustration-1.png} 
+\includegraphics[scale=.6]<2>{figures/hierarchical-clustering-illustration-2.png} 
+\includegraphics[scale=.6]<3>{figures/hierarchical-clustering-illustration-3.png} 
+\includegraphics[scale=.6]<4>{figures/hierarchical-clustering-illustration-4.png} 
+\includegraphics[scale=.6]<5>{figures/hierarchical-clustering-illustration-5.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Representing Hierarchical Clustering as Tree}
+ 
+We can not plot out hierarchical clustering results in two dimensions only if there are two dimensional features. With more dimensions, it easiest to display the clustering results in form of a dendogram.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.47]<1>{figures/hierarchical-clustering-illustration-6.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Hierarchical Clustering Algorithm}
+
+ \begin{algorithm}[Hierarchical Clustering]
+   \begin{enumerate}
+   
+\item  Start by considering each item as its own cluster, for $n$ clusters and calculate the $n(n − 1)/2$ pairwise distances between each of the $n$ clusters.
+
+
+For $i=n, n-1,...,2$
+
+\item Examine all pair-wise inter-cluster dissimilarities among the $i$ clusters, identify the pair of clusters $k$, $k'$ that are least dissimilar and combine them. Store the distance betweent $k$ and $k'$. 
+
+\item Recalculate distance matrix with the remaining $i-1$ cluster. 
+
+\item Stop when only two clusters remain. 
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{Another example performing hierarchical clustering}
+<<hierarchicalclustexample, echo=FALSE, message=FALSE, warning=FALSE,results="hide", size="tiny">>=
+
+set.seed(20)
+x=matrix(rnorm(10), ncol=2)
+x<-cbind(x, LETTERS[1:5])
+
+plot(x, cex=.1)
+text(x[,c(1:2)],x[,3], cex=1.5)
+dist(x)
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another example performing hierarchical clustering}
+<<hierarchicalclustdist, echo=FALSE, message=FALSE, warning=FALSE>>=
+MAT<-dist(x[, 1:2])
+MAT<-as.matrix(MAT)
+colnames(MAT) <- LETTERS[1:5]
+rownames(MAT) <- LETTERS[1:5]
+MAT
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sequence of Steps}
+
+\begin{itemize}
+
+\item We start with every observation being its own cluster, i.e. we are at the bottom of the tree and there are  five clusters.
+
+\item In the first iteration, we combine combine $D$ and $E$. Their distance is 0.891, so we record this distance. Now we are left with four clusters $DE$, $A$, $B$, $C$.
+
+\item The second step in the algorithm asks us to recompute the distance matrix, but how should we do this? 
+
+\item There are multiple choices.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Complete Linkage}
+
+
+\emph{Complete Linkage}: This maximizes intercluster dissimilarity, as we compute all pairwise distances between the observations in cluster A and the observations in cluster B and record the \emph{largest} in our reduced distance matrix.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-complete.pdf} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Single Linkage}
+
+
+\emph{Single Linkage}: This leads to minimal intercluster dissimilarity, as we compute all pairwise distances between the observations in cluster A and the observations in cluster B and record the \emph{minimal} in our reduced distance matrix.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-single} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Average Linkage}
+
+
+\emph{Average Linkage}: Compute all pairwise dissimilarities between observations in cluster A and observations in cluster B and record the average of these dissimilarities.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-average} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Centroid Linkage}
+
+
+\emph{Centroid Linkage}: Compute the centroid within each cluster. 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-centroid} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Number of Clusters}
+
+
+By cutting at different heights of the tree, you can control the number of clusters to consider. 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/cutting-criterion.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation based distance metrics}
+ 
+\begin{itemize}
+
+\item Rather than caring about levels of distance, we may be interested in correlation based distances; for example, a point described as $(1,1)$ may be quite far away from a point $(10,10)$, but they are actually perfectly correlated if we think of them as vectors.
+
+\item A correlation measure would take this scaling factor out and indicate that these two vectors are identical!
+
+\item In many instances, we care about pattern correlatedness and not necessarily pure distance.
+
+\item Last week, we have already seen one example
+
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity: Measuring Angle between two unit length vectors}
+
+\begin{itemize}
+
+\item What is the length of a vector $A$ and $B$? its simply the Euclidian distance from origin, i.e. $\lVert \mathbf{y_A} \rVert$,$\lVert \mathbf{y_B} \rVert$ 
+
+\item So the vectors $\mathbf{y'_A}=\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\mathbf{y'_B}=\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$ both have length 1.
+
+\item What is the angle between the vectors $\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$?
+
+$$\cos{(\mathbf{y_A,y_B})} ={\mathbf {y_A} \cdot \mathbf {y_B}  \over \|\mathbf {y_A} \|\|\mathbf {y_B} \|}={\frac {\sum \limits _{i=1}^{n}{y_{iA}y_{iB}}}{{\sqrt {\sum \limits _{i=1}^{n}{y_{iA}^{2}}}}{\sqrt {\sum \limits _{i=1}^{n}{y_{iB}^{2}}}}}}$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence}
+ 
+\begin{itemize} 
+
+\item Most proposed bills do never make it into actual law. 
+
+\item Consider the following examples for the US:
+
+\item  H.R. 1060 (105th): Pharmacy Compounding Act
+
+\item S. 830 (105th): Food and Drug Administration Modernization Act of 1997 
+ 
+\end{itemize} 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]<1>{figures/food-drug-example1.png} 
+\includegraphics[scale=.35]<2>{figures/food-drug-example2.png} 
+\includegraphics[scale=.25]<3>{figures/fda-drug-example.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+      
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{State of the Union Clustering}
+ 
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.55]<1>{figures/state-of-union-1.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Word Feature Clustering to identify collocated words}
+
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.6]<1>{figures/state-of-union-2.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some hands-on R code on clustering}
+ 
+<<clustering, size="tiny",eval=TRUE, tidy=TRUE>>=
+library(cluster)
+library(quanteda)
+load(file="../../Data/trumpstweets.rdata")
+# remove retweet entities
+# remove html links
+tw.user.df$text = gsub("http([^ ]*)", "", tw.user.df$text)
+tw.user.df[, firsthash := str_extract(text, "#([^ ]*)")]
+tw.user.df<-tw.user.df[!is.na(firsthash)]
+
+tw.user.df$text = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", tw.user.df$text)
+# remove at people
+tw.user.df$text = gsub("@\\w+", "", tw.user.df$text)
+# remove punctuation
+tw.user.df$text = gsub("[[:punct:]]", "", tw.user.df$text)
+# remove numbers
+tw.user.df$text = gsub("[[:digit:]]", "", tw.user.df$text)
+# remove unnecessary spaces
+tw.user.df$text = gsub("[ \t]{2,}", "", tw.user.df$text)
+tw.user.df$text = gsub("^\\s+|\\s+$", "", tw.user.df$text)
+tw.user.df[, docname := paste("text",1:nrow(tw.user.df),sep="")]
+trump.dfm<-dfm(tw.user.df$text, remove=stopwords(), stem=TRUE)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering on Trump tweets}
+ 
+<<clusteringdistance, size="tiny",eval=TRUE, tidy=TRUE>>=
+## k-means clustering
+
+set.seed(18022017)
+trump.dfm.trim <- dfm_trim(trump.dfm, min_count = 25, min_docfreq = 10)
+
+trump.dfm.trim<-trump.dfm.trim[1:50,]
+#tf function converts word count dfm to share
+trump.dfm.dist<-dist(as.matrix(dfm_weight(trump.dfm.trim, "frequency")))
+
+trump.dfm.clust <- hclust(trump.dfm.dist)
+# label with document names
+trump.dfm.clust$labels <- tw.user.df[docname %in% docnames(trump.dfm.trim)]$firsthash
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clustering on Trump tweets}
+ 
+<<clusteringdistance2, warning=FALSE, message=FALSE, size="tiny",eval=TRUE, tidy=TRUE>>=
+## k-means clustering
+# plot as a dendrogram
+plot(trump.dfm.clust, xlab = "", sub = "")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clusterong on SOTUs}
+<<sotuclustering, size="tiny",eval=TRUE, warning=FALSE, tidy=TRUE>>=
+## k-means clustering
+data(SOTUCorpus, package="quantedaData")
+presDfm <- dfm(corpus_subset(SOTUCorpus, Date > as.Date("1960-01-01")), verbose = FALSE, stem = TRUE,
+               remove = stopwords("english"), removePunct = TRUE)
+presDfm <- dfm_trim(presDfm, min_count=5, min_docfreq=3)
+# hierarchical clustering - get distances on normalized dfm
+presDistMat <- dist(as.matrix(dfm_weight(presDfm, "relFreq")))
+# hiarchical clustering the distance object
+presCluster <- hclust(presDistMat)
+# label with document names
+presCluster$labels <- docnames(presDfm)
+# plot as a dendrogram
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+    
+    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clusterong on SOTUs}
+<<sotuclustering2, size="tiny",eval=TRUE, warning=FALSE, tidy=TRUE,out.width='5in'>>=
+
+    plot(presCluster, xlab = "", sub = "")
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Identify Bigrams}
+<<sotuclustering3, size="tiny",eval=TRUE, warning=FALSE, tidy=TRUE,out.width='5in'>>=
+wordDfm <-  dfm_sort(dfm_weight(presDfm, "relFreq")) # sort in decreasing order of total word freq
+wordDfm <- t(wordDfm)[1:50,] # because transposed
+wordDistMat <- dist(wordDfm)
+wordCluster <- hclust(wordDistMat)
+plot(wordCluster, xlab="")
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+ 
+
+\end{document}

@@ -1,0 +1,12 @@
+\frametitle{Can we perform k-medoids clustering on distance matrices?}
+
+\begin{itemize}
+
+\item The answer is: Yes!
+
+\item All we do is assign points as medoids and then, reassign points to their closest medoids.
+
+\item We do not need to know the information about the actual features $X$ that underly the distance matrix, but rather, we \emph{only} need to know their pairwise distances, i.e. the data dissimilarity matrix $D$ which has dimensions $n \times n$.
+
+\item This greatly improves the set of potential applications for k-Means clusteirng, as you can define \emph{any distance}.
+\end{itemize}

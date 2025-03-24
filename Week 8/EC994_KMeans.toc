@@ -1,0 +1,3 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{K-Means Clustering}{8}{0}{1}
+\beamer@sectionintoc {2}{K-medoids Clustering}{45}{0}{2}

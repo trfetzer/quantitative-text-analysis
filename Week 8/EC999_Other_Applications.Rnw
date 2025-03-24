@@ -1,0 +1,555 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Some more application examples} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("/Users/thiemo/Dropbox/Teaching/QTA/Lectures/Week 8")
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Building your own classifier}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building your own classifier}
+\begin{itemize}
+
+\item We talked about a wide range of different methods to build classifiers.
+
+\item In that process, there are a lot of decisions to be made.
+
+\item There is "no classifier" to dominate them all.
+
+\item There are appealing features to be considered.
+
+\item A lot will involve \emph{trial and error}
+
+\item Most common approach taken is that of ``ensemble agreement''.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+<<happysad, size="tiny",eval=TRUE,warning=FALSE,message=FALSE, tidy=TRUE>>=
+library(e1071)
+happy = readLines("R/happy.txt")
+sad = readLines("R/sad.txt")
+happy_test = readLines("R/happy_test.txt")
+sad_test = readLines("R/sad_test.txt")
+
+tweet = c(happy, sad)
+tweet_test= c(happy_test, sad_test)
+tweet_all = c(tweet, tweet_test)
+sentiment = c(rep("happy", length(happy) ), 
+              rep("sad", length(sad)))
+sentiment_test = c(rep("happy", length(happy_test) ), 
+                   rep("sad", length(sad_test)))
+sentiment_all = as.factor(c(sentiment, sentiment_test))
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+<<happysad2, size="tiny",eval=TRUE,warning=FALSE,message=FALSE, tidy=TRUE>>=
+
+library(RTextTools)
+
+# naive bayes
+mat= create_matrix(tweet_all, language="english", 
+                   removeStopwords=FALSE, removeNumbers=TRUE, 
+                   stemWords=FALSE, tm::weightTfIdf)
+
+mat = as.matrix(mat)
+
+classifier = naiveBayes(mat[1:160,], as.factor(sentiment_all[1:160]))
+predicted = predict(classifier, mat[161:180,])
+
+predicted
+
+table(sentiment_test, predicted)
+
+##better than a coin toss../ 
+recall_accuracy(sentiment_test, predicted)
+
+##better than estimated prior
+table(sentiment)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+<<happysad3, size="tiny",warning=FALSE,message=FALSE,eval=TRUE, tidy=TRUE>>=
+
+mat= create_matrix(tweet_all, language="english", 
+                   removeStopwords=FALSE, removeNumbers=TRUE, 
+                   stemWords=FALSE, tm::weightTfIdf)
+
+container = create_container(mat, as.numeric(sentiment_all),
+                             trainSize=1:160, testSize=161:180,virgin=FALSE)
+
+models = train_models(container, algorithms=c("MAXENT",
+                                              "SVM", 
+                                             "BAGGING", 
+                                              "RF", 
+                                              "TREE" 
+))
+results = classify_models(container, models)
+table(as.numeric(as.numeric(sentiment_all[161:180])), results[,"FORESTS_LABEL"])
+recall_accuracy(as.numeric(as.numeric(sentiment_all[161:180])), results[,"FORESTS_LABEL"])
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Analytics Post Training/ Prediction}
+RTextTools provides a range of post training analytics through the 
+\code{create\_analytics} functionality.
+
+\begin{Description}
+\item[\code{analytics@algorithm\_summary}] Summary of precision, recall, f-scores, and accuracy sorted by topic code for each algorithm
+\item[\code{analytics@label\_summary}] Summary of label (e.g. Topic) accuracy
+\item[\code{analytics@document\_summary}]: Raw summary of all data and scoring
+\item[\code{analytics@ensemble\_summary}]: Summary of ensemble precision/coverage. Uses the n variable passed into \code{create\_analytics()}
+\end{Description}
+
+The \code{@} operator is used to access so-called "slots" of S3 Objects. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exploring the Analytics Object}
+<<happysad4, size="tiny",eval=TRUE, tidy=TRUE>>=
+
+  # formal tests
+analytics = create_analytics(container, results)
+
+head(analytics@algorithm_summary)
+head(analytics@label_summary)
+head(analytics@document_summary)
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+ 
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Ensemble Agreement}
+<<happysad5, size="tiny",eval=TRUE, tidy=TRUE>>=
+# Ensemble Agreement
+analytics@ensemble_summary 
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cross Validation}
+<<happysad6, size="tiny",eval=TRUE, tidy=TRUE>>=
+# Cross Validation
+N=3
+cross_SVM = cross_validate(container,N,"SVM")
+cross_MAXENT = cross_validate(container,N,"MAXENT")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+   
+
+\section{Helping you code data}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Using Classifiers to (help) code data}
+\begin{itemize}
+
+\item I want to illustrate another use for classifiers to code data
+
+\item Asset declarations of politicians or disclosure often times changes format.
+
+\item Classification of types is something that could be done manually, but it also is super scalable for machine learning...
+
+\item You can save a lot of RA time with that...
+
+\item Sometimes, the data you are working with already provides the training data you need.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset Declarations of Brasilian Politicians}
+
+\begin{center}
+\includegraphics[scale=0.25]<1>{figures/uol-bem1.png}
+\includegraphics[scale=0.25]<2>{figures/uol-bem2.png}
+\includegraphics[scale=0.25]<3>{figures/uol-bem4.png}
+\includegraphics[scale=0.25]<4>{figures/uol-bem5.png}
+\includegraphics[scale=0.5]<5>{figures/uol-bem3.png}
+\end{center}
+Asset delarations available from TSE \url{http://divulgacandcontas.tse.jus.br}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looping over Sparsity Measure}
+<<bem,eval=FALSE,size="tiny">>=
+
+OUT<-NULL
+k = 1
+for(i in c(0.999,0.9995,0.9999,.99995,0.99999,0.999999)) {
+cat(i, " ")
+DOC<-create_matrix(c(BEM.TRAIN[,paste(BEMDETAIL,sep=" ")]),removeStopwords=FALSE,
+                   removeNumbers=TRUE,stemWords=FALSE,removePunctuation=TRUE,removeSparseTerms=i)
+                             
+DOCCONT<-create_container(DOC,BEM.TRAIN$TYPENUM, trainSize=1:(nrow(BEM.TRAIN)-testsize),testSize=(nrow(BEM.TRAIN)-testsize+1):nrow(BEM.TRAIN), virgin=TRUE)
+MOD <- train_models(DOCCONT, algorithms=c("SVM","MAXENT"))
+RES <- classify_models(DOCCONT, MOD)
+analytics <- create_analytics(DOCCONT, RES)
+res<-data.table(analytics@document_summary)
+
+VALID<-cbind(BEM.TRAIN[validation==1],res)
+
+OUT[[k]] <- sum(diag(3) * table(VALID$CONSENSUS_CODE,VALID$TYPE))/nrow(VALID)
+k = k+1
+}
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Trade-Off Sparsity vs Accuracy}
+\begin{center}
+
+\includegraphics[scale=0.4]{figures/sparsity-vs-accuracy.pdf}
+
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+ 
+\section{Sentiment Analysis}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pre-Produced Packages for Sentiment Analysis}
+\begin{itemize}
+
+
+\item There exist a range of packages in R to do sentiment analysis.
+
+\item Most packages work of sentiment dictionaries that simply perform a lookup exercise, nothing fancy or Bayesian at all.
+
+\item For large scaling, these approaches may achieve reasonable accuracy.
+
+\item We can think of annotated dictionaries as being vocabulary that have been extracted from a training set - i.e. they are features that have a  discriminative Bayes score.
+
+\item The packages are robust to non-overlapping vocabulary: if the text you are classifying contains no features, then the priors are used for classification.
+
+\item It could be that the priors are bad though...
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Performance of pre-produced packages for Sentiment Analysis}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/comparisons_between_sentiment_detectors_b.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+
+<<twitterouth,size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=FALSE,include=FALSE,message=F, warning=F>>=
+library(twitteR)
+setup_twitter_oauth("NceYxbfLJVswR2zTa0CPTOEtQ", "HQ9S7VhG8x0FhhvJDYFXdSHYxqy8NtDNVOMJiVzvGbki8z5I88", "62849728-QwAzy9LtNGMW8QHIy63GqhhXIakmVmQd94p155cVX", "nTY6xJUnYfYbEnHjaNWvkR6WZJFgOqgRq4pUALop7pFiA")
+@
+
+
+\begin{frame}[fragile]{Sourcing Twitter data: Individual user level}
+<<twitter2, size="tiny",eval=FALSE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(twitteR)
+#setup_twitter_oauth(consumer_key, consumer_secret, access_token=NULL, access_secret=NULL)
+set.seed(12122016)
+tw.user = userTimeline('realDonaldTrump',n=3200) 
+tw.user.df<- data.table(twListToDF(tw.user))
+
+save(tw.user.df, file="../../Data/trumpstweets.rdata")
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{frame}[fragile]{Trump Tweets}
+<<twitter3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+load(file="../../Data/trumpstweets.rdata")
+
+head(tw.user.df$text)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[fragile]{Cleaning Tweets}
+<<twitter4, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(quanteda)
+load(file="../../Data/trumpstweets.rdata")
+# remove retweet entities
+tw.user.df$text = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", tw.user.df$text)
+# remove at people
+tw.user.df$text = gsub("@\\w+", "", tw.user.df$text)
+# remove punctuation
+tw.user.df$text = gsub("[[:punct:]]", "", tw.user.df$text)
+# remove numbers
+tw.user.df$text = gsub("[[:digit:]]", "", tw.user.df$text)
+# remove html links
+tw.user.df$text = gsub("http\\w+", "", tw.user.df$text)
+# remove unnecessary spaces
+tw.user.df$text = gsub("[ \t]{2,}", "", tw.user.df$text)
+tw.user.df$text = gsub("^\\s+|\\s+$", "", tw.user.df$text)
+tw.user.df<-tw.user.df[!is.na(text)]
+head(tw.user.df$text)
+
+#build dfm
+trump.dfm1 <- dfm(tw.user.df$text)
+trump.dfm1
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[fragile]{Using quanteda to clean tweets}
+<<twitter4b, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(quanteda)
+library(operator.tools)
+load(file="../../Data/trumpstweets.rdata")
+
+trump<-corpus(tw.user.df$text, docvars=tw.user.df[, names(tw.user.df) %!in% "text",with=F])
+
+trump.dfm2<-dfm(trump,  removeTwitter = TRUE)
+trump.dfm2
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{NRC accessible through }
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/nrc-1.png}
+\includegraphics[scale=0.35]<2>{figures/nrc-2.png}
+\includegraphics[scale=0.35]<3>{figures/nrc-3.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{MPQA Subjectivity Lexicon}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/mpqa-subjectivity.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading in the MPQA Lexicon}
+<<mpqalex, echo=TRUE, cache=FALSE, message=FALSE,size="tiny">>=
+MPQA<-data.table(read.csv2(file="R/subjclueslen1-HLTEMNLP05.tff",sep=" "))
+MPQA[, priorpolarity := str_extract(priorpolarity, "([a-z]+)$") ]
+MPQA[, word1 := str_extract(word1, "([a-z]+)$") ]
+MPQA[, pos1 := str_extract(pos1, "([a-z]+)$") ]
+MPQA[, stemmed1 := str_extract(stemmed1, "([a-z]+)$") ]
+MPQA[, type := str_extract(type, "([a-z]+)$") ]
+MPQA<-MPQA[priorpolarity %in% c("negative","positive","neutral")]
+
+head(MPQA)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Sentiment Analysis Lexicons}
+
+Sentiment Analysis (Opinion Mining) lexicons
+
+\begin{itemize}
+\item MPQA Subjectivity Lexicon
+\item Bing Liu and Minqing Hu Sentiment Lexicon
+\item SentiWordNet (Included in NLTK)
+\item VADER Sentiment Lexicon
+\item SenticNet
+\item LIWC (not free)
+\item Harvard Inquirer
+\item ANEW
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\end{document}
+

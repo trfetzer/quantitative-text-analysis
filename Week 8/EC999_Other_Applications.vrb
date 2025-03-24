@@ -1,0 +1,25 @@
+\frametitle{Reading in the MPQA Lexicon}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{MPQA}\hlkwb{<-}\hlkwd{data.table}\hlstd{(}\hlkwd{read.csv2}\hlstd{(}\hlkwc{file}\hlstd{=}\hlstr{"R/subjclueslen1-HLTEMNLP05.tff"}\hlstd{,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{))}
+\hlstd{MPQA[, priorpolarity} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(priorpolarity,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, word1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(word1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, pos1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(pos1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, stemmed1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(stemmed1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, type} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(type,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA}\hlkwb{<-}\hlstd{MPQA[priorpolarity} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"negative"}\hlstd{,}\hlstr{"positive"}\hlstd{,}\hlstr{"neutral"}\hlstd{)]}
+
+\hlkwd{head}\hlstd{(MPQA)}
+\end{alltt}
+\begin{verbatim}
+##          type   len       word1   pos1 stemmed1 priorpolarity
+## 1:   weaksubj len=1   abandoned    adj        n      negative
+## 2:   weaksubj len=1 abandonment   noun        n      negative
+## 3:   weaksubj len=1     abandon   verb        y      negative
+## 4: strongsubj len=1       abase   verb        y      negative
+## 5: strongsubj len=1   abasement anypos        y      negative
+## 6: strongsubj len=1       abash   verb        y      negative
+\end{verbatim}
+\end{kframe}
+\end{knitrout}

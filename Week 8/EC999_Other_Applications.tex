@@ -1,0 +1,752 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Some more application examples} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Chicago \& University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment{Description}
+               {\list{}{\labelwidth=0pt \itemindent-\leftmargin
+                        \let\makelabel\Descriptionlabel
+                        % or whatever
+               }}
+               {\endlist}
+\newcommand*\Descriptionlabel[1]{%
+  \hspace\labelsep
+  \normalfont%  reset current font setting
+  \color{blue}\bfseries\sffamily% or whatever 
+  #1}
+
+%changing spacing between knitr code and output
+\usepackage{etoolbox} 
+\makeatletter 
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt } 
+\makeatother
+\renewenvironment{knitrout}{\setlength{\topsep}{0mm}}{}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Building your own classifier}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Building your own classifier}
+\begin{itemize}
+
+\item We talked about a wide range of different methods to build classifiers.
+
+\item In that process, there are a lot of decisions to be made.
+
+\item There is "no classifier" to dominate them all.
+
+\item There are appealing features to be considered.
+
+\item A lot will involve \emph{trial and error}
+
+\item Most common approach taken is that of ``ensemble agreement''.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(e1071)}
+\hlstd{happy} \hlkwb{<-} \hlkwd{readLines}\hlstd{(}\hlstr{"R/happy.txt"}\hlstd{)}
+\hlstd{sad} \hlkwb{<-} \hlkwd{readLines}\hlstd{(}\hlstr{"R/sad.txt"}\hlstd{)}
+\hlstd{happy_test} \hlkwb{<-} \hlkwd{readLines}\hlstd{(}\hlstr{"R/happy_test.txt"}\hlstd{)}
+\hlstd{sad_test} \hlkwb{<-} \hlkwd{readLines}\hlstd{(}\hlstr{"R/sad_test.txt"}\hlstd{)}
+
+\hlstd{tweet} \hlkwb{<-} \hlkwd{c}\hlstd{(happy, sad)}
+\hlstd{tweet_test} \hlkwb{<-} \hlkwd{c}\hlstd{(happy_test, sad_test)}
+\hlstd{tweet_all} \hlkwb{<-} \hlkwd{c}\hlstd{(tweet, tweet_test)}
+\hlstd{sentiment} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlstr{"happy"}\hlstd{,} \hlkwd{length}\hlstd{(happy)),} \hlkwd{rep}\hlstd{(}\hlstr{"sad"}\hlstd{,} \hlkwd{length}\hlstd{(sad)))}
+\hlstd{sentiment_test} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlstr{"happy"}\hlstd{,} \hlkwd{length}\hlstd{(happy_test)),} \hlkwd{rep}\hlstd{(}\hlstr{"sad"}\hlstd{,} \hlkwd{length}\hlstd{(sad_test)))}
+\hlstd{sentiment_all} \hlkwb{<-} \hlkwd{as.factor}\hlstd{(}\hlkwd{c}\hlstd{(sentiment, sentiment_test))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(RTextTools)}
+
+\hlcom{# naive bayes}
+\hlstd{mat} \hlkwb{<-} \hlkwd{create_matrix}\hlstd{(tweet_all,} \hlkwc{language} \hlstd{=} \hlstr{"english"}\hlstd{,} \hlkwc{removeStopwords} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{stemWords} \hlstd{=} \hlnum{FALSE}\hlstd{, tm}\hlopt{::}\hlstd{weightTfIdf)}
+
+\hlstd{mat} \hlkwb{<-} \hlkwd{as.matrix}\hlstd{(mat)}
+
+\hlstd{classifier} \hlkwb{<-} \hlkwd{naiveBayes}\hlstd{(mat[}\hlnum{1}\hlopt{:}\hlnum{160}\hlstd{, ],} \hlkwd{as.factor}\hlstd{(sentiment_all[}\hlnum{1}\hlopt{:}\hlnum{160}\hlstd{]))}
+\hlstd{predicted} \hlkwb{<-} \hlkwd{predict}\hlstd{(classifier, mat[}\hlnum{161}\hlopt{:}\hlnum{180}\hlstd{, ])}
+
+\hlstd{predicted}
+\end{alltt}
+\begin{verbatim}
+##  [1] sad   happy sad   happy happy sad   happy sad   happy happy sad   sad   sad   sad  
+## [15] sad   sad   sad   happy happy happy
+## Levels: happy sad
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(sentiment_test, predicted)}
+\end{alltt}
+\begin{verbatim}
+##               predicted
+## sentiment_test happy sad
+##          happy     6   4
+##          sad       3   7
+\end{verbatim}
+\begin{alltt}
+\hlcom{## better than a coin toss../}
+\hlkwd{recall_accuracy}\hlstd{(sentiment_test, predicted)}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.65
+\end{verbatim}
+\begin{alltt}
+\hlcom{## better than estimated prior}
+\hlkwd{table}\hlstd{(sentiment)}
+\end{alltt}
+\begin{verbatim}
+## sentiment
+## happy   sad 
+##    80    80
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Minimum Working Example}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mat} \hlkwb{<-} \hlkwd{create_matrix}\hlstd{(tweet_all,} \hlkwc{language} \hlstd{=} \hlstr{"english"}\hlstd{,} \hlkwc{removeStopwords} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{stemWords} \hlstd{=} \hlnum{FALSE}\hlstd{, tm}\hlopt{::}\hlstd{weightTfIdf)}
+
+\hlstd{container} \hlkwb{<-} \hlkwd{create_container}\hlstd{(mat,} \hlkwd{as.numeric}\hlstd{(sentiment_all),} \hlkwc{trainSize} \hlstd{=} \hlnum{1}\hlopt{:}\hlnum{160}\hlstd{,} \hlkwc{testSize} \hlstd{=} \hlnum{161}\hlopt{:}\hlnum{180}\hlstd{,}
+    \hlkwc{virgin} \hlstd{=} \hlnum{FALSE}\hlstd{)}
+
+\hlstd{models} \hlkwb{<-} \hlkwd{train_models}\hlstd{(container,} \hlkwc{algorithms} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"MAXENT"}\hlstd{,} \hlstr{"SVM"}\hlstd{,} \hlstr{"BAGGING"}\hlstd{,} \hlstr{"RF"}\hlstd{,} \hlstr{"TREE"}\hlstd{))}
+\hlstd{results} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(container, models)}
+\hlkwd{table}\hlstd{(}\hlkwd{as.numeric}\hlstd{(}\hlkwd{as.numeric}\hlstd{(sentiment_all[}\hlnum{161}\hlopt{:}\hlnum{180}\hlstd{])), results[,} \hlstr{"FORESTS_LABEL"}\hlstd{])}
+\end{alltt}
+\begin{verbatim}
+##    
+##      1  2
+##   1 10  0
+##   2  1  9
+\end{verbatim}
+\begin{alltt}
+\hlkwd{recall_accuracy}\hlstd{(}\hlkwd{as.numeric}\hlstd{(}\hlkwd{as.numeric}\hlstd{(sentiment_all[}\hlnum{161}\hlopt{:}\hlnum{180}\hlstd{])), results[,} \hlstr{"FORESTS_LABEL"}\hlstd{])}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.95
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Analytics Post Training/ Prediction}
+RTextTools provides a range of post training analytics through the 
+\code{create\_analytics} functionality.
+
+\begin{Description}
+\item[\code{analytics@algorithm\_summary}] Summary of precision, recall, f-scores, and accuracy sorted by topic code for each algorithm
+\item[\code{analytics@label\_summary}] Summary of label (e.g. Topic) accuracy
+\item[\code{analytics@document\_summary}]: Raw summary of all data and scoring
+\item[\code{analytics@ensemble\_summary}]: Summary of ensemble precision/coverage. Uses the n variable passed into \code{create\_analytics()}
+\end{Description}
+
+The \code{@} operator is used to access so-called "slots" of S3 Objects. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exploring the Analytics Object}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# formal tests}
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(container, results)}
+
+\hlkwd{head}\hlstd{(analytics}\hlopt{@}\hlkwc{algorithm_summary}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##   SVM_PRECISION SVM_RECALL SVM_FSCORE BAGGING_PRECISION BAGGING_RECALL BAGGING_FSCORE
+## 1          0.91        1.0       0.95              0.91            1.0           0.95
+## 2          1.00        0.9       0.95              1.00            0.9           0.95
+##   FORESTS_PRECISION FORESTS_RECALL FORESTS_FSCORE TREE_PRECISION TREE_RECALL TREE_FSCORE
+## 1              0.91            1.0           0.95              1           1           1
+## 2              1.00            0.9           0.95              1           1           1
+##   MAXENTROPY_PRECISION MAXENTROPY_RECALL MAXENTROPY_FSCORE
+## 1                 0.91               1.0              0.95
+## 2                 1.00               0.9              0.95
+\end{verbatim}
+\begin{alltt}
+\hlkwd{head}\hlstd{(analytics}\hlopt{@}\hlkwc{label_summary}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##   NUM_MANUALLY_CODED NUM_CONSENSUS_CODED NUM_PROBABILITY_CODED PCT_CONSENSUS_CODED
+## 1                 10                  11                    11                 110
+## 2                 10                   9                     9                  90
+##   PCT_PROBABILITY_CODED PCT_CORRECTLY_CODED_CONSENSUS PCT_CORRECTLY_CODED_PROBABILITY
+## 1                   110                           100                             100
+## 2                    90                            90                              90
+\end{verbatim}
+\begin{alltt}
+\hlkwd{head}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##   MAXENTROPY_LABEL MAXENTROPY_PROB SVM_LABEL SVM_PROB BAGGING_LABEL BAGGING_PROB
+## 1                1               1         1    0.999             1            1
+## 2                1               1         1    0.999             1            1
+## 3                1               1         1    0.975             1            1
+## 4                1               1         1    0.971             1            1
+## 5                1               1         1    0.982             1            1
+## 6                1               1         1    0.944             1            1
+##   FORESTS_LABEL FORESTS_PROB TREE_LABEL TREE_PROB MANUAL_CODE CONSENSUS_CODE
+## 1             1        0.910          1         1           1              1
+## 2             1        0.895          1         1           1              1
+## 3             1        0.930          1         1           1              1
+## 4             1        0.930          1         1           1              1
+## 5             1        0.975          1         1           1              1
+## 6             1        0.715          1         1           1              1
+##   CONSENSUS_AGREE CONSENSUS_INCORRECT PROBABILITY_CODE PROBABILITY_INCORRECT
+## 1               5                   0                1                     0
+## 2               5                   0                1                     0
+## 3               5                   0                1                     0
+## 4               5                   0                1                     0
+## 5               5                   0                1                     0
+## 6               5                   0                1                     0
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+ 
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Ensemble Agreement}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Ensemble Agreement}
+\hlstd{analytics}\hlopt{@}\hlkwc{ensemble_summary}
+\end{alltt}
+\begin{verbatim}
+##        n-ENSEMBLE COVERAGE n-ENSEMBLE RECALL
+## n >= 1                1.00              0.95
+## n >= 2                1.00              0.95
+## n >= 3                1.00              0.95
+## n >= 4                1.00              0.95
+## n >= 5                0.95              1.00
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cross Validation}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# Cross Validation}
+\hlstd{N} \hlkwb{<-} \hlnum{3}
+\hlstd{cross_SVM} \hlkwb{<-} \hlkwd{cross_validate}\hlstd{(container, N,} \hlstr{"SVM"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## Fold 1 Out of Sample Accuracy = 0.982
+## Fold 2 Out of Sample Accuracy = 0.966
+## Fold 3 Out of Sample Accuracy = 0.954
+\end{verbatim}
+\begin{alltt}
+\hlstd{cross_MAXENT} \hlkwb{<-} \hlkwd{cross_validate}\hlstd{(container, N,} \hlstr{"MAXENT"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+   
+
+\section{Helping you code data}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Using Classifiers to (help) code data}
+\begin{itemize}
+
+\item I want to illustrate another use for classifiers to code data
+
+\item Asset declarations of politicians or disclosure often times changes format.
+
+\item Classification of types is something that could be done manually, but it also is super scalable for machine learning...
+
+\item You can save a lot of RA time with that...
+
+\item Sometimes, the data you are working with already provides the training data you need.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset Declarations of Brasilian Politicians}
+
+\begin{center}
+\includegraphics[scale=0.25]<1>{figures/uol-bem1.png}
+\includegraphics[scale=0.25]<2>{figures/uol-bem2.png}
+\includegraphics[scale=0.25]<3>{figures/uol-bem4.png}
+\includegraphics[scale=0.25]<4>{figures/uol-bem5.png}
+\includegraphics[scale=0.5]<5>{figures/uol-bem3.png}
+\end{center}
+Asset delarations available from TSE \url{http://divulgacandcontas.tse.jus.br}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Looping over Sparsity Measure}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{OUT}\hlkwb{<-}\hlkwa{NULL}
+\hlstd{k} \hlkwb{=} \hlnum{1}
+\hlkwa{for}\hlstd{(i} \hlkwa{in} \hlkwd{c}\hlstd{(}\hlnum{0.999}\hlstd{,}\hlnum{0.9995}\hlstd{,}\hlnum{0.9999}\hlstd{,}\hlnum{.99995}\hlstd{,}\hlnum{0.99999}\hlstd{,}\hlnum{0.999999}\hlstd{)) \{}
+\hlkwd{cat}\hlstd{(i,} \hlstr{" "}\hlstd{)}
+\hlstd{DOC}\hlkwb{<-}\hlkwd{create_matrix}\hlstd{(}\hlkwd{c}\hlstd{(BEM.TRAIN[,}\hlkwd{paste}\hlstd{(BEMDETAIL,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{)]),}\hlkwc{removeStopwords}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+                   \hlkwc{removeNumbers}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{stemWords}\hlstd{=}\hlnum{FALSE}\hlstd{,}\hlkwc{removePunctuation}\hlstd{=}\hlnum{TRUE}\hlstd{,}\hlkwc{removeSparseTerms}\hlstd{=i)}
+
+\hlstd{DOCCONT}\hlkwb{<-}\hlkwd{create_container}\hlstd{(DOC,BEM.TRAIN}\hlopt{$}\hlstd{TYPENUM,} \hlkwc{trainSize}\hlstd{=}\hlnum{1}\hlopt{:}\hlstd{(}\hlkwd{nrow}\hlstd{(BEM.TRAIN)}\hlopt{-}\hlstd{testsize),}\hlkwc{testSize}\hlstd{=(}\hlkwd{nrow}\hlstd{(BEM.TRAIN)}\hlopt{-}\hlstd{testsize}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM.TRAIN),} \hlkwc{virgin}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlstd{MOD} \hlkwb{<-} \hlkwd{train_models}\hlstd{(DOCCONT,} \hlkwc{algorithms}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"SVM"}\hlstd{,}\hlstr{"MAXENT"}\hlstd{))}
+\hlstd{RES} \hlkwb{<-} \hlkwd{classify_models}\hlstd{(DOCCONT, MOD)}
+\hlstd{analytics} \hlkwb{<-} \hlkwd{create_analytics}\hlstd{(DOCCONT, RES)}
+\hlstd{res}\hlkwb{<-}\hlkwd{data.table}\hlstd{(analytics}\hlopt{@}\hlkwc{document_summary}\hlstd{)}
+
+\hlstd{VALID}\hlkwb{<-}\hlkwd{cbind}\hlstd{(BEM.TRAIN[validation}\hlopt{==}\hlnum{1}\hlstd{],res)}
+
+\hlstd{OUT[[k]]} \hlkwb{<-} \hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{3}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(VALID}\hlopt{$}\hlstd{CONSENSUS_CODE,VALID}\hlopt{$}\hlstd{TYPE))}\hlopt{/}\hlkwd{nrow}\hlstd{(VALID)}
+\hlstd{k} \hlkwb{=} \hlstd{k}\hlopt{+}\hlnum{1}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Trade-Off Sparsity vs Accuracy}
+\begin{center}
+
+\includegraphics[scale=0.4]{figures/sparsity-vs-accuracy.pdf}
+
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+ 
+\section{Sentiment Analysis}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pre-Produced Packages for Sentiment Analysis}
+\begin{itemize}
+
+
+\item There exist a range of packages in R to do sentiment analysis.
+
+\item Most packages work of sentiment dictionaries that simply perform a lookup exercise, nothing fancy or Bayesian at all.
+
+\item For large scaling, these approaches may achieve reasonable accuracy.
+
+\item We can think of annotated dictionaries as being vocabulary that have been extracted from a training set - i.e. they are features that have a  discriminative Bayes score.
+
+\item The packages are robust to non-overlapping vocabulary: if the text you are classifying contains no features, then the priors are used for classification.
+
+\item It could be that the priors are bad though...
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Performance of pre-produced packages for Sentiment Analysis}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/comparisons_between_sentiment_detectors_b.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+
+
+
+
+\begin{frame}[fragile]{Sourcing Twitter data: Individual user level}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(twitteR)}
+\hlcom{# setup_twitter_oauth(consumer_key, consumer_secret, access_token=NULL, access_secret=NULL)}
+\hlkwd{set.seed}\hlstd{(}\hlnum{12122016}\hlstd{)}
+\hlstd{tw.user} \hlkwb{<-} \hlkwd{userTimeline}\hlstd{(}\hlstr{"realDonaldTrump"}\hlstd{,} \hlkwc{n} \hlstd{=} \hlnum{3200}\hlstd{)}
+\hlstd{tw.user.df} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{twListToDF}\hlstd{(tw.user))}
+
+\hlkwd{save}\hlstd{(tw.user.df,} \hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{frame}[fragile]{Trump Tweets}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{load}\hlstd{(}\hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+
+\hlkwd{head}\hlstd{(tw.user.df}\hlopt{$}\hlstd{text)}
+\end{alltt}
+\begin{verbatim}
+## [1] "With millions of dollars of negative and phony ads against me by the establishment, my numbers continue to go up. Can anyone explain this?"  
+## [2] ".@EWErickson got fired like a dog from RedState\nand now he is the one leading opposition against me."                                       
+## [3] "Senator @LindseyGrahamSC made horrible statements about @SenTedCruz – and then he endorsed him. No wonder nobody trusts politicians!"        
+## [4] "Lyin' Ted Cruz lost all five races on Tuesday-and he was just given the jinx - a Lindsey Graham endorsement. Also backed Jeb. Lindsey got 0!"
+## [5] "Join us in Salt Lake City, Utah- tonight!\n#MakeAmericaGreatAgain #Trump2016\nhttps://t.co/1cJ7OFbQiz"                                       
+## [6] "Hillary Clinton has been involved in corruption for most of her professional life!"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[fragile]{Cleaning Tweets}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{load}\hlstd{(}\hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+\hlcom{# remove retweet entities}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"(RT|via)((?:\textbackslash{}\textbackslash{}b\textbackslash{}\textbackslash{}W*@\textbackslash{}\textbackslash{}w+)+)"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove at people}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"@\textbackslash{}\textbackslash{}w+"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove punctuation}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:punct:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove numbers}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:digit:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove html links}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"http\textbackslash{}\textbackslash{}w+"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove unnecessary spaces}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[ \textbackslash{}t]\{2,\}"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"^\textbackslash{}\textbackslash{}s+|\textbackslash{}\textbackslash{}s+$"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df} \hlkwb{<-} \hlstd{tw.user.df[}\hlopt{!}\hlkwd{is.na}\hlstd{(text)]}
+\hlkwd{head}\hlstd{(tw.user.df}\hlopt{$}\hlstd{text)}
+\end{alltt}
+\begin{verbatim}
+## [1] "With millions of dollars of negative and phony ads against me by the establishment my numbers continue to go up Can anyone explain this"
+## [2] "got fired like a dog from RedState\nand now he is the one leading opposition against me"                                                
+## [3] "Senatormade horrible statements aboutand then he endorsed him No wonder nobody trusts politicians"                                      
+## [4] "Lyin Ted Cruz lost all five races on Tuesdayand he was just given the jinxa Lindsey Graham endorsement Also backed Jeb Lindsey got"     
+## [5] "Join us in Salt Lake City Utah tonight\nMakeAmericaGreatAgain Trump"                                                                    
+## [6] "Hillary Clinton has been involved in corruption for most of her professional life"
+\end{verbatim}
+\begin{alltt}
+\hlcom{# build dfm}
+\hlstd{trump.dfm1} \hlkwb{<-} \hlkwd{dfm}\hlstd{(tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{trump.dfm1}
+\end{alltt}
+\begin{verbatim}
+## Document-feature matrix of: 2,328 documents, 5,341 features (99.7% sparse).
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[fragile]{Using quanteda to clean tweets}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{library}\hlstd{(operator.tools)}
+\hlkwd{load}\hlstd{(}\hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+
+\hlstd{trump} \hlkwb{<-} \hlkwd{corpus}\hlstd{(tw.user.df}\hlopt{$}\hlstd{text,} \hlkwc{docvars} \hlstd{= tw.user.df[,} \hlkwd{names}\hlstd{(tw.user.df)} \hlopt{%!in%} \hlstr{"text"}\hlstd{,} \hlkwc{with} \hlstd{= F])}
+
+\hlstd{trump.dfm2} \hlkwb{<-} \hlkwd{dfm}\hlstd{(trump,} \hlkwc{removeTwitter} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{trump.dfm2}
+\end{alltt}
+\begin{verbatim}
+## Document-feature matrix of: 2,328 documents, 6,250 features (99.7% sparse).
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{NRC accessible through }
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/nrc-1.png}
+\includegraphics[scale=0.35]<2>{figures/nrc-2.png}
+\includegraphics[scale=0.35]<3>{figures/nrc-3.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{MPQA Subjectivity Lexicon}
+
+\begin{center}
+\includegraphics[scale=0.35]{figures/mpqa-subjectivity.png}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Reading in the MPQA Lexicon}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{MPQA}\hlkwb{<-}\hlkwd{data.table}\hlstd{(}\hlkwd{read.csv2}\hlstd{(}\hlkwc{file}\hlstd{=}\hlstr{"R/subjclueslen1-HLTEMNLP05.tff"}\hlstd{,}\hlkwc{sep}\hlstd{=}\hlstr{" "}\hlstd{))}
+\hlstd{MPQA[, priorpolarity} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(priorpolarity,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, word1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(word1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, pos1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(pos1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, stemmed1} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(stemmed1,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA[, type} \hlkwb{:=} \hlkwd{str_extract}\hlstd{(type,} \hlstr{"([a-z]+)$"}\hlstd{) ]}
+\hlstd{MPQA}\hlkwb{<-}\hlstd{MPQA[priorpolarity} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"negative"}\hlstd{,}\hlstr{"positive"}\hlstd{,}\hlstr{"neutral"}\hlstd{)]}
+
+\hlkwd{head}\hlstd{(MPQA)}
+\end{alltt}
+\begin{verbatim}
+##          type   len       word1   pos1 stemmed1 priorpolarity
+## 1:   weaksubj len=1   abandoned    adj        n      negative
+## 2:   weaksubj len=1 abandonment   noun        n      negative
+## 3:   weaksubj len=1     abandon   verb        y      negative
+## 4: strongsubj len=1       abase   verb        y      negative
+## 5: strongsubj len=1   abasement anypos        y      negative
+## 6: strongsubj len=1       abash   verb        y      negative
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Sentiment Analysis Lexicons}
+
+Sentiment Analysis (Opinion Mining) lexicons
+
+\begin{itemize}
+\item MPQA Subjectivity Lexicon
+\item Bing Liu and Minqing Hu Sentiment Lexicon
+\item SentiWordNet (Included in NLTK)
+\item VADER Sentiment Lexicon
+\item SenticNet
+\item LIWC (not free)
+\item Harvard Inquirer
+\item ANEW
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\end{document}
+

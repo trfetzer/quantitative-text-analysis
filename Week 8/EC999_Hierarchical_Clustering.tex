@@ -1,0 +1,696 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC994: Applications of Data Science]{EC994: Hierarchical Clustering} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering}
+ 
+\begin{itemize}
+
+\item k-Means clustering is a very powerful tool to detect patterns some data matrix $X$. However, it has some drawbacks.
+
+\item \textbf{Numeric features}: In the construction, we compute Euclidian distances between observations and their distinct means - we implicitly assume that the data are \emph{numeric} $\rightarrow$ k-medoids can fix this!
+
+\item \textbf{Choice of K}: We are required to make a choice over the number of clusters in the data.
+
+\item Hierarchical clustering is a powerful approach that can build clusters based on data dissimilarity matrices and does not require a choice of clusters $K$.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering Idea}
+ 
+ We will discuss one form of hierarchical clustering in this course: Agglomerative hierarchical clustering.
+
+\begin{itemize}
+
+\item Start with each point in its own cluster.
+\item Identify the \emph{closest} two clusters and merge them.
+\item Repeat.
+\item Ends when all points are in a single cluster.
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering Illustration}
+ 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.6]<1>{figures/hierarchical-clustering-illustration-1.png} 
+\includegraphics[scale=.6]<2>{figures/hierarchical-clustering-illustration-2.png} 
+\includegraphics[scale=.6]<3>{figures/hierarchical-clustering-illustration-3.png} 
+\includegraphics[scale=.6]<4>{figures/hierarchical-clustering-illustration-4.png} 
+\includegraphics[scale=.6]<5>{figures/hierarchical-clustering-illustration-5.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Representing Hierarchical Clustering as Tree}
+ 
+We can not plot out hierarchical clustering results in two dimensions only if there are two dimensional features. With more dimensions, it easiest to display the clustering results in form of a dendogram.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.47]<1>{figures/hierarchical-clustering-illustration-6.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Hierarchical Clustering Algorithm}
+
+ \begin{algorithm}[Hierarchical Clustering]
+   \begin{enumerate}
+   
+\item  Start by considering each item as its own cluster, for $n$ clusters and calculate the $n(n − 1)/2$ pairwise distances between each of the $n$ clusters.
+
+
+For $i=n, n-1,...,2$
+
+\item Examine all pair-wise inter-cluster dissimilarities among the $i$ clusters, identify the pair of clusters $k$, $k'$ that are least dissimilar and combine them. Store the distance betweent $k$ and $k'$. 
+
+\item Recalculate distance matrix with the remaining $i-1$ cluster. 
+
+\item Stop when only two clusters remain. 
+   \end{enumerate}
+\end{algorithm}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[shrink]{Another example performing hierarchical clustering}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-hierarchicalclustexample-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another example performing hierarchical clustering}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##      A    B    C     D     E
+## A 0.00 3.88 1.57 2.700 1.964
+## B 3.88 0.00 3.12 2.540 2.338
+## C 1.57 3.12 0.00 3.145 2.254
+## D 2.70 2.54 3.14 0.000 0.891
+## E 1.96 2.34 2.25 0.891 0.000
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Sequence of Steps}
+
+\begin{itemize}
+
+\item We start with every observation being its own cluster, i.e. we are at the bottom of the tree and there are  five clusters.
+
+\item In the first iteration, we combine combine $D$ and $E$. Their distance is 0.891, so we record this distance. Now we are left with four clusters $DE$, $A$, $B$, $C$.
+
+\item The second step in the algorithm asks us to recompute the distance matrix, but how should we do this? 
+
+\item There are multiple choices.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Complete Linkage}
+
+
+\emph{Complete Linkage}: This maximizes intercluster dissimilarity, as we compute all pairwise distances between the observations in cluster A and the observations in cluster B and record the \emph{largest} in our reduced distance matrix.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-complete.pdf} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Single Linkage}
+
+
+\emph{Single Linkage}: This leads to minimal intercluster dissimilarity, as we compute all pairwise distances between the observations in cluster A and the observations in cluster B and record the \emph{minimal} in our reduced distance matrix.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-single} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Average Linkage}
+
+
+\emph{Average Linkage}: Compute all pairwise dissimilarities between observations in cluster A and observations in cluster B and record the average of these dissimilarities.
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-average} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Different Linkage choices: Centroid Linkage}
+
+
+\emph{Centroid Linkage}: Compute the centroid within each cluster. 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{cc}
+\includegraphics[scale=.2]<1>{figures/clust-example-different-linkage-centroid} &
+\includegraphics[scale=.3]<1>{figures/linkage-distance.png}
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Number of Clusters}
+
+
+By cutting at different heights of the tree, you can control the number of clusters to consider. 
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.5]<1>{figures/cutting-criterion.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation based distance metrics}
+ 
+\begin{itemize}
+
+\item Rather than caring about levels of distance, we may be interested in correlation based distances; for example, a point described as $(1,1)$ may be quite far away from a point $(10,10)$, but they are actually perfectly correlated if we think of them as vectors.
+
+\item A correlation measure would take this scaling factor out and indicate that these two vectors are identical!
+
+\item In many instances, we care about pattern correlatedness and not necessarily pure distance.
+
+\item Last week, we have already seen one example
+
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cosine Similarity: Measuring Angle between two unit length vectors}
+
+\begin{itemize}
+
+\item What is the length of a vector $A$ and $B$? its simply the Euclidian distance from origin, i.e. $\lVert \mathbf{y_A} \rVert$,$\lVert \mathbf{y_B} \rVert$ 
+
+\item So the vectors $\mathbf{y'_A}=\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\mathbf{y'_B}=\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$ both have length 1.
+
+\item What is the angle between the vectors $\frac{\mathbf{y_A}}{\lVert \mathbf{y_A} \rVert}$ and $\frac{\mathbf{y_B}}{\lVert \mathbf{y_B} \rVert}$?
+
+$$\cos{(\mathbf{y_A,y_B})} ={\mathbf {y_A} \cdot \mathbf {y_B}  \over \|\mathbf {y_A} \|\|\mathbf {y_B} \|}={\frac {\sum \limits _{i=1}^{n}{y_{iA}y_{iB}}}{{\sqrt {\sum \limits _{i=1}^{n}{y_{iA}^{2}}}}{\sqrt {\sum \limits _{i=1}^{n}{y_{iB}^{2}}}}}}$$
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence}
+ 
+\begin{itemize} 
+
+\item Most proposed bills do never make it into actual law. 
+
+\item Consider the following examples for the US:
+
+\item  H.R. 1060 (105th): Pharmacy Compounding Act
+
+\item S. 830 (105th): Food and Drug Administration Modernization Act of 1997 
+ 
+\end{itemize} 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mapping Legislative Influence}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.35]<1>{figures/food-drug-example1.png} 
+\includegraphics[scale=.35]<2>{figures/food-drug-example2.png} 
+\includegraphics[scale=.25]<3>{figures/fda-drug-example.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+      
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{State of the Union Clustering}
+ 
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.55]<1>{figures/state-of-union-1.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Word Feature Clustering to identify collocated words}
+
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.6]<1>{figures/state-of-union-2.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+ 
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some hands-on R code on clustering}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(cluster)}
+\hlkwd{library}\hlstd{(quanteda)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# quanteda version 0.9.9.3}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'quanteda'}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:utils':\\\#\# \\\#\#\ \ \ \  View}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:base':\\\#\# \\\#\#\ \ \ \  sample}}\begin{alltt}
+\hlkwd{load}\hlstd{(}\hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+\hlcom{# remove retweet entities remove html links}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"http([^ ]*)"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df[,} \hlkwd{`:=`}\hlstd{(firsthash,} \hlkwd{str_extract}\hlstd{(text,} \hlstr{"#([^ ]*)"}\hlstd{))]}
+\hlstd{tw.user.df} \hlkwb{<-} \hlstd{tw.user.df[}\hlopt{!}\hlkwd{is.na}\hlstd{(firsthash)]}
+
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"(RT|via)((?:\textbackslash{}\textbackslash{}b\textbackslash{}\textbackslash{}W*@\textbackslash{}\textbackslash{}w+)+)"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove at people}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"@\textbackslash{}\textbackslash{}w+"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove punctuation}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:punct:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove numbers}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:digit:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove unnecessary spaces}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[ \textbackslash{}t]\{2,\}"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"^\textbackslash{}\textbackslash{}s+|\textbackslash{}\textbackslash{}s+$"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df[,} \hlkwd{`:=`}\hlstd{(docname,} \hlkwd{paste}\hlstd{(}\hlstr{"text"}\hlstd{,} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(tw.user.df),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{))]}
+\hlstd{trump.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(tw.user.df}\hlopt{$}\hlstd{text,} \hlkwc{remove} \hlstd{=} \hlkwd{stopwords}\hlstd{(),} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Hierarchical Clustering on Trump tweets}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## k-means clustering}
+
+\hlkwd{set.seed}\hlstd{(}\hlnum{18022017}\hlstd{)}
+\hlstd{trump.dfm.trim} \hlkwb{<-} \hlkwd{dfm_trim}\hlstd{(trump.dfm,} \hlkwc{min_count} \hlstd{=} \hlnum{25}\hlstd{,} \hlkwc{min_docfreq} \hlstd{=} \hlnum{10}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Removing features occurring:}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  - fewer than 25 times: 1,376}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  - in fewer than 10 documents: 1,328}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  Total features removed: 1,376 (98.1\%).}}\begin{alltt}
+\hlstd{trump.dfm.trim} \hlkwb{<-} \hlstd{trump.dfm.trim[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{, ]}
+\hlcom{# tf function converts word count dfm to share}
+\hlstd{trump.dfm.dist} \hlkwb{<-} \hlkwd{dist}\hlstd{(}\hlkwd{as.matrix}\hlstd{(}\hlkwd{dfm_weight}\hlstd{(trump.dfm.trim,} \hlstr{"frequency"}\hlstd{)))}
+
+\hlstd{trump.dfm.clust} \hlkwb{<-} \hlkwd{hclust}\hlstd{(trump.dfm.dist)}
+\hlcom{# label with document names}
+\hlstd{trump.dfm.clust}\hlopt{$}\hlstd{labels} \hlkwb{<-} \hlstd{tw.user.df[docname} \hlopt{%in%} \hlkwd{docnames}\hlstd{(trump.dfm.trim)]}\hlopt{$}\hlstd{firsthash}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clustering on Trump tweets}
+ 
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## k-means clustering plot as a dendrogram}
+\hlkwd{plot}\hlstd{(trump.dfm.clust,} \hlkwc{xlab} \hlstd{=} \hlstr{""}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figures/knitr-clusteringdistance2-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clusterong on SOTUs}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## k-means clustering}
+\hlkwd{data}\hlstd{(SOTUCorpus,} \hlkwc{package} \hlstd{=} \hlstr{"quantedaData"}\hlstd{)}
+\hlstd{presDfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(}\hlkwd{corpus_subset}\hlstd{(SOTUCorpus, Date} \hlopt{>} \hlkwd{as.Date}\hlstd{(}\hlstr{"1960-01-01"}\hlstd{)),} \hlkwc{verbose} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,}
+    \hlkwc{remove} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{),} \hlkwc{removePunct} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{presDfm} \hlkwb{<-} \hlkwd{dfm_trim}\hlstd{(presDfm,} \hlkwc{min_count} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{min_docfreq} \hlstd{=} \hlnum{3}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Removing features occurring:}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  - fewer than 5 times: 5,857}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  - in fewer than 3 documents: 5,115}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\#\ \  Total features removed: 5,908 (64.7\%).}}\begin{alltt}
+\hlcom{# hierarchical clustering - get distances on normalized dfm}
+\hlstd{presDistMat} \hlkwb{<-} \hlkwd{dist}\hlstd{(}\hlkwd{as.matrix}\hlstd{(}\hlkwd{dfm_weight}\hlstd{(presDfm,} \hlstr{"relFreq"}\hlstd{)))}
+\hlcom{# hiarchical clustering the distance object}
+\hlstd{presCluster} \hlkwb{<-} \hlkwd{hclust}\hlstd{(presDistMat)}
+\hlcom{# label with document names}
+\hlstd{presCluster}\hlopt{$}\hlstd{labels} \hlkwb{<-} \hlkwd{docnames}\hlstd{(presDfm)}
+\hlcom{# plot as a dendrogram}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+    
+    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Hierarchical Clusterong on SOTUs}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(presCluster,} \hlkwc{xlab} \hlstd{=} \hlstr{""}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=5in]{figures/knitr-sotuclustering2-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Identify Bigrams}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{wordDfm} \hlkwb{<-} \hlkwd{dfm_sort}\hlstd{(}\hlkwd{dfm_weight}\hlstd{(presDfm,} \hlstr{"relFreq"}\hlstd{))}  \hlcom{# sort in decreasing order of total word freq}
+\hlstd{wordDfm} \hlkwb{<-} \hlkwd{t}\hlstd{(wordDfm)[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{, ]}  \hlcom{# because transposed}
+\hlstd{wordDistMat} \hlkwb{<-} \hlkwd{dist}\hlstd{(wordDfm)}
+\hlstd{wordCluster} \hlkwb{<-} \hlkwd{hclust}\hlstd{(wordDistMat)}
+\hlkwd{plot}\hlstd{(wordCluster,} \hlkwc{xlab} \hlstd{=} \hlstr{""}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=5in]{figures/knitr-sotuclustering3-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+ 
+
+\end{document}

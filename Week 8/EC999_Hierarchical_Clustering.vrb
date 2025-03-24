@@ -1,0 +1,19 @@
+\frametitle{Identify Bigrams}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{wordDfm} \hlkwb{<-} \hlkwd{dfm_sort}\hlstd{(}\hlkwd{dfm_weight}\hlstd{(presDfm,} \hlstr{"relFreq"}\hlstd{))}  \hlcom{# sort in decreasing order of total word freq}
+\hlstd{wordDfm} \hlkwb{<-} \hlkwd{t}\hlstd{(wordDfm)[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{, ]}  \hlcom{# because transposed}
+\hlstd{wordDistMat} \hlkwb{<-} \hlkwd{dist}\hlstd{(wordDfm)}
+\hlstd{wordCluster} \hlkwb{<-} \hlkwd{hclust}\hlstd{(wordDistMat)}
+\hlkwd{plot}\hlstd{(wordCluster,} \hlkwc{xlab} \hlstd{=} \hlstr{""}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=5in]{figures/knitr-sotuclustering3-1}
+
+}
+
+
+
+\end{knitrout}
