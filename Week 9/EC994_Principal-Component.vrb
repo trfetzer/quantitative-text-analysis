@@ -1,0 +1,15 @@
+\frametitle{Latent Semantic Analysis is PCA for term-document matrices}
+
+ \begin{itemize}
+
+ \item For term document matrices, singular value decomposition (SVD) is applied to any $m x n$ matrix shape.
+
+ \item Latent Semantic Analysis uses signular value decomposition to factorizes a term document matrix $X$ into three parts
+
+ ${\displaystyle {\begin{matrix}X=U\Sigma V^{T}\end{matrix}}} {\begin{matrix}X=U\Sigma V^{T}\end{matrix}}$
+
+\item where $X$ is $k x n$ ($k$ terms in $n$ documents).
+
+
+ \end{itemize}
+

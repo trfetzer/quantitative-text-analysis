@@ -1,0 +1,1627 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Topic Models} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Clustering}
+ 
+\begin{itemize}
+
+\item So far we have talked about numerical prediction/ classification and some methods to help you arrive at robust models. The focus was on understanding $Y|X$
+
+\item The last section of the course talks about dimensionality reduction in the broadest sense.
+
+\item Dimensionality reduction can be thought of as reducing patterns in $\mathbf{X}$ and mapping them to a lower dimensonality subspace; such patterns could be group membership.
+
+\item Clustering is a form of dimensionality reduction: we want to group data together that is ``similar'' by some metric.
+
+\item Last week, we discussed some \emph{hard clustering} approaches, whereby a document can only be member of a single class. 
+
+\item This week, we talk about \emph{soft clustering} approach which allows for documents to be members of multiple \emph{topic clusters}.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic Modelling}
+ 
+\begin{itemize}
+
+\item Topic models  are based upon the idea that documents are \emph{mixtures of topics}, where a topic is a \emph{probability distribution over words}.
+
+\item  A topic model is a \emph{generative model} for documents: it specifies a simple probabilistic procedure by which documents can be generated.
+
+\item How to generate a new document?
+\begin{itemize}
+\item  To make a new document, one chooses a distribution over topics. 
+
+\item Then, for each word in the document that you want to generate, one chooses a topic at random according to this distribution, and draws a word from that topic.
+
+\end{itemize}
+\end{itemize}
+
+$\Rightarrow$ topic modelling, inverts this process, inferring the set of topics that were responsible for generating a collection of documents. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{An Example from Research: FOMC communications}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.55]<1>{figures/mcmahon1.png} 
+\includegraphics[scale=.55]<2>{figures/mcmahon2.png} 
+\includegraphics[scale=.55]<3>{figures/mcmahon3.png} 
+\includegraphics[scale=.55]<4>{figures/mcmahon4.png} 
+\includegraphics[scale=.55]<5>{figures/mcmahon5.png} 
+\includegraphics[scale=.55]<6>{figures/mcmahon6.png} 
+\includegraphics[scale=.55]<7>{figures/mcmahon7.png} 
+\includegraphics[scale=.55]<8>{figures/mcmahon8.png} 
+\includegraphics[scale=.55]<9>{figures/mcmahon9.png} 
+
+\end{array}$
+\caption{FOMC Committee Minutes}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Generative Model}
+ 
+\begin{itemize}
+
+\item Generative models for documents are based on simple probabilistic sampling rules that describe how words in documents might be generated on the basis of latent unobservable (random) variables
+
+\item When fitting a generative model, the goal is
+to find the best set of latent variables that can explain the observed data (i.e., observed words in documents),
+assuming that the model actually generated the data
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Generative Model}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/generative-schematic1.png}
+\end{center}
+
+Documents 1 and 3 were generated by sampling only from
+topic 1 and 2 respectively while document 2 was generated by an equal mixture of the two topics.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Inference about a Generative Model}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/generative-schematic2.png}
+\end{center}
+
+Given the observed words in a set of documents, we would like to know what topic model is most likely to have generated the data. This involves \emph{inferring} the probability distribution over words associated with each topic, the distribution over topics for each
+document, and, often, the topic responsible for generating each word. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Key Assumptions of LDA Topic Model}
+
+\begin{itemize}
+
+\item Elements of LDA generative process: documents $D$, corpus $C$, words $w$ and topics $Z$.
+
+\item Documents exhibit multiple topics (but typically not many)
+
+\item We assume that documents are constructed out of some finite set of available topics $Z$.
+
+\item LDA is a probabilistic model with a corresponding generative process
+\item[] $\Rightarrow$ each document is assumed to be generated by this process
+
+\item A topic is a distribution over a fixed vocabulary
+\item[] these topics are assumed to be generated first, before the documents
+
+\item Only the number of topics is specified in advance 
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Generative model}
+
+\begin{center}
+\includegraphics[scale=0.6]{figures/generative-blei-1.png}
+\end{center}
+\begin{itemize}
+\item Each \textbf{topic} is a distribution over words
+\item Each \textbf{document} is a mixture of corpus-wide topics
+\item Each \textbf{word} is drawn from one of those topics specific word distributions.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Generative model: Unobservable parameters}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/generative-blei-2.png}
+\end{center}
+\begin{itemize}
+\item We dont observe the parameters of the model: we only observe documents and associated word count vectors, the remaining structure are hidden variables
+\item Conditional on the observed documents/ word counts, we want to infer the parameters of the multinomials
+\item e.g. the multinomial parameter vector of $p$'s that give us the probability of observing a word conditional on a topic $k$ or the parameter vector that gives us the distribution of topics in documents.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How do we model the text generation process?}
+
+
+We want to generate a document $d$.
+\begin{enumerate}
+\item Randomly choose a distribution over topics 
+
+\item For each word in the document
+
+\begin{enumerate}
+
+\item randomly choose a topic from the distribution over topics
+\item  randomly choose a word from the corresponding topic specific word distribution
+
+
+\end{enumerate}
+
+
+\item So we need a distribution over a distribution (for step 1)
+
+\item Note that words are generated independently of other words (unigram bag-of-words
+model)
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Plate Notation}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/plate-notation.png}
+\end{center}
+\begin{itemize}
+\item  Nodes are random variables
+\item Edges denote possible dependency
+\item Observed variables are shaded, so here $Y$ is unobserved.
+\item Plates denote replicated structure
+\item So here there are $N$ observed $X_n$'s, that are possibly all dependent on $Y$ (but not on each other)
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Plate Notation (2)}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/plate-notation.png}
+\end{center}
+
+\begin{itemize}
+\item  Structure of graph gives pattern of conditional dependence
+\item This figure would represent 
+
+$$p(x_1,...,x_n, y) =  p(y) \prod_{n=1}^N p(x_n | y)$$
+
+\item The $X_i$ are conditionally independent from one another.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{A generative model}
+\begin{center}
+\includegraphics[scale=0.55]{figures/generative-blei-plate-explained.png}
+\end{center}
+\begin{itemize}
+\item Each $\beta_k$ is a distribution over our vocabulary, there are $K$ of them.
+\item There is one $K$ dimensional $\theta_d$ for every of $D$ documents. 
+\item For each word in $N_d$ plate, we have a variable $Z_{d,n}$ which gives the topic assignment for the $n$-th word drawn from $\theta_d$ distribution.
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{A generative model - joint distribution}
+\begin{center}
+\includegraphics[scale=0.55]{figures/generative-blei-plate-explained.png}
+\end{center}
+Joint distribution of observed and hidden random variables:
+\begin{eqnarray*}
+p(\beta_{1:K},\theta_{1:D},z_{1:D},w_{1:D} | \alpha, \eta)& =\prod_{k=1}^K p(\beta_k | \eta)\prod_{d=1}^Dp(\theta_d|\alpha) \\ 
+& \prod_{n=1}^N p(z_{d,n}|\theta_d)p(w_{d,n}|\beta_{1:K},z_{d,n})
+\end{eqnarray*}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Lookup tables}
+
+What are  $p(w_{d,n} | z_{d,n}, \beta_{1:K})$ and $p(z_{d,n}|\theta_d)$?  \bigskip
+\begin{tabular}{ll|lllll|}
+ &  &   &   & $K$ &  &  \\
+ &  & $\beta_1$ & $\beta_2$ & $\beta_3$ & . & $\beta_K$ \\
+  & $w_1$ & $\beta_{11}$ & . & . & . & $\beta_{1K}$ \\
+ & $w_2$ & $\beta_{21}$ & . & . & . & . \\
+$V$ & . & . & . & . & . & . \\
+ & . & . & . & . & . & . \\
+ & . & . & . & . & . & . \\
+ & $w_V$ & . & . & . & . & $\beta_{VK}$ \\
+\end{tabular}
+
+We can think of these being defined in some lookup tables (matrices). \smallskip
+
+$P(w_{d,n} | z_{d,n}, \beta_{1:K}) = \beta_{z_{d,n},w_{d,n}}$ 
+
+
+
+- look up probability of the word conditional on assigned topic $Z_{d,n}$ in respective correct $\beta$ vector (i.e. there is V x K  ) matrix. \smallskip
+
+Similarly, $p(z_{d,n}|\theta_d) = \theta_{d, z_{d,n}}$ looks up $z_{d,n}$-th entry in $\theta_d$ vector, i.e. there is a D x K matrix.\smallskip
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{LDA in plate notation}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/generative-blei-5.png}
+\end{center}
+This joint defines a posterior distribution of the parameter space.
+From a collection of documents, we then infer
+\begin{itemize}
+\item Per-word topic assignment $z_{d,n}$
+\item Per-document topic proportions $\theta_d$
+\item Per-corpus topic distributions $\beta_k$
+
+\end{itemize}
+We can use these posteriors to assign new virgin data to topics.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%http://videolectures.net/mlss09uk_blei_tm/
+%LDA Buffet http://www.matthewjockers.net/2011/09/29/the-lda-buffet-is-now-open-or-latent-dirichlet-allocation-for-english-majors/
+%https://www.cl.cam.ac.uk/teaching/1213/L101/clark_lectures/lect7.pdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Revisiting the multinomial distribution}
+
+We introduced the multinoial distribution to represent a document $x$ as bag of words counts:
+
+$$
+p(x; p_1,...,p_k) =  {n! \over x_{1}!\cdots x_{k}!}p_{1}^{x_{1}}\cdots p_{k}^{x_{k}}
+$$
+
+Each time word $j$ appears in the document it contributes an amount $p_j$ to the total
+probability, hence the term $p_{j}^{x_j}$.
+
+The components of $\mathbf{p}$ are non-negative and have unit sum: $\sum_j p_j = 1$.
+
+Each vector $x$ of word counts can be generated by a whole range of different sequences of words: the number of possible combinations to produce a given vector of word counts is the first factor - called the \emph{multinomial coefficient}. 
+
+The second factor is the probability of any individual sequence that yields identical word count vector $x$. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Dirichlet Distribution}
+
+The Dirichlet distribution is an exponential family distribution over
+the simplex of positive numbers that sum to one. \bigskip
+
+What does that mean? \bigskip
+A Dirichlet distribution is a probability density function over the set of all multinomial parameter vectors.
+
+$\Rightarrow$ a Dirichlet distribution is a distribution over distributions.
+
+$$ p(\mathbf{p}|  \alpha) =  \frac{\Gamma(\sum_{i=1}^k \alpha_i)}{\prod_{i=1}^k \Gamma(\alpha_i)}  \prod_{i=1}^k p_{i}^{\alpha_i-1}
+$$
+where $\sum{p_i} = 1$ and $p_i \geq 0$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{The case of $k=3$}
+
+\begin{center}
+\includegraphics[scale=0.7]{figures/simplexk.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=1$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{require}\hlstd{(MCMCpack)}
+
+\hlstd{alpha} \hlkwb{<-} \hlnum{1}
+
+\hlstd{draws} \hlkwb{<-} \hlnum{1000}
+
+\hlstd{dimen} \hlkwb{<-} \hlnum{3}
+\hlstd{x} \hlkwb{<-} \hlkwd{rdirichlet}\hlstd{(draws,} \hlkwd{rep}\hlstd{(alpha, dimen))}
+
+\hlstd{x}\hlkwb{<-}\hlkwd{data.table}\hlstd{(x)}
+
+\hlkwd{head}\hlstd{(x)}
+\end{alltt}
+\begin{verbatim}
+##        V1    V2      V3
+## 1: 0.0244 0.697 0.27828
+## 2: 0.7365 0.106 0.15794
+## 3: 0.1632 0.507 0.32940
+## 4: 0.4229 0.520 0.05679
+## 5: 0.5515 0.259 0.18942
+## 6: 0.5884 0.402 0.00953
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=1$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=3in]{figures/knitr-dirichlet-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=10$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=3in]{figures/knitr-dirichletpeaky-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example of a sparse dirichlet distribution with $k=3$ and $\alpha_j=0.25$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=3in]{figures/knitr-dirichletsparse-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example of a sparse dirichlet distribution with $k=3$ and $\alpha_j=0.05$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=3in]{figures/knitr-dirichletsupersparse-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=1$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-1.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=100$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-100.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=0.01$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-001.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{An alternative parameterization}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/dirichlet3.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Why the shape? $\alpha m = (1,1,1)$}
+
+With $\alpha = (1,1,1)$...note $\Gamma{(k)} = (k-1)!$ for integer $k$.
+
+
+$$ p(\mathbf{p}|  \alpha) =  \frac{\Gamma(3)}{1}  \prod_{i=1}^k = constant
+$$
+
+This is the PDF of a uniform distribution.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Dirichlet distribution has some nice properties}
+
+\begin{itemize}
+
+\item as scaling parameter gets smaller and smaller, the distributions get more sparse.\smallskip
+
+\item sparsity is a feature of text data \smallskip
+
+\item as $\alpha$ gets larger, the mass concentrates.
+
+\item If $\theta \sim Dir(\alpha)$  and $Z_n \sim Mult(\theta)$, the $p(\theta | Z_{1:N}) \sim Dir(\alpha + n(Z_{1:N}))$ - this is known as conjugacy. 
+
+\item the more data we see, the peakier our dirichlet. 
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{LDA in plate notation}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/generative-blei-5.png}
+\end{center}
+
+It is impossible to "fill" the missing values (i.e. the latent variables), but it is possible to use the information contained in the word counts and the structure of our model to perform \emph{posterior inference} to approximate the posterior distribution.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gibbs Sampling Intuition}
+
+\textbf{Initialize}: Go through each document, and randomly assign each word in the document to one of the $K$ topics. This assignment already gives you both topic representations of all the documents -- that is $p(\text{topic } t | \text{document } d)$ -- and word distributions across all topics $p(\text{word } w | \text{topic } t)$.
+
+\begin{enumerate}
+\item For each document $d$
+\item For each word $w$ in $d$
+\item For each topic $t$, compute
+\begin{enumerate}
+\item $p(\text{topic } t | \text{document }d)$ = the proportion of words in document $d$ that are currently assigned to topic $t$, 
+
+\item $p(\text{word } w | \text{topic } t)$ = the proportion of words $w$ among all words that are currently assigned  to topic $t$.
+
+\item Reassign $w$ to a \emph{different topic}. We choose topic $t$ with probability $p(\text{topic } t | \text{document } d) * p(\text{word } w | \text{topic } t)$ - this is the probability that topic $t$ generated word $w$.
+\end{enumerate}
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gibbs Sampling Intuition}
+ 
+\begin{itemize}
+\item   In other words, in the resampling step, we’re assuming that all word to topic assignments except for the current word $w$ are correct. We update the assignment of the word $w$ using our model of how documents are generated.
+ 
+\item Repeat these steps a large number of times, the process will eventually converge to a local optimum where topic assignments dont change anymore. 
+
+\item[] $\Rightarrow$ Use these assignments to estimate the topic mixtures of each document (by counting the proportion of words assigned to each topic within that document) and the words associated to each topic (by counting the proportion of words assigned to each topic overall).
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Why does LDA work?}
+LDA trades off two goals.
+\begin{enumerate}
+\item For each document, allocate its words to as few topics as possible.
+\item For each topic, assign high probability to as few terms as possible.
+\end{enumerate}
+
+ These goals are at odds with each other
+\begin{itemize}
+\item Putting a document in a single topic makes (2) hard:
+\item[] All of its words must have probability under that topic.
+\item Putting very few words in each topic makes (1) hard:
+\item[] To cover a document’s words, it must assign many topics to it.\smallskip
+\item[] $\Rightarrow$ Trading off these goals finds groups of tightly co-occurring words.
+\end{itemize}  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%https://eight2late.wordpress.com/2015/09/29/a-gentle-introduction-to-topic-modeling-using-r/
+%http://www.matthewjockers.net/2011/09/29/the-lda-buffet-is-now-open-or-latent-dirichlet-allocation-for-english-majors/
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Topic model implementation in R}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(topicmodels)}
+
+\hlkwd{data}\hlstd{(}\hlstr{"AssociatedPress"}\hlstd{)}
+
+\hlstd{ap_lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(AssociatedPress,} \hlkwc{k} \hlstd{=} \hlnum{3}\hlstd{,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{seed} \hlstd{=} \hlnum{24022017}\hlstd{))}
+
+\hlkwd{class}\hlstd{(ap_lda)}
+\end{alltt}
+\begin{verbatim}
+## [1] "LDA_VEM"
+## attr(,"package")
+## [1] "topicmodels"
+\end{verbatim}
+\begin{alltt}
+\hlkwd{slotNames}\hlstd{(ap_lda)}
+\end{alltt}
+\begin{verbatim}
+##  [1] "alpha"           "call"            "Dim"             "control"        
+##  [5] "k"               "terms"           "documents"       "beta"           
+##  [9] "gamma"           "wordassignments" "loglikelihood"   "iter"           
+## [13] "logLiks"         "n"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(tidytext)}
+
+\hlstd{ap_lda_td} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{tidy}\hlstd{(ap_lda))}
+
+\hlkwd{nrow}\hlstd{(ap_lda_td[topic}\hlopt{==}\hlnum{1}\hlstd{])}
+\end{alltt}
+\begin{verbatim}
+## [1] 10473
+\end{verbatim}
+\begin{alltt}
+\hlstd{ap_lda_td[topic}\hlopt{==}\hlnum{1}\hlstd{][}\hlkwd{order}\hlstd{(beta,} \hlkwc{decreasing}\hlstd{=}\hlnum{TRUE}\hlstd{)][}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##     topic     term    beta
+##  1:     1  percent 0.01563
+##  2:     1  million 0.01052
+##  3:     1     year 0.00851
+##  4:     1      new 0.00787
+##  5:     1  billion 0.00735
+##  6:     1   market 0.00544
+##  7:     1  company 0.00498
+##  8:     1     last 0.00476
+##  9:     1   prices 0.00429
+## 10:     1    stock 0.00409
+## 11:     1  federal 0.00386
+## 12:     1     york 0.00320
+## 13:     1 business 0.00303
+## 14:     1    first 0.00301
+## 15:     1      oil 0.00300
+## 16:     1    sales 0.00299
+## 17:     1   dollar 0.00286
+## 18:     1   report 0.00280
+## 19:     1     rose 0.00280
+## 20:     1   higher 0.00276
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ap_lda_td[topic}\hlopt{==}\hlnum{2}\hlstd{][}\hlkwd{order}\hlstd{(beta,} \hlkwc{decreasing}\hlstd{=}\hlnum{TRUE}\hlstd{)][}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##     topic      term    beta
+##  1:     2         i 0.00648
+##  2:     2    police 0.00599
+##  3:     2    people 0.00580
+##  4:     2       two 0.00521
+##  5:     2     years 0.00381
+##  6:     2     court 0.00318
+##  7:     2 officials 0.00304
+##  8:     2     state 0.00303
+##  9:     2      city 0.00297
+## 10:     2       new 0.00296
+## 11:     2     three 0.00276
+## 12:     2      last 0.00258
+## 13:     2      time 0.00237
+## 14:     2       day 0.00221
+## 15:     2    killed 0.00208
+## 16:     2     found 0.00206
+## 17:     2      case 0.00204
+## 18:     2     first 0.00197
+## 19:     2     miles 0.00195
+## 20:     2      home 0.00194
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ap_lda_td[topic}\hlopt{==}\hlnum{3}\hlstd{][}\hlkwd{order}\hlstd{(beta,} \hlkwc{decreasing}\hlstd{=}\hlnum{TRUE}\hlstd{)][}\hlnum{1}\hlopt{:}\hlnum{20}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##     topic       term    beta
+##  1:     3  president 0.00747
+##  2:     3 government 0.00644
+##  3:     3     soviet 0.00639
+##  4:     3       bush 0.00617
+##  5:     3          i 0.00583
+##  6:     3     united 0.00466
+##  7:     3     states 0.00463
+##  8:     3        new 0.00416
+##  9:     3      party 0.00389
+## 10:     3     people 0.00367
+## 11:     3  political 0.00350
+## 12:     3      house 0.00327
+## 13:     3      state 0.00309
+## 14:     3        two 0.00308
+## 15:     3   military 0.00306
+## 16:     3       last 0.00301
+## 17:     3    dukakis 0.00296
+## 18:     3       told 0.00286
+## 19:     3   campaign 0.00284
+## 20:     3      first 0.00275
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out topic terms $\beta_k$}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(ggplot2)}
+\hlkwd{library}\hlstd{(dplyr)}
+\hlstd{ap_top_terms} \hlkwb{<-} \hlstd{ap_lda_td} \hlopt{%>%}
+  \hlkwd{group_by}\hlstd{(topic)} \hlopt{%>%}
+  \hlkwd{top_n}\hlstd{(}\hlnum{10}\hlstd{, beta)} \hlopt{%>%}
+  \hlkwd{ungroup}\hlstd{()} \hlopt{%>%}
+  \hlkwd{arrange}\hlstd{(topic,} \hlopt{-}\hlstd{beta)}
+
+\hlstd{ap_top_terms} \hlopt{%>%}
+  \hlkwd{mutate}\hlstd{(}\hlkwc{term} \hlstd{=} \hlkwd{reorder}\hlstd{(term, beta))} \hlopt{%>%}
+  \hlkwd{ggplot}\hlstd{(}\hlkwd{aes}\hlstd{(term, beta,} \hlkwc{fill} \hlstd{=} \hlkwd{factor}\hlstd{(topic)))} \hlopt{+}
+  \hlkwd{geom_bar}\hlstd{(}\hlkwc{stat} \hlstd{=} \hlstr{"identity"}\hlstd{,} \hlkwc{show.legend} \hlstd{=} \hlnum{FALSE}\hlstd{)} \hlopt{+}
+  \hlkwd{facet_wrap}\hlstd{(}\hlopt{~} \hlstd{topic,} \hlkwc{scales} \hlstd{=} \hlstr{"free"}\hlstd{)} \hlopt{+}
+  \hlkwd{coord_flip}\hlstd{()}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out topic terms $\beta_k$}
+
+\begin{center}
+\includegraphics[scale=0.6]{figures/knitr-topicmodelexample5-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Alternative: Use word clouds to plot out $\beta_k$}
+
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(wordcloud)}
+\hlstd{ap_top_terms}\hlkwb{<-}\hlkwd{data.table}\hlstd{(ap_top_terms)}
+\hlkwd{wordcloud}\hlstd{(ap_top_terms[topic}\hlopt{==}\hlnum{1}\hlstd{]}\hlopt{$}\hlstd{term, ap_top_terms[topic}\hlopt{==}\hlnum{1}\hlstd{]}\hlopt{$}\hlstd{beta)}
+\hlkwd{wordcloud}\hlstd{(ap_top_terms[topic}\hlopt{==}\hlnum{2}\hlstd{]}\hlopt{$}\hlstd{term, ap_top_terms[topic}\hlopt{==}\hlnum{2}\hlstd{]}\hlopt{$}\hlstd{beta)}
+\hlkwd{wordcloud}\hlstd{(ap_top_terms[topic}\hlopt{==}\hlnum{3}\hlstd{]}\hlopt{$}\hlstd{term, ap_top_terms[topic}\hlopt{==}\hlnum{3}\hlstd{]}\hlopt{$}\hlstd{beta)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Word clouds for $\beta_k$}
+
+\begin{center}
+\includegraphics[scale=0.8]<1>{figures/knitr-topicmodelexample5a-1.pdf}
+\includegraphics[scale=0.8]<2>{figures/knitr-topicmodelexample5a-2.pdf}
+\includegraphics[scale=0.8]<3>{figures/knitr-topicmodelexample5a-3.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out document topic associations (i.e. our $\theta_d$'s) }
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ap_gamma} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwd{tidy}\hlstd{(ap_lda,} \hlkwc{matrix} \hlstd{=} \hlstr{"gamma"}\hlstd{))}
+
+\hlstd{ap_gamma[document}\hlopt{==}\hlnum{1}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##    document topic    gamma
+## 1:        1     1 0.000462
+## 2:        1     2 0.999076
+## 3:        1     3 0.000462
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset Declarations of Brasilian Politicians}
+
+\begin{center}
+\includegraphics[scale=0.25]<1>{figures/uol-bem1.png}
+\includegraphics[scale=0.5]<2>{figures/uol-bem3.png}
+\end{center}
+Asset delarations available from TSE \url{http://divulgacandcontas.tse.jus.br}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{load}\hlstd{(}\hlstr{"R/BEM.rdata"}\hlstd{)}
+\hlstd{BEM[,} \hlkwd{`:=`}\hlstd{(rowid,} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM))]}
+\hlstd{BEM.corpus} \hlkwb{<-} \hlkwd{corpus}\hlstd{(BEM[}\hlnum{1000}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM)]}\hlopt{$}\hlstd{BEMDETAIL)}
+\hlkwd{docnames}\hlstd{(BEM.corpus)} \hlkwb{<-} \hlstd{BEM[}\hlnum{1000}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM)]}\hlopt{$}\hlstd{rowid}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(BEM.corpus,} \hlkwc{ngrams} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm_trim}\hlstd{(BEM.dfm,} \hlkwc{min_count} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{min_docfreq} \hlstd{=} \hlnum{5}\hlstd{)}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm_weight}\hlstd{(BEM.dfm,} \hlkwc{type} \hlstd{=} \hlstr{"tfidf"}\hlstd{)}
+\hlstd{BEM.lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(}\hlkwd{convert}\hlstd{(BEM.dfm,} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{),} \hlkwc{k} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{alpha} \hlstd{=} \hlnum{100}\hlstd{,} \hlkwc{seed} \hlstd{=} \hlnum{20022017}\hlstd{))}
+
+\hlkwd{get_terms}\hlstd{(BEM.lda,} \hlnum{8}\hlstd{,} \hlkwc{threshold} \hlstd{=} \hlnum{0.005}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      Topic 1     Topic 2     Topic 3     Topic 4     Topic 5  
+## [1,] "de"        "do"        "de"        "com"       "de"     
+## [2,] "do"        "no"        "com"       "no"        "com"    
+## [3,] "com"       "terreno"   "no"        "terreno"   "no"     
+## [4,] "residenci" "residenci" "terreno"   "residenci" "terreno"
+## [5,] "lote"      "da"        "residenci" "da"        "lote"   
+## [6,] "veiculo"   "lote"      "da"        "placa"     "veiculo"
+## [7,] "capit"     "placa"     "moto"      "terra"     "rural"  
+## [8,] "ltda"      "rural"     "m"         "bairro"    "brasil"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+We see  the vocabulary is very similar, this is because we forced the hyperparameter $\alpha$ for topic proportions assignment to be large, resulting in peaked central distribution.
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ASSIGNMENTS} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwc{rowid} \hlstd{=} \hlkwd{names}\hlstd{(}\hlkwd{get_topics}\hlstd{(BEM.lda)),} \hlkwc{topic} \hlstd{=} \hlkwd{as.character}\hlstd{(}\hlkwd{get_topics}\hlstd{(BEM.lda)))}
+\hlstd{BEM} \hlkwb{<-} \hlkwd{join}\hlstd{(BEM, ASSIGNMENTS)}
+
+\hlstd{BEM[topic} \hlopt{==} \hlnum{1}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}\hlopt{$}\hlstd{BEMDETAIL}
+\end{alltt}
+\begin{verbatim}
+##  [1] "participação capitalda empresa antonio fonseca silva"
+##  [2] "semoventes equinos cavalos burros"                   
+##  [3] "casa própria"                                        
+##  [4] "ações on banco do brasil"                            
+##  [5] "um ponto comercial av rui lino"                      
+##  [6] "caminhao ford cargo e ano cor branca placa hfd"      
+##  [7] "veiculo ford fiesta portas"                          
+##  [8] "camionete"                                           
+##  [9] "conta poupanca vinculada conta corrente"             
+## [10] "um veiculo honda civic ano"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+This is not great...
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{posterior}\hlstd{(BEM.lda)}\hlopt{$}\hlstd{topics[}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{, ]}
+\end{alltt}
+\begin{verbatim}
+##          1     2     3     4     5
+## 1001 0.199 0.200 0.202 0.200 0.199
+## 1002 0.200 0.199 0.199 0.202 0.200
+## 1003 0.200 0.199 0.200 0.200 0.201
+## 1004 0.199 0.202 0.200 0.199 0.200
+## 1005 0.201 0.199 0.198 0.201 0.200
+## 1006 0.201 0.200 0.199 0.201 0.199
+## 1007 0.201 0.201 0.199 0.199 0.200
+## 1008 0.200 0.199 0.201 0.201 0.200
+## 1009 0.199 0.201 0.200 0.199 0.201
+## 1010 0.200 0.200 0.200 0.200 0.200
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+These are all super close to 20\%, due to our choice of high $\alpha$, the prior distribution is very peaked at the centroid of that simplex and the evidence we observe has a hard time moving us away from these priors.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations with sparsity}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{load}\hlstd{(}\hlstr{"R/BEM.rdata"}\hlstd{)}
+\hlstd{BEM[,} \hlkwd{`:=`}\hlstd{(rowid,} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM))]}
+\hlstd{BEM.corpus} \hlkwb{<-} \hlkwd{corpus}\hlstd{(BEM[}\hlnum{1000}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM)]}\hlopt{$}\hlstd{BEMDETAIL)}
+\hlkwd{docnames}\hlstd{(BEM.corpus)} \hlkwb{<-} \hlstd{BEM[}\hlnum{1000}\hlopt{:}\hlkwd{nrow}\hlstd{(BEM)]}\hlopt{$}\hlstd{rowid}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(BEM.corpus,} \hlkwc{ngrams} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm_trim}\hlstd{(BEM.dfm,} \hlkwc{min_count} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{min_docfreq} \hlstd{=} \hlnum{5}\hlstd{)}
+\hlstd{BEM.dfm} \hlkwb{<-} \hlkwd{dfm_weight}\hlstd{(BEM.dfm,} \hlkwc{type} \hlstd{=} \hlstr{"tfidf"}\hlstd{)}
+\hlstd{BEM.lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(}\hlkwd{convert}\hlstd{(BEM.dfm,} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{),} \hlkwc{k} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{alpha} \hlstd{=} \hlnum{0.005}\hlstd{,} \hlkwc{seed} \hlstd{=} \hlnum{20022017}\hlstd{))}
+
+\hlkwd{get_terms}\hlstd{(BEM.lda,} \hlnum{8}\hlstd{,} \hlkwc{threshold} \hlstd{=} \hlnum{0.005}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      Topic 1   Topic 2     Topic 3   Topic 4   Topic 5    
+## [1,] "do"      "de"        "placa"   "da"      "placa"    
+## [2,] "banco"   "do"        "veiculo" "capit"   "veiculo"  
+## [3,] "conta"   "com"       "moto"    "empresa" "automovel"
+## [4,] "brasil"  "no"        "fiat"    "ltda"    "gol"      
+## [5,] "saldo"   "terreno"   "honda"   "jose"    "vw"       
+## [6,] "corrent" "residenci" "modelo"  "titan"   "dinheiro" 
+## [7,] "cabeça"  "lote"      "ford"    "firma"   "palio"    
+## [8,] "gado"    "m"         "mod"     "qd"      "trator"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations with sparsity}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ASSIGNMENTS} \hlkwb{<-} \hlkwd{data.table}\hlstd{(}\hlkwc{rowid} \hlstd{=} \hlkwd{names}\hlstd{(}\hlkwd{get_topics}\hlstd{(BEM.lda)),} \hlkwc{topic} \hlstd{=} \hlkwd{as.character}\hlstd{(}\hlkwd{get_topics}\hlstd{(BEM.lda)))}
+\hlstd{BEM} \hlkwb{<-} \hlkwd{join}\hlstd{(BEM, ASSIGNMENTS)}
+
+\hlstd{BEM[topic} \hlopt{==} \hlnum{1}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}\hlopt{$}\hlstd{BEMDETAIL}
+\end{alltt}
+\begin{verbatim}
+##  [1] "semoventes equinos cavalos burros"                                        
+##  [2] "casa própria"                                                             
+##  [3] "ações on banco do brasil"                                                 
+##  [4] "ações bradesco empresa de capital aberto"                                 
+##  [5] "bradesco fundo de investimento em ações petrobras"                        
+##  [6] "conta poupanca vinculada conta corrente"                                  
+##  [7] "situado na rua alexandre gomes da fonseca varzea"                         
+##  [8] "ford ecosport"                                                            
+##  [9] "bovinos"                                                                  
+## [10] "caixa econômica federal agência contas pertence aos filhos thiago marcela"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing with labelled data}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{table}\hlstd{(BEM[DS_TIPO_BEM_CANDIDATO} \hlopt{==} \hlstr{"veículo automotor terrestre caminhão automóvel moto etc"}\hlstd{]}\hlopt{$}\hlstd{DS_TIPO_BEM_CANDIDATO,}
+    \hlstd{BEM[DS_TIPO_BEM_CANDIDATO} \hlopt{==} \hlstr{"veículo automotor terrestre caminhão automóvel moto etc"}\hlstd{]}\hlopt{$}\hlstd{topic)}
+\end{alltt}
+\begin{verbatim}
+##                                                          
+##                                                             1   2   3   4   5
+##   veículo automotor terrestre caminhão automóvel moto etc 430 928 730 389 535
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+Compare with
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{get_terms}\hlstd{(BEM.lda,} \hlnum{8}\hlstd{,} \hlkwc{threshold} \hlstd{=} \hlnum{0.005}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      Topic 1   Topic 2     Topic 3   Topic 4   Topic 5    
+## [1,] "do"      "de"        "placa"   "da"      "placa"    
+## [2,] "banco"   "do"        "veiculo" "capit"   "veiculo"  
+## [3,] "conta"   "com"       "moto"    "empresa" "automovel"
+## [4,] "brasil"  "no"        "fiat"    "ltda"    "gol"      
+## [5,] "saldo"   "terreno"   "honda"   "jose"    "vw"       
+## [6,] "corrent" "residenci" "modelo"  "titan"   "dinheiro" 
+## [7,] "cabeça"  "lote"      "ford"    "firma"   "palio"    
+## [8,] "gado"    "m"         "mod"     "qd"      "trator"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scoring virgin data}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{BEM[}\hlnum{1}\hlstd{]}\hlopt{$}\hlstd{DETALHE_BEM}
+\end{alltt}
+\begin{verbatim}
+## [1] "UMA CASA RESIDENCIAL RUA MARIA LINA 823"
+\end{verbatim}
+\begin{alltt}
+\hlcom{# coding virgin documents - ignores non overlapping vocabulary}
+\hlkwd{posterior}\hlstd{(BEM.lda,} \hlkwd{convert}\hlstd{(}\hlkwd{dfm}\hlstd{(BEM[}\hlnum{1}\hlstd{]}\hlopt{$}\hlstd{DETALHE_BEM),} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{))}\hlopt{$}\hlstd{topics}
+\end{alltt}
+\begin{verbatim}
+##            1     2      3     4      5
+## text1 0.0114 0.467 0.0114 0.499 0.0114
+\end{verbatim}
+\begin{alltt}
+\hlstd{BEM[topic} \hlopt{==} \hlnum{3}\hlstd{][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}\hlopt{$}\hlstd{BEMDETAIL}
+\end{alltt}
+\begin{verbatim}
+##  [1] "carro modelo gol placa jtw financiado"         
+##  [2] "vaga de garagen na rua alagoas"                
+##  [3] "caminhao ford cargo e ano cor branca placa hfd"
+##  [4] "veiculo ford fiesta portas"                    
+##  [5] "camionete"                                     
+##  [6] "moto placa gvy ano modelo"                     
+##  [7] "scania ano placa joa"                          
+##  [8] "uma moto bros"                                 
+##  [9] "um veiculo honda civic ano"                    
+## [10] "veículo pick up marca ford"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Example - Trump Tweets}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{load}\hlstd{(}\hlkwc{file} \hlstd{=} \hlstr{"../../Data/trumpstweets.rdata"}\hlstd{)}
+\hlcom{# remove retweet entities}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"(RT|via)((?:\textbackslash{}\textbackslash{}b\textbackslash{}\textbackslash{}W*@\textbackslash{}\textbackslash{}w+)+)"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove at people}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"@\textbackslash{}\textbackslash{}w+"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove punctuation}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:punct:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove numbers}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[[:digit:]]"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove html links}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"http\textbackslash{}\textbackslash{}w+"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlcom{# remove unnecessary spaces}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"[ \textbackslash{}t]\{2,\}"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df}\hlopt{$}\hlstd{text} \hlkwb{<-} \hlkwd{gsub}\hlstd{(}\hlstr{"^\textbackslash{}\textbackslash{}s+|\textbackslash{}\textbackslash{}s+$"}\hlstd{,} \hlstr{""}\hlstd{, tw.user.df}\hlopt{$}\hlstd{text)}
+\hlstd{tw.user.df} \hlkwb{<-} \hlstd{tw.user.df[text} \hlopt{!=} \hlstr{""}\hlstd{]}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Trump Tweets}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+\hlkwd{set.seed}\hlstd{(}\hlnum{24022017}\hlstd{)}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlcom{## builds a corpus object using the field named text as containing the document}
+\hlstd{tw.user.df[,} \hlkwd{`:=`}\hlstd{(docid,} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(tw.user.df))]}
+\hlstd{trump.corpus} \hlkwb{<-} \hlkwd{corpus}\hlstd{(tw.user.df)}
+\hlkwd{docnames}\hlstd{(trump.corpus)} \hlkwb{<-} \hlstd{tw.user.df}\hlopt{$}\hlstd{docid}
+\hlstd{trump.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(trump.corpus,} \hlkwc{remove} \hlstd{=} \hlkwd{c}\hlstd{(}\hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{),} \hlstr{"can"}\hlstd{,} \hlstr{"say"}\hlstd{,} \hlstr{"one"}\hlstd{,} \hlstr{"way"}\hlstd{,}
+    \hlstr{"use"}\hlstd{,} \hlstr{"also"}\hlstd{,} \hlstr{"howev"}\hlstd{,} \hlstr{"tell"}\hlstd{,} \hlstr{"will"}\hlstd{,} \hlstr{"much"}\hlstd{,} \hlstr{"need"}\hlstd{,} \hlstr{"take"}\hlstd{,} \hlstr{"tend"}\hlstd{,} \hlstr{"even"}\hlstd{,} \hlstr{"like"}\hlstd{,}
+    \hlstr{"particular"}\hlstd{,} \hlstr{"rather"}\hlstd{,} \hlstr{"said"}\hlstd{,} \hlstr{"get"}\hlstd{,} \hlstr{"well"}\hlstd{,} \hlstr{"make"}\hlstd{,} \hlstr{"ask"}\hlstd{,} \hlstr{"come"}\hlstd{,} \hlstr{"end"}\hlstd{,} \hlstr{"first"}\hlstd{,} \hlstr{"two"}\hlstd{,}
+    \hlstr{"help"}\hlstd{,} \hlstr{"often"}\hlstd{,} \hlstr{"may"}\hlstd{,} \hlstr{"might"}\hlstd{,} \hlstr{"see"}\hlstd{,} \hlstr{"someth"}\hlstd{,} \hlstr{"thing"}\hlstd{,} \hlstr{"point"}\hlstd{,} \hlstr{"post"}\hlstd{,} \hlstr{"look"}\hlstd{,} \hlstr{"right"}\hlstd{,}
+    \hlstr{"now"}\hlstd{,} \hlstr{"think"}\hlstd{,} \hlstr{"‘ve "}\hlstd{,} \hlstr{"‘re "}\hlstd{,} \hlstr{"anoth"}\hlstd{,} \hlstr{"put"}\hlstd{,} \hlstr{"set"}\hlstd{,} \hlstr{"new"}\hlstd{,} \hlstr{"good"}\hlstd{,} \hlstr{"want"}\hlstd{,} \hlstr{"sure"}\hlstd{,}
+    \hlstr{"kind"}\hlstd{,} \hlstr{"larg"}\hlstd{,} \hlstr{"yes,"}\hlstd{,} \hlstr{"day"}\hlstd{,} \hlstr{"etc"}\hlstd{,} \hlstr{"quit"}\hlstd{,} \hlstr{"sinc"}\hlstd{,} \hlstr{"attempt"}\hlstd{,} \hlstr{"lack"}\hlstd{,} \hlstr{"seen"}\hlstd{,} \hlstr{"awar"}\hlstd{,}
+    \hlstr{"littl"}\hlstd{,} \hlstr{"ever"}\hlstd{,} \hlstr{"moreov"}\hlstd{,} \hlstr{"though"}\hlstd{,} \hlstr{"found"}\hlstd{,} \hlstr{"abl"}\hlstd{,} \hlstr{"enough"}\hlstd{,} \hlstr{"far"}\hlstd{,} \hlstr{"earli"}\hlstd{,} \hlstr{"away"}\hlstd{,}
+    \hlstr{"achiev"}\hlstd{,} \hlstr{"draw"}\hlstd{,} \hlstr{"last"}\hlstd{,} \hlstr{"never"}\hlstd{,} \hlstr{"brief"}\hlstd{,} \hlstr{"bit"}\hlstd{,} \hlstr{"entir"}\hlstd{,} \hlstr{"brief"}\hlstd{,} \hlstr{"great"}\hlstd{,} \hlstr{"lot"}\hlstd{),} \hlkwc{ngrams} \hlstd{=} \hlnum{1}\hlstd{,}
+    \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hlstd{trump.dfm} \hlkwb{<-} \hlkwd{dfm_trim}\hlstd{(trump.dfm,} \hlkwc{min_count} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{min_docfreq} \hlstd{=} \hlnum{2}\hlstd{)}
+\hlstd{trump.dfm} \hlkwb{<-} \hlkwd{dfm_weight}\hlstd{(trump.dfm,} \hlkwc{type} \hlstd{=} \hlstr{"tfidf"}\hlstd{)}
+\hlstd{trump.lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(}\hlkwd{convert}\hlstd{(trump.dfm,} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{),} \hlkwc{k} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{alpha} \hlstd{=} \hlnum{0.01}\hlstd{,}
+    \hlkwc{seed} \hlstd{=} \hlnum{20022017}\hlstd{))}
+\hlkwd{get_terms}\hlstd{(trump.lda,} \hlnum{5}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      Topic 1          Topic 2  Topic 3 Topic 4   Topic 5                
+## [1,] "join"           "just"   "amp"   "�"       "makeamericagreatagain"
+## [2,] "pm"             "rate"   "job"   "clinton" "america"              
+## [3,] "colorado"       "immigr" "peopl" "crook"   "interview"            
+## [4,] "tomorrow"       "goofi"  "vote"  "bad"     "support"              
+## [5,] "crookedhillari" "peopl"  "bring" "berni"   "enjoy"
+\end{verbatim}
+\begin{alltt}
+\hlstd{assignment} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{docid} \hlstd{=} \hlkwd{names}\hlstd{(}\hlkwd{topics}\hlstd{(trump.lda)),} \hlkwc{topic} \hlstd{=} \hlkwd{topics}\hlstd{(trump.lda))}
+
+\hlstd{tw.user.df} \hlkwb{<-} \hlkwd{join}\hlstd{(tw.user.df, assignment)[}\hlopt{!}\hlkwd{is.na}\hlstd{(topic)]}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A third example - Brexit}
+\begin{center}
+\includegraphics[scale=0.5]{figures/brexit-plot.pdf}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Brexit single most important issue}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+\hlkwd{library}\hlstd{(quanteda)}
+\hlkwd{library}\hlstd{(tidytext)}
+\hlkwd{library}\hlstd{(topicmodels)}
+\hlcom{## builds a corpus object using the field named text as containing the document}
+\hlstd{C} \hlkwb{<-} \hlkwd{corpus}\hlstd{(DTA}\hlopt{$}\hlstd{A1)}
+\hlcom{## defining features that are informative about leaveeu decision using e.g. document scaling}
+\hlcom{## method}
+\hlkwd{docnames}\hlstd{(C)} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(DTA}\hlopt{$}\hlstd{finalserialno)}
+\hlstd{C.dfm} \hlkwb{<-} \hlkwd{dfm}\hlstd{(C,} \hlkwc{tolower} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{stem} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{removeNumbers} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{removePunct} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{remove} \hlstd{=} \hlkwd{stopwords}\hlstd{(}\hlstr{"english"}\hlstd{))}
+
+\hlstd{C.lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(}\hlkwd{convert}\hlstd{(C.dfm,} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{),} \hlkwc{k} \hlstd{=} \hlnum{5}\hlstd{,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{alpha} \hlstd{=} \hlnum{0.2}\hlstd{,} \hlkwc{seed} \hlstd{=} \hlnum{10052017}\hlstd{))}
+
+\hlkwd{get_terms}\hlstd{(C.lda,} \hlnum{10}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##       Topic 1   Topic 2   Topic 3    Topic 4    Topic 5  
+##  [1,] "eu"      "immigr"  "terror"   "nhs"      "peopl"  
+##  [2,] "get"     "peopl"   "money"    "hous"     "economi"
+##  [3,] "nhs"     "countri" "go"       "job"      "get"    
+##  [4,] "wait"    "come"    "cut"      "unemploy" "health" 
+##  [5,] "need"    "mani"    "govern"   "lack"     "work"   
+##  [6,] "nation"  "benefit" "servic"   "enough"   "job"    
+##  [7,] "popul"   "take"    "countri"  "money"    "debt"   
+##  [8,] "threat"  "let"     "european" "peopl"    "servic" 
+##  [9,] "foreign" "control" "back"     "employ"   "nation" 
+## [10,] "stay"    "work"    "financ"   "deficit"  "educ"
+\end{verbatim}
+\begin{alltt}
+\hlstd{assignment} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{finalserialno} \hlstd{=} \hlkwd{as.numeric}\hlstd{(}\hlkwd{names}\hlstd{(}\hlkwd{topics}\hlstd{(C.lda))),} \hlkwc{topic} \hlstd{=} \hlkwd{topics}\hlstd{(C.lda))}
+
+\hlstd{DTA} \hlkwb{<-} \hlkwd{join}\hlstd{(DTA, assignment)[}\hlopt{!}\hlkwd{is.na}\hlstd{(topic)]}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Brexit single most important issue}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+
+\hlcom{# Immigration topic}
+\hlstd{DTA[topic} \hlopt{==} \hlnum{2}\hlstd{,} \hlkwd{list}\hlstd{(topic,} \hlkwd{substr}\hlstd{(A1,} \hlnum{1}\hlstd{,} \hlnum{60}\hlstd{))][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##     topic                                                           V2
+##  1:     2                                                  Immigration
+##  2:     2                                          too many immigrants
+##  3:     2                                                  Immigration
+##  4:     2                                                    criminals
+##  5:     2                                                  IMMIGRATION
+##  6:     2                                                  immigration
+##  7:     2 Influx of people who shouldn't be here British people should
+##  8:     2                                                   immigrants
+##  9:     2 Immigration. we are letting too many people in we are sinkin
+## 10:     2 Immigration the amount of people we having coming in with no
+\end{verbatim}
+\begin{alltt}
+\hlcom{# Austerity/ public goods/ employment topic}
+\hlstd{DTA[topic} \hlopt{==} \hlnum{4}\hlstd{,} \hlkwd{list}\hlstd{(topic,} \hlkwd{substr}\hlstd{(A1,} \hlnum{1}\hlstd{,} \hlnum{60}\hlstd{))][}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{]}
+\end{alltt}
+\begin{verbatim}
+##     topic                                                       V2
+##  1:     4                                             unemployment
+##  2:     4                                             unemployment
+##  3:     4                                 LACK OF STAFF IN THE NHS
+##  4:     4                                WELFARE REFORM -AUSTERITY
+##  5:     4                              Lack of Money too much debt
+##  6:     4                                                  Housing
+##  7:     4                                                  The NHS
+##  8:     4 small businesses as family business, funding's available
+##  9:     4                     economy. cuts, and way doing welfare
+## 10:     4                              Hospitals lack of resources
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic Distribution}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+
+\hlkwd{hist}\hlstd{(DTA}\hlopt{$}\hlstd{topic)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-topicmodelbrexit4-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Searching for a topic model to predict Brexit vote}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+\hlstd{leaveout} \hlkwb{<-} \hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(DTA),} \hlnum{200}\hlstd{)}  \hlcom{## sample 500 random indices}
+\hlstd{looping} \hlkwb{<-} \hlkwa{NULL}
+\hlkwa{for} \hlstd{(kk} \hlkwa{in} \hlkwd{seq}\hlstd{(}\hlnum{3}\hlstd{,} \hlnum{30}\hlstd{,} \hlnum{1}\hlstd{)) \{}
+    \hlstd{C.lda} \hlkwb{<-} \hlkwd{LDA}\hlstd{(}\hlkwd{convert}\hlstd{(C.dfm,} \hlkwc{to} \hlstd{=} \hlstr{"topicmodels"}\hlstd{),} \hlkwc{k} \hlstd{= kk,} \hlkwc{control} \hlstd{=} \hlkwd{list}\hlstd{(}\hlkwc{alpha} \hlstd{=} \hlnum{0.075}\hlstd{,}
+        \hlkwc{seed} \hlstd{=} \hlnum{10052017}\hlstd{))}
+    \hlstd{assignment} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{finalserialno} \hlstd{=} \hlkwd{as.numeric}\hlstd{(}\hlkwd{names}\hlstd{(}\hlkwd{topics}\hlstd{(C.lda))),} \hlkwc{topic} \hlstd{=} \hlkwd{topics}\hlstd{(C.lda))}
+
+    \hlstd{MAT} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{leaveeu} \hlstd{= DTA}\hlopt{$}\hlstd{leaveeu, C.lda}\hlopt{@}\hlkwc{gamma}\hlstd{)}
+    \hlcom{# train the model WITHOUT these observations (-index removes those obs)}
+    \hlstd{trained} \hlkwb{<-} \hlkwd{glm}\hlstd{(leaveeu} \hlopt{~} \hlstd{.,} \hlkwc{data} \hlstd{= MAT[}\hlopt{-}\hlstd{leaveout, ],} \hlkwd{binomial}\hlstd{(}\hlkwc{link} \hlstd{= logit))}
+    \hlcom{# get the predicted probability of spam on the left out data}
+    \hlstd{glm.probs} \hlkwb{<-} \hlkwd{predict}\hlstd{(trained,} \hlkwc{newdata} \hlstd{= MAT[leaveout, ],} \hlkwc{type} \hlstd{=} \hlstr{"response"}\hlstd{)}
+    \hlcom{# plot the OOS fit}
+
+    \hlstd{glm.pred} \hlkwb{<-} \hlkwd{rep}\hlstd{(}\hlstr{"remain"}\hlstd{,} \hlkwd{length}\hlstd{(glm.probs))}
+    \hlstd{glm.pred[glm.probs} \hlopt{>} \hlnum{0.5}\hlstd{]} \hlkwb{<-} \hlstr{"leave"}
+
+    \hlstd{looping} \hlkwb{<-} \hlkwd{c}\hlstd{(looping,} \hlkwd{sum}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlnum{2}\hlstd{)} \hlopt{*} \hlkwd{table}\hlstd{(glm.pred, MAT[leaveout, ]}\hlopt{$}\hlstd{leaveeu))}\hlopt{/}\hlnum{200}\hlstd{)}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Trade-off between topic depth and prediction performance?}
+\begin{knitrout}\tiny
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## create DTM}
+\hlkwd{plot}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{3}\hlstd{,} \hlnum{30}\hlstd{,} \hlnum{1}\hlstd{), looping)}
+\hlkwd{lines}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{3}\hlstd{,} \hlnum{30}\hlstd{,} \hlnum{1}\hlstd{), looping)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=3in]{figures/knitr-topicmodelbrexit6-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting Conflict using NYTimes corpus and topic modelling}
+
+\begin{itemize}
+
+\item Construct NY Times corpus for the past 50 years, digital versions.\smallskip
+
+\item Estimate a topic model and identify the topics that are associated with conflict content (essentially browsing through the word clouds)\smallskip
+
+\item Use topic shares to predict political instability/conflict using \emph{within country} variation.
+
+\item Benchmark model is one with country and year fixed effects.
+
+
+\end{itemize}
+
+``Reading between the Lines: Prediction of Political Violence'', Hannes Mueller and Christopher Rauh, 2017.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting Conflict using NYTimes corpus and topic modelling}
+
+\begin{center}
+
+\includegraphics[scale=0.5]<1>{figures/muellerrauh-1.png}
+\includegraphics[scale=0.5]<2>{figures/muellerrauh-2.png}
+\includegraphics[scale=0.5]<3>{figures/muellerrauh-3.png}
+\includegraphics[scale=0.5]<4>{figures/muellerrauh-4.png}
+
+\end{center}
+
+``Reading between the Lines: Prediction of Political Violence'', Hannes Mueller and Christopher Rauh, 2017.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlated Topic models}
+
+\begin{itemize}
+
+\item Dirichlet distribution over simplex only allows for distributions that are basically independent of one another.
+
+\item Alternative distributions over simplex allow for correlations.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/ctm1.png}
+\includegraphics[scale=0.35]<2>{figures/ctm2.png}
+\includegraphics[scale=0.45]<3>{figures/ctm3.png}
+
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dynamic Topic models}
+
+\begin{itemize}
+
+\item Basic topic model ignores the order of documents.
+
+\item Dynamic topic models lets topics drift over time.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/dynamictm0.png}
+\includegraphics[scale=0.35]<2>{figures/dynamictm.png}
+\includegraphics[scale=0.35]<3>{figures/dynamictm2.png}
+
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

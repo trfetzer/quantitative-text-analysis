@@ -1,0 +1,552 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Applications of Data Science]{Principal Component Analysis} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("/Users/thiemo/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 9")
+load("R/HOUSES.rdata")
+HOUSES<-HOUSES[!is.na(builtyryr)]
+HOUSES$NAMENUM<-as.numeric(as.factor(HOUSES$NAME))
+library(glmnet)
+library(ggplot2)
+
+set.seed(131)
+X1=rnorm(60)
+set.seed(132)
+X2=X1-0.3*X1^2+0.2*X1^3+rnorm(60,mean=60,sd=1.5)
+plot(scale(X1),scale(X2))
+
+
+plot(scale(X1),scale(X2), axes=FALSE, cex=.75)
+abline(h=0)
+abline(v=0)
+
+points(cbind(scale(X1),0), pch=2, col="red", cex=.75)
+
+plot(scale(X1),scale(X2), axes=FALSE, cex=.75)
+abline(h=0)
+abline(v=0)
+points(cbind(0,scale(X2)), pch=3, col="blue", cex=.75)
+
+
+plot(scale(X1),scale(X2), axes=FALSE, cex=.75)
+abline(h=0)
+abline(v=0)
+
+points(0.707,0.707, col="blue", pch=4)
+points(-0.707,0.707, col="red", pch=4)
+
+@
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dimensionality Reduction}
+
+The goal of dimensionality reduction or unsupervised machine learning is to summarize or simplify the data structure in a setting, where you do not have a dependent variable $y$ to run any prediction on. 
+
+
+\begin{enumerate}
+
+\item In the section on \emph{Clustering}, we talked about methods and ways to find subgroups in the data that stand out by having common attributes in the feature space $X$.
+
+\item This last lecture, we are briefly introduction \emph{Principal Component Analysis}, which is a method of summarzing, visualizing and uncovering underlying relationships between covariates.  
+
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Information overflow}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.45]<1>{figures/knitr-correlogram-1.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dimensionality reduction via PCA}
+
+\begin{itemize}
+
+\item The way we think of information in machine learning or data science is, that a variable $X$ and a variable $Z$ carry information about one another due to their correlatedness or their covariance structure.
+
+\item In many situations, you have information overflow. Suppose you have a data matrix with $p= 10$, then there is $\binom{p}{2}$, or 45 different pairs.
+
+\item Principal component analysis is a method to combine variables $X_1,...,X_p$ into a set of variables $Z_1, ..., Z_m$ with $m<p$, without sacrificing much of the information contained in the original $p$ variables.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dimensionality reduction via PCA}
+
+\begin{itemize}
+
+\item The goal of PCA is to produce a low-dimensional representation of a dataset by finding a sequence of linear combbinations of the variables that have \emph{maximal variance} and are \emph{mutually uncorrelated}.
+
+\item In addition, PCA allows you to visualize the data in different forms. We will illustrate this using our housing price data.
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Principal Component Analysis}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/pca-scatter-scaled1.png} 
+\includegraphics[scale=.4]<2>{figures/pca-scatter-scaled2.png} 
+\includegraphics[scale=.4]<3>{figures/pca-scatter-scaled3.png} 
+\includegraphics[scale=.4]<4>{figures/pca-scatter-scaled4.png} 
+\includegraphics[scale=.4]<5>{figures/pca-scatter-scaled5.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dimensionality reduction via PCA}
+
+\begin{itemize}
+
+\item The idea of PCA is, roughly speaking, to find the hyperplane - which is defined by a set of spanning vectors - along which the data \emph{varies the most}.
+
+\item The requirement of \emph{varying the most} means, higher order principal components will contain less information.
+
+\item So a bit more formally:
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Principal Component Analysis}
+
+\begin{itemize}
+
+\item The first principal component of a set of features
+$X_1, X_2,..., X_p$ is the normalized linear combination of the features
+
+$$Z_1 =\phi_{11} X_1 + \phi_{21} X_2 +...+ \phi_{p1}X_p$$
+
+\item The normalization refers to the requirement that 
+
+$$\sum_{j=1}^p \phi_{j1}^2 = 1$$.
+
+\item So the above expression is an expression of a hyperplane (remember we saw that in the SVM section).
+
+\item We refer to the elements $\phi_{11},..., \phi_{p1}$ as the loadings of the first principal component; together, the loadings make up the principal component loading vector.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Finding Hyerplane along which data has maximal variance}
+
+We can write the optimization problem as:
+
+$$\frac{1}{n} \sum_{i=1}^n z_{i1}^2 \quad \text{subject to} \quad \sum_{j=1}^p \phi_{j1}^2 =1 $$
+
+where
+
+$$z_{i1} = \phi_{11} x_{i1} + \phi_{21} x_{i2} + ... + \phi_{p1} x_{ip}$$
+
+We thus choose a vector $\phi_{1}$ to maximize the estimated sample variance $Var(Z_1)$
+
+As with SVM, the normalization $\sum_{j=1}^p \phi_{j1}^2 =1$ ensures that we obtain a hyerplane, where the function value, as we plug in the $x_i$'s measures the orthogonal distance to that hyperplane.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Finding higher order Principal Components}
+
+\begin{itemize}
+\item Higher order principal components need to satisfy the further constraint, that they be uncorrelated with lower order principal components.
+
+
+\item The second principal component of a set of features
+$X_1, X_2,..., X_p$ is the linear combination that has maximal variance among all linear combinations that are uncorrelated with $Z_1$.
+
+\item This is identical to requiring that the loadings vector $\phi_2$ is orthogonal to the loadings vector $\phi_1$.
+
+\item There is a degree of arbiraryness: how many principal components to compute? 
+
+\item What is the maximum number of principal components? $\min(n-1,p)$
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Centering is important...}
+ 
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/centering.jpg} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+
+
+Typically, variables are standardized as well - i.e. the variances of individual variables are normalized to 1. Is this a problem?
+
+No! Since we dont want to attribute high variability of some variable $X$ to the fact that some variable is measured e.g. in millions of dollars, and another is measured in cents. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Applying PCA to the Housing Data}
+ 
+ 
+<<prcompexample, size="tiny">>=
+prcomp(HOUSES[1:1000,c("soldprice","builtyryr","bedrooms","baths","sqft"),with=F], scale=TRUE)
+@
+  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Loading Vectors}
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.4]<1>{figures/loadingvectors.png} 
+\end{array}$
+%\caption{}
+\end{center}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Verify whether the constraints are satisfied...}
+ <<prcompexampleloadings, size="tiny">>=
+TEMP<-prcomp(HOUSES[1:1000,c("soldprice","builtyryr","bedrooms","baths","sqft"),with=F], scale=TRUE)
+#loadings phi1 and phi2
+TEMP$rotation[,1]
+TEMP$rotation[,2]
+##do squared loadings add to 1?
+sum(TEMP$rotation[,1]^2)
+##what is the angle between loading vectors?
+cos(TEMP$rotation[,1] %*% TEMP$rotation[,2])
+@
+
+Where we remember that 
+$$ \theta =\cos^{-1}(\frac{\langle \phi_1,\phi_2 \rangle}{||\phi_1||_2 ||\phi_2||_2} )$$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Visualizing Principal Components}
+ <<prcvisualized, size="tiny">>=
+biplot(TEMP)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Visualizing Principal Components}
+
+\begin{itemize}
+
+\item This is a bi-plot, which is plotting out the first two principal components.
+
+\item The points numbered in the background are the principal component scores for individual houses, i.e. its plotting out $(z_{i1}, z_{i2})$.
+
+\item The arrows indicate the loading vectors $(\phi_1,\phi_2)$. 
+
+\item The length of the loading tells you about the importance of that variable for a particular principal component.
+
+\begin{itemize}
+\item The first PC puts very similar weight on the individual variables.
+
+\item While PC2 has an almost zero loading for baths for the second principal component. 
+
+\end{itemize}
+
+\item Houses with large scores on the first PCA will correspond to high quality high price houses, compared to houses with negative scores. 
+
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Applying PCA to the Housing Data: Without Scaling.}
+ 
+ 
+<<prcompexamplenoscale, message=FALSE, warning=FALSE,results="hide", size="tiny">>=
+biplot(prcomp(HOUSES[1:1000,c("soldprice","builtyryr","bedrooms","baths","sqft"),with=F], scale=FALSE))
+@
+  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Proportion of Variance Explained}
+ 
+The total variation in our data can be estimated as:
+ 
+$$ \sum_{j=1}^p Var(X_j) = \sum_{j=1}^p \frac{1}{n} \sum_{i=1}^{n} x_{ij}^2$$
+
+The m-th principal component has a total variation of
+
+$$\frac{1}{n} \sum_{i=1}^{n} z_{im}^2$$
+
+Remember that $z_{im} = \phi_{1m} x_{i1} + ... + \phi_{pm} x_{ip}$.
+
+One can show that for $M$ principal components
+
+$$  \sum_{j=1}^p Var(X_j) =  \sum_{m=1}^M Var(Z_m)$$
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Proportion of Variance Explained}
+ 
+So a measure of fit may be given as:
+
+$$\frac{\frac{1}{n} \sum_{i=1}^{n} z_{im}^2}{\sum_{j=1}^p \frac{1}{n} \sum_{i=1}^{n} x_{ij}^2} $$
+
+Since 
+$$  \sum_{j=1}^p Var(X_j) =  \sum_{m=1}^M Var(Z_m)$$
+
+The PVEs sum to one. We sometimes display the cumulative PVEs. 
+
+You can plot out the function value as a share that is explained by each principal component m.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Proportion of Variance Explained}
+ <<prcompplotimportance, message=FALSE, warning=FALSE,results="show", size="tiny">>=
+summary(TEMP)
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile, shrink]{Scree Plot of Proportion of Variance Explained}
+ <<prcompplotscree, message=FALSE, warning=FALSE,results="show", size="tiny">>=
+plot(summary(TEMP)$importance[2,])
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Some Features of PCA}
+ 
+ \begin{itemize}
+ 
+ \item We already said, scaling matters  / centering is important.
+ 
+ \item Principal Components are unique, so as opposed to K-Means clustering, you will get an identical result on any computer as long as you have the same dataset.
+ 
+ \item The total number of principal components is bounded as $min(n-1, p)$.
+ 
+ \item There is no simple answer to the question as to how many principal components are adequate - typically, we look for a type of scree plot.
+ 
+ \end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Latent Semantic Analysis is PCA for term-document matrices}
+ 
+ \begin{itemize}
+ 
+ \item For term document matrices, singular value decomposition (SVD) is applied to any $m$ x $n$ matrix shape.
+ 
+ \item Latent Semantic Analysis uses signular value decomposition to factorizes a term document matrix $X$ into three parts
+ 
+ ${\displaystyle {\begin{matrix}X=U\Sigma V^{T}\end{matrix}}} {\begin{matrix}X=U\Sigma V^{T}\end{matrix}}$
+
+\item where $X$ is $k$ x $n$ ($k$ terms in $n$ documents).
+
+
+ \end{itemize}
+ 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Proportion of Variance Explained}
+
+One can show that for $M$ principal components
+
+$$  \sum_{j=1}^p Var(X_j) =  \sum_{m=1}^M Var(Z_m)$$
+ 
+For two principal components and two variables:
+
+$$Var(X_1) + Var(X_2) = Var( \phi_{11} X_1 + \phi_{21} X_2) +  Var( \phi_{12} X_1 + \phi_{22} X_2) $$
+$$Var(  \phi_{11} X_1 + \phi_{21} X_2) = \phi_{11}^2 Var(X_1) + \phi_{21}^2  Var(X_2) + 2 \phi_{11} \phi_{21} Cov(X_1,X_2)$$
+$$Var( \phi_{12} X_1 + \phi_{22} X_2) = \phi_{12}^2 Var(X_1) + \phi_{22}^2  Var(X_2) + 2 \phi_{12} \phi_{22} Cov(X_1,X_2)$$
+
+$$(\phi_{11}^2 + \phi_{12}^2) Var(X_1) +  (\phi_{22}^2 + \phi_{21}^2)  Var(X_2) + 2 [\phi_{11} \phi_{21} + \phi_{12} \phi_{22}] Cov(X_1,X_2) $$
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+

@@ -1,0 +1,1273 @@
+\documentclass{beamer}
+\usetheme{default}
+%\usetheme{Malmoe}
+
+\title[EC999: Quantitative Text Analysis]{Topic Models} \def\newblock{\hskip .11em plus .33em minus .07em}
+
+
+\def\Tiny{\fontsize{10pt}{10pt}\selectfont}
+\def\smaller{\fontsize{8pt}{8pt}\selectfont}
+
+\institute[Warwick]{University of Warwick}
+\author[Thiemo Fetzer]{Thiemo Fetzer}
+
+ \date{\today}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{graphics}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{natbib}
+\usepackage{hyperref}
+%\usepackage{enumitem}
+ \usepackage{pgffor}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+\usepackage{verbatim} 
+\usepackage{cancel}
+\newcommand\xxcancel[1]{\xcancel{#1}\vphantom{#1}}
+
+\usepackage{mathtools,xparse}
+ 
+
+\setbeamersize{text margin left = 16pt, text margin right = 16pt}
+
+\newenvironment<>{algorithm}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Algorithm}%
+\else%
+   \def\insertblocktitle{Algorithm ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=yellow!50!black}
+  \setbeamercolor{block body}{fg=black,bg=yellow!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\newenvironment<>{assumption}[1][\undefined]{%
+\begin{actionenv}#2%
+\ifx#1\undefined%
+   \def\insertblocktitle{Assumption}%
+\else%
+   \def\insertblocktitle{Assumption ({\em#1})}%
+\fi%
+\par%
+\mode<presentation>{%
+  \setbeamercolor{block title}{fg=white,bg=blue!50!black}
+  \setbeamercolor{block body}{fg=black,bg=blue!20}
+}%
+\usebeamertemplate{block begin}\em}
+{\par\usebeamertemplate{block end}\end{actionenv}}
+
+\begin{document}
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+library(data.table)
+library(calibrate)
+library(plyr)
+opts_chunk$set(fig.path='figures/knitr-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=90)
+options(scipen = 1, digits = 3)
+setwd("/Users/thiemo/Dropbox/Teaching/Quantitative Text Analysis/FINAL/Week 9")
+library(glmnet)
+library(ggplot2)
+@
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Plan}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+\maketitle
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Clustering}
+ 
+\begin{itemize}
+
+\item So far we have talked about numerical prediction/ classification and some methods to help you arrive at robust models. The focus was on understanding $Y|X$
+
+\item The last section of the course talks about dimensionality reduction in the broadest sense.
+
+\item Dimensionality reduction can be thought of as reducing patterns in $\mathbf{X}$ and mapping them to a lower dimensonality subspace; such patterns could be group membership.
+
+\item Clustering is a form of dimensionality reduction: we want to group data together that is ``similar'' by some metric.
+
+\item Last week, we discussed some \emph{hard clustering} approaches, whereby a document can only be member of a single class. 
+
+\item This week, we talk about \emph{soft clustering} approach which allows for documents to be members of multiple \emph{topic clusters}.
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic Modelling}
+ 
+\begin{itemize}
+
+\item Topic models  are based upon the idea that documents are \emph{mixtures of topics}, where a topic is a \emph{probability distribution over words}.
+
+\item  A topic model is a \emph{generative model} for documents: it specifies a simple probabilistic procedure by which documents can be generated.
+
+\item How to generate a new document?
+\begin{itemize}
+\item  To make a new document, one chooses a distribution over topics. 
+
+\item Then, for each word in the document that you want to generate, one chooses a topic at random according to this distribution, and draws a word from that topic.
+
+\end{itemize}
+\end{itemize}
+
+$\Rightarrow$ topic modelling, inverts this process, inferring the set of topics that were responsible for generating a collection of documents. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{An Example from Research: FOMC communications}
+
+\begin{figure}[h]
+\begin{center}$
+\begin{array}{c}
+\includegraphics[scale=.55]<1>{figures/mcmahon1.png} 
+\includegraphics[scale=.55]<2>{figures/mcmahon2.png} 
+\includegraphics[scale=.55]<3>{figures/mcmahon3.png} 
+\includegraphics[scale=.55]<4>{figures/mcmahon4.png} 
+\includegraphics[scale=.55]<5>{figures/mcmahon5.png} 
+\includegraphics[scale=.55]<6>{figures/mcmahon6.png} 
+\includegraphics[scale=.55]<7>{figures/mcmahon7.png} 
+\includegraphics[scale=.55]<8>{figures/mcmahon8.png} 
+\includegraphics[scale=.55]<9>{figures/mcmahon9.png} 
+
+\end{array}$
+\caption{FOMC Committee Minutes}
+\end{center}
+\end{figure}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Generative Model}
+ 
+\begin{itemize}
+
+\item Generative models for documents are based on simple probabilistic sampling rules that describe how words in documents might be generated on the basis of latent unobservable (random) variables
+
+\item When fitting a generative model, the goal is
+to find the best set of latent variables that can explain the observed data (i.e., observed words in documents),
+assuming that the model actually generated the data
+
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A Generative Model}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/generative-schematic1.png}
+\end{center}
+
+Documents 1 and 3 were generated by sampling only from
+topic 1 and 2 respectively while document 2 was generated by an equal mixture of the two topics.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Inference about a Generative Model}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/generative-schematic2.png}
+\end{center}
+
+Given the observed words in a set of documents, we would like to know what topic model is most likely to have generated the data. This involves \emph{inferring} the probability distribution over words associated with each topic, the distribution over topics for each
+document, and, often, the topic responsible for generating each word. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Key Assumptions of LDA Topic Model}
+
+\begin{itemize}
+
+\item Elements of LDA generative process: documents $D$, corpus $C$, words $w$ and topics $Z$.
+
+\item Documents exhibit multiple topics (but typically not many)
+
+\item We assume that documents are constructed out of some finite set of available topics $Z$.
+
+\item LDA is a probabilistic model with a corresponding generative process
+\item[] $\Rightarrow$ each document is assumed to be generated by this process
+
+\item A topic is a distribution over a fixed vocabulary
+\item[] these topics are assumed to be generated first, before the documents
+
+\item Only the number of topics is specified in advance 
+
+
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Generative model}
+
+\begin{center}
+\includegraphics[scale=0.6]{figures/generative-blei-1.png}
+\end{center}
+\begin{itemize}
+\item Each \textbf{topic} is a distribution over words
+\item Each \textbf{document} is a mixture of corpus-wide topics
+\item Each \textbf{word} is drawn from one of those topics specific word distributions.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Generative model: Unobservable parameters}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/generative-blei-2.png}
+\end{center}
+\begin{itemize}
+\item We dont observe the parameters of the model: we only observe documents and associated word count vectors, the remaining structure are hidden variables
+\item Conditional on the observed documents/ word counts, we want to infer the parameters of the multinomials
+\item e.g. the multinomial parameter vector of $p$'s that give us the probability of observing a word conditional on a topic $k$ or the parameter vector that gives us the distribution of topics in documents.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{How do we model the text generation process?}
+
+
+We want to generate a document $d$.
+\begin{enumerate}
+\item Randomly choose a distribution over topics 
+
+\item For each word in the document
+
+\begin{enumerate}
+
+\item randomly choose a topic from the distribution over topics
+\item  randomly choose a word from the corresponding topic specific word distribution
+
+
+\end{enumerate}
+
+
+\item So we need a distribution over a distribution (for step 1)
+
+\item Note that words are generated independently of other words (unigram bag-of-words
+model)
+
+\end{enumerate}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Plate Notation}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/plate-notation.png}
+\end{center}
+\begin{itemize}
+\item  Nodes are random variables
+\item Edges denote possible dependency
+\item Observed variables are shaded, so here $Y$ is unobserved.
+\item Plates denote replicated structure
+\item So here there are $N$ observed $X_n$'s, that are possibly all dependent on $Y$ (but not on each other)
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Plate Notation (2)}
+
+\begin{center}
+\includegraphics[scale=0.5]{figures/plate-notation.png}
+\end{center}
+
+\begin{itemize}
+\item  Structure of graph gives pattern of conditional dependence
+\item This figure would represent 
+
+$$p(x_1,...,x_n, y) =  p(y) \prod_{n=1}^N p(x_n | y)$$
+
+\item The $X_i$ are conditionally independent from one another.
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{A generative model}
+\begin{center}
+\includegraphics[scale=0.55]{figures/generative-blei-plate-explained.png}
+\end{center}
+\begin{itemize}
+\item Each $\beta_k$ is a distribution over our vocabulary, there are $K$ of them.
+\item There is one $K$ dimensional $\theta_d$ for every of $D$ documents. 
+\item For each word in $N_d$ plate, we have a variable $Z_{d,n}$ which gives the topic assignment for the $n$-th word drawn from $\theta_d$ distribution.
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{A generative model - joint distribution}
+\begin{center}
+\includegraphics[scale=0.55]{figures/generative-blei-plate-explained.png}
+\end{center}
+Joint distribution of observed and hidden random variables:
+\begin{eqnarray*}
+p(\beta_{1:K},\theta_{1:D},z_{1:D},w_{1:D} | \alpha, \eta)& =\prod_{k=1}^K p(\beta_k | \eta)\prod_{d=1}^Dp(\theta_d|\alpha) \\ 
+& \prod_{n=1}^N p(z_{d,n}|\theta_d)p(w_{d,n}|\beta_{1:K},z_{d,n})
+\end{eqnarray*}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Lookup tables}
+
+What are  $p(w_{d,n} | z_{d,n}, \beta_{1:K})$ and $p(z_{d,n}|\theta_d)$?  \bigskip
+\begin{tabular}{ll|lllll|}
+ &  &   &   & $K$ &  &  \\
+ &  & $\beta_1$ & $\beta_2$ & $\beta_3$ & . & $\beta_K$ \\
+  & $w_1$ & $\beta_{11}$ & . & . & . & $\beta_{1K}$ \\
+ & $w_2$ & $\beta_{21}$ & . & . & . & . \\
+$V$ & . & . & . & . & . & . \\
+ & . & . & . & . & . & . \\
+ & . & . & . & . & . & . \\
+ & $w_V$ & . & . & . & . & $\beta_{VK}$ \\
+\end{tabular}
+
+We can think of these being defined in some lookup tables (matrices). \smallskip
+
+$P(w_{d,n} | z_{d,n}, \beta_{1:K}) = \beta_{z_{d,n},w_{d,n}}$ 
+
+
+
+- look up probability of the word conditional on assigned topic $Z_{d,n}$ in respective correct $\beta$ vector (i.e. there is V x K  ) matrix. \smallskip
+
+Similarly, $p(z_{d,n}|\theta_d) = \theta_{d, z_{d,n}}$ looks up $z_{d,n}$-th entry in $\theta_d$ vector, i.e. there is a D x K matrix.\smallskip
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{LDA in plate notation}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/generative-blei-5.png}
+\end{center}
+This joint defines a posterior distribution of the parameter space.
+From a collection of documents, we then infer
+\begin{itemize}
+\item Per-word topic assignment $z_{d,n}$
+\item Per-document topic proportions $\theta_d$
+\item Per-corpus topic distributions $\beta_k$
+
+\end{itemize}
+We can use these posteriors to assign new virgin data to topics.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%http://videolectures.net/mlss09uk_blei_tm/
+%LDA Buffet http://www.matthewjockers.net/2011/09/29/the-lda-buffet-is-now-open-or-latent-dirichlet-allocation-for-english-majors/
+%https://www.cl.cam.ac.uk/teaching/1213/L101/clark_lectures/lect7.pdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Revisiting the multinomial distribution}
+
+We introduced the multinoial distribution to represent a document $x$ as bag of words counts:
+
+$$
+p(x; p_1,...,p_k) =  {n! \over x_{1}!\cdots x_{k}!}p_{1}^{x_{1}}\cdots p_{k}^{x_{k}}
+$$
+
+Each time word $j$ appears in the document it contributes an amount $p_j$ to the total
+probability, hence the term $p_{j}^{x_j}$.
+
+The components of $\mathbf{p}$ are non-negative and have unit sum: $\sum_j p_j = 1$.
+
+Each vector $x$ of word counts can be generated by a whole range of different sequences of words: the number of possible combinations to produce a given vector of word counts is the first factor - called the \emph{multinomial coefficient}. 
+
+The second factor is the probability of any individual sequence that yields identical word count vector $x$. 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Dirichlet Distribution}
+
+The Dirichlet distribution is an exponential family distribution over
+the simplex of positive numbers that sum to one. \bigskip
+
+What does that mean? \bigskip
+A Dirichlet distribution is a probability density function over the set of all multinomial parameter vectors.
+
+$\Rightarrow$ a Dirichlet distribution is a distribution over distributions.
+
+$$ p(\mathbf{p}|  \alpha) =  \frac{\Gamma(\sum_{i=1}^k \alpha_i)}{\prod_{i=1}^k \Gamma(\alpha_i)}  \prod_{i=1}^k p_{i}^{\alpha_i-1}
+$$
+where $\sum{p_i} = 1$ and $p_i \geq 0$.
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{The case of $k=3$}
+
+\begin{center}
+\includegraphics[scale=0.7]{figures/simplexk.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=1$}
+<<dirichletsampling, echo=TRUE, message=FALSE, eval=TRUE,warning=FALSE,results="show", size="tiny">>=
+require(MCMCpack)
+
+alpha <- 1
+
+draws <- 1000
+
+dimen <- 3
+x <- rdirichlet(draws, rep(alpha, dimen))
+
+x<-data.table(x)
+
+head(x)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=1$}
+<<dirichlet, echo=FALSE, message=FALSE, warning=FALSE,results="hide", size="tiny", out.width="3in">>=
+require(MCMCpack)
+alpha <- 1
+draws <- 1000
+dimen <- 3
+x <- rdirichlet(draws, rep(alpha, dimen))
+x<-data.table(x)
+plot(x$V2,x$V1)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example dirichlet distribution with $k=3$ and $\alpha_j=10$}
+<<dirichletpeaky, echo=FALSE, message=FALSE, eval=TRUE,warning=FALSE,results="show", size="tiny", out.width="3in">>=
+require(MCMCpack)
+
+alpha <- 10
+
+draws <- 1000
+
+dimen <- 3
+x <- rdirichlet(draws, rep(alpha, dimen))
+
+x<-data.table(x)
+plot(rbind(1,1),rbind(0,0), xlim=c(0,1), ylim=c(0,1))
+points(x$V2,x$V1)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example of a sparse dirichlet distribution with $k=3$ and $\alpha_j=0.25$}
+<<dirichletsparse, echo=FALSE, message=FALSE, eval=TRUE,warning=FALSE,results="show", size="tiny", out.width="3in">>=
+require(MCMCpack)
+
+alpha <- 0.25
+
+draws <- 1000
+
+dimen <- 3
+x <- rdirichlet(draws, rep(alpha, dimen))
+
+x<-data.table(x)
+plot(rbind(1,1),rbind(0,0), xlim=c(0,1), ylim=c(0,1))
+points(x$V2,x$V1)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{An example of a sparse dirichlet distribution with $k=3$ and $\alpha_j=0.05$}
+<<dirichletsupersparse, echo=FALSE, message=FALSE, eval=TRUE,warning=FALSE,results="show", size="tiny", out.width="3in">>=
+require(MCMCpack)
+
+alpha <- 0.05
+
+draws <- 1000
+
+dimen <- 3
+x <- rdirichlet(draws, rep(alpha, dimen))
+
+x<-data.table(x)
+plot(rbind(1,1),rbind(0,0), xlim=c(0,1), ylim=c(0,1))
+points(x$V2,x$V1)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=1$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-1.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=100$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-100.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{15 dirichlet with $\alpha=0.01$, $k=10$}
+
+\begin{center}
+\includegraphics[scale=0.5]<1>{figures/draws-alpha-001.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{An alternative parameterization}
+
+\begin{center}
+\includegraphics[scale=0.4]{figures/dirichlet3.png}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Why the shape? $\alpha m = (1,1,1)$}
+
+With $\alpha = (1,1,1)$...note $\Gamma{(k)} = (k-1)!$ for integer $k$.
+
+
+$$ p(\mathbf{p}|  \alpha) =  \frac{\Gamma(3)}{1}  \prod_{i=1}^k = constant
+$$
+
+This is the PDF of a uniform distribution.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Dirichlet distribution has some nice properties}
+
+\begin{itemize}
+
+\item as scaling parameter gets smaller and smaller, the distributions get more sparse.\smallskip
+
+\item sparsity is a feature of text data \smallskip
+
+\item as $\alpha$ gets larger, the mass concentrates.
+
+\item If $\theta \sim Dir(\alpha)$  and $Z_n \sim Mult(\theta)$, the $p(\theta | Z_{1:N}) \sim Dir(\alpha + n(Z_{1:N}))$ - this is known as conjugacy. 
+
+\item the more data we see, the peakier our dirichlet. 
+\end{itemize}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{LDA in plate notation}
+
+\begin{center}
+\includegraphics[scale=0.3]{figures/generative-blei-5.png}
+\end{center}
+
+It is impossible to "fill" the missing values (i.e. the latent variables), but it is possible to use the information contained in the word counts and the structure of our model to perform \emph{posterior inference} to approximate the posterior distribution.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gibbs Sampling Intuition}
+
+\textbf{Initialize}: Go through each document, and randomly assign each word in the document to one of the $K$ topics. This assignment already gives you both topic representations of all the documents -- that is $p(\text{topic } t | \text{document } d)$ -- and word distributions across all topics $p(\text{word } w | \text{topic } t)$.
+
+\begin{enumerate}
+\item For each document $d$
+\item For each word $w$ in $d$
+\item For each topic $t$, compute
+\begin{enumerate}
+\item $p(\text{topic } t | \text{document }d)$ = the proportion of words in document $d$ that are currently assigned to topic $t$, 
+
+\item $p(\text{word } w | \text{topic } t)$ = the proportion of words $w$ among all words that are currently assigned  to topic $t$.
+
+\item Reassign $w$ to a \emph{different topic}. We choose topic $t$ with probability $p(\text{topic } t | \text{document } d) * p(\text{word } w | \text{topic } t)$ - this is the probability that topic $t$ generated word $w$.
+\end{enumerate}
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Gibbs Sampling Intuition}
+ 
+\begin{itemize}
+\item   In other words, in the resampling step, we’re assuming that all word to topic assignments except for the current word $w$ are correct. We update the assignment of the word $w$ using our model of how documents are generated.
+ 
+\item Repeat these steps a large number of times, the process will eventually converge to a local optimum where topic assignments dont change anymore. 
+
+\item[] $\Rightarrow$ Use these assignments to estimate the topic mixtures of each document (by counting the proportion of words assigned to each topic within that document) and the words associated to each topic (by counting the proportion of words assigned to each topic overall).
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Why does LDA work?}
+LDA trades off two goals.
+\begin{enumerate}
+\item For each document, allocate its words to as few topics as possible.
+\item For each topic, assign high probability to as few terms as possible.
+\end{enumerate}
+
+ These goals are at odds with each other
+\begin{itemize}
+\item Putting a document in a single topic makes (2) hard:
+\item[] All of its words must have probability under that topic.
+\item Putting very few words in each topic makes (1) hard:
+\item[] To cover a document’s words, it must assign many topics to it.\smallskip
+\item[] $\Rightarrow$ Trading off these goals finds groups of tightly co-occurring words.
+\end{itemize}  
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%https://eight2late.wordpress.com/2015/09/29/a-gentle-introduction-to-topic-modeling-using-r/
+%http://www.matthewjockers.net/2011/09/29/the-lda-buffet-is-now-open-or-latent-dirichlet-allocation-for-english-majors/
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Topic model implementation in R}
+<<topicmodelexample1, echo=TRUE, message=FALSE, warning=FALSE,results="show", size="tiny">>=
+library(topicmodels)
+
+data("AssociatedPress")
+
+ap_lda <- LDA(AssociatedPress, k = 3, control = list(seed = 24022017))
+
+class(ap_lda)
+
+slotNames(ap_lda)
+
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+<<topicmodelexample2, echo=TRUE, message=FALSE, warning=FALSE, size="tiny">>=
+library(tidytext)
+
+ap_lda_td <- data.table(tidy(ap_lda))
+
+nrow(ap_lda_td[topic==1])
+
+ap_lda_td[topic==1][order(beta, decreasing=TRUE)][1:20]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+<<topicmodelexample3, echo=TRUE, message=FALSE, warning=FALSE, size="tiny">>=
+ap_lda_td[topic==2][order(beta, decreasing=TRUE)][1:20]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Easily extracting the vector $\beta$}
+<<topicmodelexample4, echo=TRUE, message=FALSE, warning=FALSE, size="tiny">>=
+ap_lda_td[topic==3][order(beta, decreasing=TRUE)][1:20]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out topic terms $\beta_k$}
+<<topicmodelexample5, echo=TRUE, eval=FALSE, fig.show="FALSE",results="hide",message=FALSE, warning=FALSE, size="tiny">>=
+library(ggplot2)
+library(dplyr)
+ap_top_terms <- ap_lda_td %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+ap_top_terms %>%
+  mutate(term = reorder(term, beta)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip()
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out topic terms $\beta_k$}
+
+\begin{center}
+\includegraphics[scale=0.6]{figures/knitr-topicmodelexample5-1.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Alternative: Use word clouds to plot out $\beta_k$}
+
+<<topicmodelexample5a, echo=TRUE, eval=FALSE, fig.show="FALSE",results="hide",message=FALSE, warning=FALSE, size="tiny">>=
+
+library(wordcloud)
+ap_top_terms<-data.table(ap_top_terms)
+wordcloud(ap_top_terms[topic==1]$term, ap_top_terms[topic==1]$beta)
+wordcloud(ap_top_terms[topic==2]$term, ap_top_terms[topic==2]$beta)
+wordcloud(ap_top_terms[topic==3]$term, ap_top_terms[topic==3]$beta)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Word clouds for $\beta_k$}
+
+\begin{center}
+\includegraphics[scale=0.8]<1>{figures/knitr-topicmodelexample5a-1.pdf}
+\includegraphics[scale=0.8]<2>{figures/knitr-topicmodelexample5a-2.pdf}
+\includegraphics[scale=0.8]<3>{figures/knitr-topicmodelexample5a-3.pdf}
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile,shrink]{Plotting out document topic associations (i.e. our $\theta_d$'s) }
+<<topicmodelexample6, echo=TRUE, eval=TRUE, fig.show="FALSE",results="show",message=FALSE, warning=FALSE, size="tiny">>=
+
+ap_gamma <- data.table(tidy(ap_lda, matrix = "gamma"))
+
+ap_gamma[document==1]
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset Declarations of Brasilian Politicians}
+
+\begin{center}
+\includegraphics[scale=0.25]<1>{figures/uol-bem1.png}
+\includegraphics[scale=0.5]<2>{figures/uol-bem3.png}
+\end{center}
+Asset delarations available from TSE \url{http://divulgacandcontas.tse.jus.br}.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+<<topicmodelassetdeclarationnonsparse, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(quanteda)
+load("R/BEM.rdata")
+ BEM[, rowid := 1:nrow(BEM)]
+BEM.corpus<-corpus(BEM[1000:nrow(BEM)]$BEMDETAIL)
+docnames(BEM.corpus)<-BEM[1000:nrow(BEM)]$rowid
+BEM.dfm<-dfm(BEM.corpus, ngrams=1, stem=TRUE)
+BEM.dfm<-dfm_trim(BEM.dfm, min_count=5, min_docfreq=5)
+BEM.dfm<-dfm_weight(BEM.dfm, type="tfidf")
+BEM.lda <- LDA(convert(BEM.dfm, to = "topicmodels"), k = 5, control = list(alpha=100,seed = 20022017))
+
+get_terms(BEM.lda, 8, threshold=0.005)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+We see  the vocabulary is very similar, this is because we forced the hyperparameter $\alpha$ for topic proportions assignment to be large, resulting in peaked central distribution.
+<<topicmodelassetdeclarationnonsparse2, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+ASSIGNMENTS<-data.table(rowid=names(get_topics(BEM.lda)), topic=as.character(get_topics(BEM.lda)))
+BEM<-join(BEM, ASSIGNMENTS)
+
+BEM[topic==1][1:10]$BEMDETAIL
+@
+This is not great...
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations without assuming sparsity}
+<<topicmodelassetdeclarationnonsparse3, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+posterior(BEM.lda)$topics[1:10,]
+@
+These are all super close to 20\%, due to our choice of high $\alpha$, the prior distribution is very peaked at the centroid of that simplex and the evidence we observe has a hard time moving us away from these priors.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations with sparsity}
+<<topicmodelassetdeclaration, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+library(quanteda)
+load("R/BEM.rdata")
+ BEM[, rowid := 1:nrow(BEM)]
+BEM.corpus<-corpus(BEM[1000:nrow(BEM)]$BEMDETAIL)
+docnames(BEM.corpus)<-BEM[1000:nrow(BEM)]$rowid
+BEM.dfm<-dfm(BEM.corpus, ngrams=1, stem=TRUE)
+BEM.dfm<-dfm_trim(BEM.dfm, min_count=5, min_docfreq=5)
+BEM.dfm<-dfm_weight(BEM.dfm, type="tfidf")
+BEM.lda <- LDA(convert(BEM.dfm, to = "topicmodels"), k = 5, control = list(alpha=0.005,seed = 20022017))
+
+get_terms(BEM.lda, 8, threshold=0.005)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Asset declarations with sparsity}
+<<topicmodelassetdeclaration2, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+
+ASSIGNMENTS<-data.table(rowid=names(get_topics(BEM.lda)), topic=as.character(get_topics(BEM.lda)))
+BEM<-join(BEM, ASSIGNMENTS)
+
+BEM[topic==1][1:10]$BEMDETAIL
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Comparing with labelled data}
+<<topicmodelassetdeclaration4, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+table(BEM[DS_TIPO_BEM_CANDIDATO=="veículo automotor terrestre caminhão automóvel moto etc"]$DS_TIPO_BEM_CANDIDATO,BEM[DS_TIPO_BEM_CANDIDATO=="veículo automotor terrestre caminhão automóvel moto etc"]$topic )
+@
+Compare with
+<<topicmodelassetdeclaration5, size="tiny",eval=TRUE,chache=FALSE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+get_terms(BEM.lda, 8, threshold=0.005)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scoring virgin data}
+<<topicmodelassetdeclaration3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+
+BEM[1]$DETALHE_BEM
+
+#coding virgin documents - ignores non overlapping vocabulary
+posterior(BEM.lda,convert(dfm(BEM[1]$DETALHE_BEM)
+                              , to = "topicmodels"))$topics
+
+BEM[topic==3][1:10]$BEMDETAIL
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Another Example - Trump Tweets}
+<<topicmodeltrump, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+
+load(file="../../Data/trumpstweets.rdata")
+# remove retweet entities
+tw.user.df$text = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", tw.user.df$text)
+# remove at people
+tw.user.df$text = gsub("@\\w+", "", tw.user.df$text)
+# remove punctuation
+tw.user.df$text = gsub("[[:punct:]]", "", tw.user.df$text)
+# remove numbers
+tw.user.df$text = gsub("[[:digit:]]", "", tw.user.df$text)
+# remove html links
+tw.user.df$text = gsub("http\\w+", "", tw.user.df$text)
+# remove unnecessary spaces
+tw.user.df$text = gsub("[ \t]{2,}", "", tw.user.df$text)
+tw.user.df$text = gsub("^\\s+|\\s+$", "", tw.user.df$text)
+tw.user.df<-tw.user.df[text!=""]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Trump Tweets}
+<<topicmodeltrump2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+##create DTM
+set.seed(24022017)
+library(quanteda)
+##builds a corpus object using the field named text as containing the document
+tw.user.df[, docid := 1:nrow(tw.user.df)]
+trump.corpus<-corpus(tw.user.df)
+docnames(trump.corpus)<-tw.user.df$docid
+trump.dfm<-dfm(trump.corpus, remove=c(stopwords("english"),"can", "say","one","way","use",
+"also","howev","tell","will",
+"much","need","take","tend","even",
+"like","particular","rather","said",
+"get","well","make","ask","come","end",
+"first","two","help","often","may",
+"might","see","someth","thing","point",
+"post","look","right","now","think","‘ve ",
+"‘re ","anoth","put","set","new","good",
+"want","sure","kind","larg","yes,","day","etc",
+"quit","sinc","attempt","lack","seen","awar",
+"littl","ever","moreov","though","found","abl",
+"enough","far","earli","away","achiev","draw",
+"last","never","brief","bit","entir","brief",
+"great","lot"), ngrams=1, stem=TRUE)
+trump.dfm<-dfm_trim(trump.dfm, min_count=5, min_docfreq=2)
+trump.dfm<-dfm_weight(trump.dfm, type="tfidf")
+trump.lda <- LDA(convert(trump.dfm, to = "topicmodels"), k = 5, control = list(alpha=0.01,seed = 20022017))
+get_terms(trump.lda, 5)
+ 
+assignment<-data.frame("docid"=names(topics(trump.lda)),"topic"=topics(trump.lda)    )
+
+tw.user.df<-join(tw.user.df, assignment)[!is.na(topic)]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<topicmodelbrexit, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=FALSE,include=FALSE,message=F, warning=F>>=
+library(data.table)
+library(haven)
+DTA<-data.table(read_dta(file="/Users/thiemo/Dropbox/Research/Blog/immigration/data/bes_f2f_original_v3.0.dta"))
+DTA$finalserialno<-as.numeric(as.character(DTA$finalserialno))
+
+DTA[, leaveeu := as.numeric(p02==1)]
+DTA[p02<0 |p02>2, leaveeu := NA ]
+DTA[, toomanyimmigrants := as.numeric(j05==1)]
+DTA[j05<0 |j05>2, toomanyimmigrants := NA ]
+DTA<-DTA[!is.na(leaveeu) & !is.na(toomanyimmigrants)]    
+DTA[, noedu := education ==0]
+DTA[, postgraduate := education ==1]
+#reshuffle
+DTA<-DTA[nchar(A1)>3]
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{A third example - Brexit}
+\begin{center}
+\includegraphics[scale=0.5]{figures/brexit-plot.pdf}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Brexit single most important issue}
+<<topicmodelbrexit2, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+##create DTM
+library(quanteda)
+library(tidytext)
+library(topicmodels)
+##builds a corpus object using the field named text as containing the document
+C<-corpus(DTA$A1)
+##defining features that are informative about leaveeu decision using e.g. document scaling method
+docnames(C)<-as.numeric(DTA$finalserialno)
+C.dfm<-dfm(C, tolower = TRUE, stem = TRUE, removeNumbers=FALSE,removePunct=TRUE, remove = stopwords("english"))
+
+C.lda <- LDA(convert(C.dfm, to = "topicmodels"), k = 5, control = list(alpha=0.2,seed = 10052017))
+
+get_terms(C.lda, 10)
+ 
+assignment<-data.frame("finalserialno"=as.numeric(names(topics(C.lda))),"topic"=topics(C.lda)    )
+
+DTA<-join(DTA, assignment)[!is.na(topic)]
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic model over Brexit single most important issue}
+<<topicmodelbrexit3, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+##create DTM
+
+#Immigration topic
+DTA[topic==2, list(topic,substr(A1,1,60))][1:10]
+
+#Austerity/ public goods/ employment topic
+DTA[topic==4, list(topic,substr(A1,1,60))][1:10]
+@
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Topic Distribution}
+<<topicmodelbrexit4, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F,out.width='3in'>>=
+##create DTM
+
+hist(DTA$topic)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Searching for a topic model to predict Brexit vote}
+<<topicmodelbrexit5, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F>>=
+##create DTM
+leaveout <- sample(1:nrow(DTA), 200) ## sample 500 random indices
+looping<-NULL
+for(kk in seq(3,30,1)) { 
+C.lda <- LDA(convert(C.dfm, to = "topicmodels"), k = kk, control = list(alpha=.075,seed = 10052017))
+assignment<-data.frame("finalserialno"=as.numeric(names(topics(C.lda))),"topic"=topics(C.lda)    )
+
+MAT<-data.frame("leaveeu"=DTA$leaveeu, C.lda@gamma)
+# train the model WITHOUT these observations (-index removes those obs)
+trained <- glm(leaveeu ~ .  , data=MAT[-leaveout,], binomial(link=logit))
+# get the predicted probability of spam on the left out data
+glm.probs <- predict(trained, newdata=MAT[leaveout,], type="response")
+# plot the OOS fit
+
+glm.pred=rep("remain",length(glm.probs))
+glm.pred[glm.probs>0.5]="leave"
+
+looping<-c(looping, sum(diag(2) * table(glm.pred,MAT[leaveout,]$leaveeu))/200)
+}
+
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Trade-off between topic depth and prediction performance?}
+<<topicmodelbrexit6, size="tiny",eval=TRUE,chache=TRUE,tidy=TRUE,echo=TRUE,include=TRUE,message=F, warning=F, out.width='3in'>>=
+##create DTM
+plot(seq(3,30,1), looping)
+lines(seq(3,30,1), looping)
+@
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting Conflict using NYTimes corpus and topic modelling}
+
+\begin{itemize}
+
+\item Construct NY Times corpus for the past 50 years, digital versions.\smallskip
+
+\item Estimate a topic model and identify the topics that are associated with conflict content (essentially browsing through the word clouds)\smallskip
+
+\item Use topic shares to predict political instability/conflict using \emph{within country} variation.
+
+\item Benchmark model is one with country and year fixed effects.
+
+
+\end{itemize}
+
+``Reading between the Lines: Prediction of Political Violence'', Hannes Mueller and Christopher Rauh, 2017.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Predicting Conflict using NYTimes corpus and topic modelling}
+
+\begin{center}
+
+\includegraphics[scale=0.5]<1>{figures/muellerrauh-1.png}
+\includegraphics[scale=0.5]<2>{figures/muellerrauh-2.png}
+\includegraphics[scale=0.5]<3>{figures/muellerrauh-3.png}
+\includegraphics[scale=0.5]<4>{figures/muellerrauh-4.png}
+
+\end{center}
+
+``Reading between the Lines: Prediction of Political Violence'', Hannes Mueller and Christopher Rauh, 2017.
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlated Topic models}
+
+\begin{itemize}
+
+\item Dirichlet distribution over simplex only allows for distributions that are basically independent of one another.
+
+\item Alternative distributions over simplex allow for correlations.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/ctm1.png}
+\includegraphics[scale=0.35]<2>{figures/ctm2.png}
+\includegraphics[scale=0.45]<3>{figures/ctm3.png}
+
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dynamic Topic models}
+
+\begin{itemize}
+
+\item Basic topic model ignores the order of documents.
+
+\item Dynamic topic models lets topics drift over time.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/dynamictm0.png}
+\includegraphics[scale=0.35]<2>{figures/dynamictm.png}
+\includegraphics[scale=0.35]<3>{figures/dynamictm2.png}
+
+\end{center}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

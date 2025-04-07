@@ -1,0 +1,17 @@
+\frametitle{Dynamic Topic models}
+
+\begin{itemize}
+
+\item Basic topic model ignores the order of documents.
+
+\item Dynamic topic models lets topics drift over time.
+
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale=0.35]<1>{figures/dynamictm0.png}
+\includegraphics[scale=0.35]<2>{figures/dynamictm.png}
+\includegraphics[scale=0.35]<3>{figures/dynamictm2.png}
+
+\end{center}
+
